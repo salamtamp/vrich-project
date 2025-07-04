@@ -1,0 +1,7 @@
+.env*
+!.env.example
+requests.http
+.DS_Store
+env
+*.pyc
+*/__pycache__
