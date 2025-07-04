@@ -58,8 +58,7 @@ def register_user(
             detail="The user with this username already registered in the system.",
         )
 
-    user = user_repo.create(db, obj_in=user_in)
-    return user
+    return user_repo.create(db, obj_in=user_in)
 
 
 @router.post("/test-token", response_model=user_schema.User)

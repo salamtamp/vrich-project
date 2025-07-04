@@ -22,8 +22,7 @@ def read_users(
     """
     Retrieve users.
     """
-    users = user_repo.get_multi(db, skip=skip, limit=limit)
-    return users
+    return user_repo.get_multi(db, skip=skip, limit=limit)
 
 
 @router.post("/", response_model=user_schema.User, status_code=status.HTTP_201_CREATED)
@@ -47,8 +46,7 @@ def create_user(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
-    user = user_repo.create(db, obj_in=user_in)
-    return user
+    return user_repo.create(db, obj_in=user_in)
 
 
 @router.get("/me", response_model=user_schema.User)
@@ -58,8 +56,7 @@ def read_user_me(
     """
     Get current user.
     """
-    current_user = deps.get_current_user_from_request(request)
-    return current_user
+    return deps.get_current_user_from_request(request)
 
 
 @router.put("/me", response_model=user_schema.User)
@@ -72,8 +69,7 @@ def update_user_me(
     """
     Update own user.
     """
-    user = user_repo.update(db, db_obj=current_user, obj_in=user_in)
-    return user
+    return user_repo.update(db, db_obj=current_user, obj_in=user_in)
 
 
 @router.get("/{user_id}", response_model=user_schema.User)
@@ -84,8 +80,7 @@ def read_user_by_id(
     """
     Get a specific user by id.
     """
-    user = user_repo.get(db, id=str(user_id))
-    return user
+    return user_repo.get(db, id=str(user_id))
 
 
 @router.put("/{user_id}", response_model=user_schema.User)
@@ -104,8 +99,7 @@ def update_user(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
-    user = user_repo.update(db, db_obj=user, obj_in=user_in)
-    return user
+    return user_repo.update(db, db_obj=user, obj_in=user_in)
 
 
 @router.delete("/{user_id}", response_model=user_schema.User)
@@ -123,5 +117,4 @@ def delete_user(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
-    deleted_user = user_repo.remove(db, id=str(user_id))
-    return deleted_user
+    return user_repo.remove(db, id=str(user_id))
