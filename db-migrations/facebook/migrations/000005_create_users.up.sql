@@ -1,0 +1,15 @@
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS users (
+    id UUID NOT NULL DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
+    CONSTRAINT users_pkey PRIMARY KEY (id),
+    CONSTRAINT users_email_unique UNIQUE (email)
+);
+
+COMMIT;
