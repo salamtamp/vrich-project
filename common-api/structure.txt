@@ -1,0 +1,135 @@
+fastapi-project/
+├── app/                              # Main application package
+│   ├── __init__.py
+│   ├── main.py                      # FastAPI app factory
+│   │
+│   ├── api/                         # API layer
+│   │   ├── __init__.py
+│   │   ├── dependencies/            # Reusable dependencies
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py             # Authentication dependencies
+│   │   │   ├── database.py         # Database dependencies
+│   │   │   ├── pagination.py       # Pagination dependencies
+│   │   │   └── rate_limit.py       # Rate limiting
+│   │   ├── middleware/              # Custom middleware
+│   │   │   ├── __init__.py
+│   │   │   ├── cors.py
+│   │   │   ├── logging.py
+│   │   │   ├── security.py
+│   │   │   └── error_handler.py
+│   │   └── v1/                      # API version 1
+│   │       ├── __init__.py
+│   │       ├── router.py           # Main API router
+│   │       └── endpoints/          # API endpoints
+│   │           ├── __init__.py
+│   │           ├── auth.py
+│   │           ├── users.py
+│   │           └── health.py
+│   │
+│   ├── core/                        # Core functionality
+│   │   ├── __init__.py
+│   │   ├── config.py               # Settings using Pydantic BaseSettings
+│   │   ├── security.py             # Security utilities
+│   │   ├── logging.py              # Logging configuration
+│   │   ├── exceptions.py           # Custom exceptions
+│   │   ├── constants.py            # Application constants
+│   │   └── events.py               # Event handlers
+│   │
+│   ├── db/                          # Database layer
+│   │   ├── __init__.py
+│   │   ├── base.py                 # Database base configuration
+│   │   ├── session.py              # Database session management
+│   │   ├── models/                 # SQLAlchemy models
+│   │   │   ├── __init__.py
+│   │   │   ├── base.py            # Base model class
+│   │   │   ├── user.py
+│   │   │   ├── audit.py           # Audit trail model
+│   │   │   └── mixins.py          # Model mixins
+│   │   └── repositories/           # Repository pattern
+│   │       ├── __init__.py
+│   │       ├── base.py            # Base repository
+│   │       ├── user.py
+│   │       └── unit_of_work.py    # Unit of Work pattern
+│   │
+│   ├── schemas/                     # Pydantic schemas
+│   │   ├── __init__.py
+│   │   ├── base.py                 # Base schemas
+│   │   ├── user.py
+│   │   ├── auth.py
+│   │   ├── common.py
+│   │   └── responses.py            # Response schemas
+│   │
+│   ├── services/                    # Business logic layer
+│   │   ├── __init__.py
+│   │   ├── base.py                 # Base service class
+│   │   ├── user.py
+│   │   ├── auth.py
+│   │   ├── email.py
+│   │   └── cache.py
+│   │
+│   ├── utils/                       # Utility functions
+│   │   ├── __init__.py
+│   │   ├── helpers.py
+│   │   ├── validators.py
+│   │   ├── formatters.py
+│   │   ├── encryption.py
+│   │   └── background_tasks.py
+│   │
+│   └── integrations/                # External integrations
+│       ├── __init__.py
+│       ├── redis.py
+│       ├── s3.py
+│       ├── email_service.py
+│       └── payment_gateway.py
+│
+├── migrations/                      # Database migrations (Alembic)
+│   ├── versions/
+│   ├── env.py
+│   ├── script.py.mako
+│   └── alembic.ini
+│
+├── tests/                          # Test suite
+│   ├── __init__.py
+│   ├── conftest.py                 # Pytest configuration
+│   ├── factories.py                # Test data factories
+│   ├── fixtures/                   # Test fixtures
+│   │   ├── __init__.py
+│   │   ├── database.py
+│   │   └── auth.py
+│   ├── unit/                       # Unit tests
+│   │   ├── __init__.py
+│   │   ├── test_services/
+│   │   ├── test_repositories/
+│   │   └── test_utils/
+│   ├── integration/                # Integration tests
+│   │   ├── __init__.py
+│   │   ├── test_api/
+│   │   └── test_db/
+│   └── e2e/                        # End-to-end tests
+│       ├── __init__.py
+│       └── test_user_flow.py
+│
+├── scripts/                        # Utility scripts
+│   ├── init_db.py                  # Database initialization
+│   ├── seed_data.py                # Data seeding
+│   ├── backup.py                   # Database backup
+│   └── health_check.py             # Health check script
+│
+├── docker/                         # Docker configuration
+│   ├── Dockerfile                  # Main application
+│   ├── Dockerfile.dev              # Development environment
+│   ├── docker-compose.yml          # Production compose
+│   ├── docker-compose.dev.yml      # Development compose
+│   └── docker-compose.test.yml     # Testing compose
+│
+├── .env.example                    # Environment variables template
+├── .env.local                      # Local development environment
+├── .env.test                       # Test environment
+├── .gitignore
+├── .pre-commit-config.yaml         # Pre-commit hooks
+├── .dockerignore
+├── pyproject.toml                  # Modern Python project configuration
+├── requirements.txt
+├── Makefile                        # Common commands
+├── README.md
+└── CHANGELOG.md
