@@ -1,7 +1,7 @@
-import os
 import sys
+from pathlib import Path
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(Path.parent(Path.parent(Path.resolve(__file__))))
 
 from app.core.security import get_password_hash
 from app.db.models.user import User

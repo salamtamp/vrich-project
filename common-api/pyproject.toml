@@ -1,25 +1,139 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "vrich"
+version = "0.1.0"
+description = "FastAPI application with PostgreSQL"
+authors = ["piyawat <piyawat@example.com>"]
+maintainers = ["piyawat <piyawat@example.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/piyawat/vrich"
+repository = "https://github.com/piyawat/vrich"
+documentation = "https://github.com/piyawat/vrich/blob/main/README.md"
+keywords = ["fastapi", "postgresql", "web", "api"]
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+# Core FastAPI Stack
+fastapi = "^0.115.4"
+uvicorn = {extras = ["standard"], version = "^0.32.1"}
+
+# Database
+sqlalchemy = "^2.0.36"
+psycopg2-binary = "^2.9.10"
+alembic = "^1.14.0"
+
+# HTTP Client
+httpx = "^0.28.1"
+
+# Configuration & Environment
+python-dotenv = "^1.0.1"
+pydantic-settings = "^2.8.0"
+
+# Validation & Serialization
+pydantic = {extras = ["email"], version = "^2.10.3"}
+pydantic-extra-types = "^2.10.1"
+python-multipart = "^0.0.12"
+
+# Security & Authentication
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+bcrypt = "4.0.1"
+
+[tool.poetry.group.dev.dependencies]
+# Code Quality & Linting
+ruff = "^0.8.4"
+mypy = "^1.13.0"
+pre-commit = "^4.0.1"
+
+# Testing
+pytest = "^8.3.4"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+pytest-xdist = "^3.6.0"
+factory-boy = "^3.3.1"
+faker = "^33.1.0"
+
+# Development Tools
+ipython = "^8.31.0"
+rich = "^13.9.4"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.6.1"
+mkdocs-material = "^9.5.47"
+mkdocstrings = {extras = ["python"], version = "^0.26.0"}
+
+[tool.poetry.scripts]
+vrich = "app.main:app"
+
+[tool.poetry.extras]
+dev = ["ruff", "mypy", "pre-commit", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock", "pytest-xdist", "factory-boy", "faker", "ipython", "rich"]
+docs = ["mkdocs", "mkdocs-material", "mkdocstrings"]
+
+# === DEVELOPMENT TOOLS CONFIGURATION ===
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-exclude = ["venv", "migrations", "__pycache__", ".git", ".pytest_cache", "build", "dist"]
+src = ["app", "tests"]
+exclude = [
+    "venv",
+    "migrations",
+    "__pycache__",
+    ".git",
+    ".pytest_cache",
+    "build",
+    "dist",
+    ".venv",
+    "*.egg-info",
+]
 
 [tool.ruff.lint]
 select = [
-    "E",    # pycodestyle errors
-    "F",    # pyflakes
-    "B",    # flake8-bugbear
-    "I",    # isort
-    "N",    # pep8-naming
-    "UP",   # pyupgrade
-    "C4",   # flake8-comprehensions
-    "SIM",  # flake8-simplify
-    "RUF",  # ruff-specific rules
+    # Pyflakes
+    "F",
+    # Pycodestyle
+    "E", "W",
+    # Isort
+    "I",
+    # Pep8-naming
+    "N",
+    # Pyupgrade
+    "UP",
+    # Flake8-bugbear
+    "B",
+    # Flake8-simplify
+    "SIM",
+    # Flake8-comprehensions
+    "C4",
+    # Flake8-pie
+    "PIE",
+    # Flake8-pytest-style
+    "PT",
+    # Flake8-return
+    "RET",
+    # Flake8-use-pathlib
+    "PTH",
+    # Flake8-async
+    "ASYNC",
+    # Ruff-specific rules
+    "RUF",
 ]
 ignore = [
-    "B008",   # Ignore mutable default argument for FastAPI Depends()
-    "N806",   # Variable name should be lowercase (for SQLAlchemy models)
-    "N803",   # Argument name should be lowercase (for SQLAlchemy)
+    "B008",   # Do not perform function calls in argument defaults (FastAPI Depends)
+    "N806",   # Variable name should be lowercase (SQLAlchemy models)
+    "N803",   # Argument name should be lowercase (SQLAlchemy)
     "RUF012", # Mutable class attributes should be annotated
+    "PT011",  # pytest.raises() is too broad
 ]
 fixable = ["ALL"]
 unfixable = []
@@ -28,15 +142,63 @@ unfixable = []
 known-first-party = ["app", "tests"]
 force-single-line = false
 combine-as-imports = true
+split-on-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "PLR2004", "SLF001"]  # Allow assert, magic values, private access in tests
+"migrations/*" = ["ALL"]  # Ignore all rules in migrations
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+docstring-code-format = true
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unreachable = true
+show_error_codes = true
+show_column_numbers = true
+pretty = true
+color_output = true
+
+# Per-module options
+[[tool.mypy.overrides]]
+module = [
+    "alembic.*",
+    "factory_boy.*",
+    "jose.*",
+    "passlib.*",
+    "psycopg2.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--disable-warnings",
+    "-ra",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 filterwarnings = [
+    "error",
+    "ignore::UserWarning",
     "ignore::DeprecationWarning:pydantic.*",
     "ignore::DeprecationWarning:passlib.*",
     "ignore:.*crypt.*:DeprecationWarning",
@@ -44,38 +206,44 @@ filterwarnings = [
     "ignore:.*datetime.datetime.utcnow.*:DeprecationWarning:jose.*",
     "ignore:.*utcnow.*:DeprecationWarning",
 ]
-pythonpath = "."
-testpaths = ["tests"]
-python_files = ["test_*.py", "*_test.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = [
-    "--strict-markers",
-    "--strict-config",
-    "--disable-warnings",
-    "-v",
-]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+    "smoke: marks tests as smoke tests",
 ]
+asyncio_mode = "auto"
 
 [tool.coverage.run]
 source = ["app"]
+branch = true
 omit = [
     "*/tests/*",
     "*/venv/*",
     "*/__pycache__/*",
     "*/migrations/*",
+    "app/main.py",  # Usually just startup code
 ]
 
 [tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
+    "def __str__",
     "raise AssertionError",
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
 ]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
