@@ -5,3 +5,110 @@ requests.http
 env
 *.pyc
 */__pycache__
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic
+alembic/versions/*.py
+!alembic/versions/
+
+# build file
+.next/
+tsconfig.tsbuildinfo
+/out/
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+.swc
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore package-lock.json and yarn.lock
+package-lock.json
+yarn.lock
+
+# local env files
+.env*.local
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# vscode
+.vscode
+
+.env
+.env*
+!.env.example
+
+server/dist
+
+dist
+
+#msw
+public/mockServiceWorker.js
