@@ -6,109 +6,91 @@ env
 *.pyc
 */__pycache__
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+common-api/__pycache__/
+common-api/*.py[cod]
+common-api/*$py.class
+common-api/*.so
+common-api/.Python
+common-api/build/
+common-api/develop-eggs/
+common-api/dist/
+common-api/downloads/
+common-api/eggs/
+common-api/.eggs/
+common-api/lib/
+common-api/lib64/
+common-api/parts/
+common-api/sdist/
+common-api/var/
+common-api/wheels/
+common-api/*.egg-info/
+common-api/.installed.cfg
+common-api/*.egg
+common-api/MANIFEST
 
-# Virtual Environment
-venv/
-env/
-ENV/
+common-api/venv/
+common-api/env/
+common-api/ENV/
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+common-api/.env
+common-api/.env.local
+common-api/.env.*.local
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+common-api/.vscode/
+common-api/.idea/
+common-api/*.swp
+common-api/*.swo
+common-api/*~
 
-# Database
-*.db
-*.sqlite3
+common-api/*.db
+common-api/*.sqlite3
 
-# Logs
-*.log
-logs/
+common-api/*.log
+common-api/logs/
 
-# OS
-.DS_Store
-Thumbs.db
+common-api/.DS_Store
+common-api/Thumbs.db
 
-# Alembic
-alembic/versions/*.py
-!alembic/versions/
+common-api/alembic/versions/*.py
+common-api/!alembic/versions/
 
-# build file
-.next/
-tsconfig.tsbuildinfo
-/out/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
+web/.next/
+web/tsconfig.tsbuildinfo
+web/out/
 
-# production
-/build
+web/node_modules
+web/.pnp
+web/.pnp.js
+web/.yarn/install-state.gz
 
-# misc
-.DS_Store
-*.pem
-.swc
+web/build
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+web/.DS_Store
+web/*.pem
+web/.swc
 
-# Ignore package-lock.json and yarn.lock
-package-lock.json
-yarn.lock
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
 
-# local env files
-.env*.local
+web/package-lock.json
+web/yarn.lock
 
-# vercel
-.vercel
+web/.env*.local
 
-# typescript
-*.tsbuildinfo
+web/.vercel
 
-# vscode
-.vscode
+web/*.tsbuildinfo
 
-.env
-.env*
-!.env.example
+web/.vscode
 
-server/dist
+web/.env
+web/.env*
+web/!.env.example
 
-dist
+web/server/dist
 
-#msw
-public/mockServiceWorker.js
+web/dist
+
+web/public/mockServiceWorker.js
