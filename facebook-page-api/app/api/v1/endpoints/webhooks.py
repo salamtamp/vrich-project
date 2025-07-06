@@ -114,7 +114,7 @@ def process_media_message(sender_id: str, message: FacebookMessage, timestamp: O
             log_data = {
                 "event": "unsupported_attachment_type",
                 "sender_id": sender_id,
-                "message_data": message.dict(),
+                "message_data": message.model_dump(),
                 "timestamp": timestamp
             }
 
@@ -139,7 +139,7 @@ def process_messaging_event(messaging_event: FacebookMessagingEvent) -> None:
         log_data = {
             "event": "unsupported_message_type",
             "sender_id": sender_id,
-            "message_data": message.dict(),
+            "message_data": message.model_dump(),
             "timestamp": timestamp
         }
 
@@ -180,6 +180,17 @@ async def handle_webhook(request: Request):
     try:
         body_data = await request.json()
         body = FacebookWebhookBody(**body_data)
+
+        if not body.object or \
+            not body.entry or \
+                not body.entry[0].messaging \
+                    or not body.entry[0].messaging[0].sender \
+                        or not body.entry[0].messaging[0].message:
+            logger.error("Missing required fields in webhook body")
+            return JSONResponse(
+                content={"status": "error", "detail": "Invalid webhook payload"},
+                status_code=400
+            )
 
         process_webhook_body(body)
 

@@ -1,5 +1,5 @@
 from functools import lru_cache
-
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -17,9 +17,10 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8"
+    )
 
 @lru_cache
 def get_settings() -> Settings:
