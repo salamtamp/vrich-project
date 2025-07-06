@@ -1,12 +1,13 @@
-from app.core.config import get_settings
+from app.core.config import get_queue, get_settings
+from app.utils.queue import Queue
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
-from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional, Union
-import json
-import logging
+from pydantic import BaseModel
+from typing import Dict, Any, List, Optional
 
 import httpx
+import json
+import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -63,9 +64,9 @@ def format_media_message(
     }
 
 
-def process_text_message(sender_id: str, message: FacebookMessage, timestamp: Optional[int]) -> None:
+def process_text_message(sender_id: str, message: FacebookMessage, timestamp: Optional[int]) -> Dict[str, Any]:
     if not message.text:
-        return
+        return {}
 
     formatted_message = format_text_message(sender_id, message.text)
 
@@ -79,12 +80,15 @@ def process_text_message(sender_id: str, message: FacebookMessage, timestamp: Op
     logger.info("Text message received", extra=log_data)
     print(json.dumps(log_data, indent=2))
 
+    return log_data
 
-def process_media_message(sender_id: str, message: FacebookMessage, timestamp: Optional[int]) -> None:
+
+def process_media_message(sender_id: str, message: FacebookMessage, timestamp: Optional[int]) -> Dict[str, Any]:
     if not message.attachments:
-        return
+        return {}
 
     ALLOWED_MEDIA_TYPES = {"image", "video", "audio", "file"}
+    processed_attachments = []
 
     for attachment in message.attachments:
         attachment_type = attachment.type
@@ -110,6 +114,7 @@ def process_media_message(sender_id: str, message: FacebookMessage, timestamp: O
 
             logger.info(f"Media message received: {attachment_type}", extra=log_data)
             print(json.dumps(log_data, indent=2))
+            processed_attachments.append(log_data)
         else:
             log_data = {
                 "event": "unsupported_attachment_type",
@@ -120,21 +125,24 @@ def process_media_message(sender_id: str, message: FacebookMessage, timestamp: O
 
             logger.warning(f"Unsupported attachment type: {attachment_type}", extra=log_data)
             print(json.dumps(log_data, indent=2))
+            processed_attachments.append(log_data)
+
+    return {"attachments": processed_attachments} if processed_attachments else {}
 
 
-def process_messaging_event(messaging_event: FacebookMessagingEvent) -> None:
+def process_messaging_event(messaging_event: FacebookMessagingEvent) -> Dict[str, Any]:
     sender_id = messaging_event.sender.id
     message = messaging_event.message
     timestamp = messaging_event.timestamp
 
     if not message:
-        return
+        return {}
 
     # Process text messages
-    if message.attachments:
-        process_media_message(sender_id, message, timestamp)
-    elif message.text:
-        process_text_message(sender_id, message, timestamp)
+    if message.text:
+        return process_text_message(sender_id, message, timestamp)
+    elif message.attachments:
+        return process_media_message(sender_id, message, timestamp)
     else:
         log_data = {
             "event": "unsupported_message_type",
@@ -145,18 +153,31 @@ def process_messaging_event(messaging_event: FacebookMessagingEvent) -> None:
 
         logger.warning("Unsupported message type", extra=log_data)
         print(json.dumps(log_data, indent=2))
+        return log_data
 
-def process_webhook_body(body: FacebookWebhookBody) -> None:
+
+def process_webhook_body(body: FacebookWebhookBody) -> List[Dict[str, Any]]:
     if body.object != "page":
         logger.warning(f"Received webhook for object type: {body.object}")
-        return
+        return []
 
+    processed_events = []
     for entry in body.entry:
         for messaging_event in entry.messaging:
             try:
-                process_messaging_event(messaging_event)
+                event_data = process_messaging_event(messaging_event)
+                if event_data:
+                    processed_events.append(event_data)
             except Exception as e:
                 logger.error(f"Error processing messaging event: {e}", exc_info=True)
+                error_data = {
+                    "event": "processing_error",
+                    "error": str(e),
+                    "timestamp": messaging_event.timestamp if messaging_event.timestamp else None
+                }
+                processed_events.append(error_data)
+
+    return processed_events
 
 
 @router.get("/")
@@ -177,6 +198,17 @@ async def verify_webhook(
 
 @router.post("/")
 async def handle_webhook(request: Request):
+    settings = get_settings()
+    queue = get_queue()
+
+    if not queue:
+        queue = Queue(
+            host=settings.RABBITMQ_HOST,
+            username=settings.RABBITMQ_USER,
+            password=settings.RABBITMQ_PASS
+        )
+        queue.connect()
+
     try:
         body_data = await request.json()
         body = FacebookWebhookBody(**body_data)
@@ -192,10 +224,16 @@ async def handle_webhook(request: Request):
                 status_code=400
             )
 
-        process_webhook_body(body)
+        processed_data = process_webhook_body(body)
+
+        if processed_data:
+            queue.publish("inbox", processed_data)
+            logger.info(f"Published {len(processed_data)} events to inbox queue")
+        else:
+            logger.info("No events to publish to queue")
 
         return JSONResponse(
-            content={"status": "OK"},
+            content={"status": "OK", "processed_events": len(processed_data)},
             status_code=200
         )
 

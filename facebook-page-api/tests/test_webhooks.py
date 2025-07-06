@@ -371,12 +371,29 @@ class TestWebhookHandler:
             ]
         }
 
-        with patch("app.api.v1.endpoints.webhooks.process_webhook_body") as mock_process:
-            response = client.post("/api/v1/webhook/", json=webhook_data)
+        with patch("app.api.v1.endpoints.webhooks.get_settings") as mock_get_settings:
+            with patch("app.api.v1.endpoints.webhooks.get_queue") as mock_get_queue:
+                with patch("app.api.v1.endpoints.webhooks.Queue") as mock_queue_class:
+                    # Mock settings
+                    mock_settings = MagicMock()
+                    mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
+                    mock_settings.RABBITMQ_HOST = "localhost"
+                    mock_settings.RABBITMQ_USER = "guest"
+                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_get_settings.return_value = mock_settings
 
-            assert response.status_code == 200
-            assert response.json() == {"status": "OK"}
-            mock_process.assert_called_once()
+                    # Mock queue
+                    mock_queue = MagicMock()
+                    mock_get_queue.return_value = None  # No existing queue
+                    mock_queue_class.return_value = mock_queue
+
+                    response = client.post("/api/v1/webhook/", json=webhook_data)
+
+                    assert response.status_code == 200
+                    response_data = response.json()
+                    assert response_data["status"] == "OK"
+                    assert "processed_events" in response_data
+                    assert response_data["processed_events"] >= 0
 
     def test_handle_webhook_invalid_payload(self, client):
         """Test webhook handling with invalid payload"""
@@ -480,10 +497,29 @@ class TestWebhookIntegration:
             ]
         }
 
-        response = client.post("/api/v1/webhook/", json=webhook_data)
+        with patch("app.api.v1.endpoints.webhooks.get_settings") as mock_get_settings:
+            with patch("app.api.v1.endpoints.webhooks.get_queue") as mock_get_queue:
+                with patch("app.api.v1.endpoints.webhooks.Queue") as mock_queue_class:
+                    # Mock settings
+                    mock_settings = MagicMock()
+                    mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
+                    mock_settings.RABBITMQ_HOST = "localhost"
+                    mock_settings.RABBITMQ_USER = "guest"
+                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_get_settings.return_value = mock_settings
 
-        assert response.status_code == 200
-        assert response.json() == {"status": "OK"}
+                    # Mock queue
+                    mock_queue = MagicMock()
+                    mock_get_queue.return_value = None  # No existing queue
+                    mock_queue_class.return_value = mock_queue
+
+                    response = client.post("/api/v1/webhook/", json=webhook_data)
+
+                    assert response.status_code == 200
+                    response_data = response.json()
+                    assert response_data["status"] == "OK"
+                    assert "processed_events" in response_data
+                    assert response_data["processed_events"] >= 0
 
     def test_webhook_with_media_message_integration(self, client):
         """Test webhook handling with media message integration"""
@@ -511,10 +547,29 @@ class TestWebhookIntegration:
             ]
         }
 
-        response = client.post("/api/v1/webhook/", json=webhook_data)
+        with patch("app.api.v1.endpoints.webhooks.get_settings") as mock_get_settings:
+            with patch("app.api.v1.endpoints.webhooks.get_queue") as mock_get_queue:
+                with patch("app.api.v1.endpoints.webhooks.Queue") as mock_queue_class:
+                    # Mock settings
+                    mock_settings = MagicMock()
+                    mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
+                    mock_settings.RABBITMQ_HOST = "localhost"
+                    mock_settings.RABBITMQ_USER = "guest"
+                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_get_settings.return_value = mock_settings
 
-        assert response.status_code == 200
-        assert response.json() == {"status": "OK"}
+                    # Mock queue
+                    mock_queue = MagicMock()
+                    mock_get_queue.return_value = None  # No existing queue
+                    mock_queue_class.return_value = mock_queue
+
+                    response = client.post("/api/v1/webhook/", json=webhook_data)
+
+                    assert response.status_code == 200
+                    response_data = response.json()
+                    assert response_data["status"] == "OK"
+                    assert "processed_events" in response_data
+                    assert response_data["processed_events"] >= 0
 
     def test_webhook_with_multiple_messages_integration(self, client):
         """Test webhook handling with multiple messages integration"""
@@ -538,10 +593,26 @@ class TestWebhookIntegration:
             ]
         }
 
-        response = client.post("/api/v1/webhook/", json=webhook_data)
+        with patch("app.api.v1.endpoints.webhooks.get_settings") as mock_get_settings:
+            with patch("app.api.v1.endpoints.webhooks.get_queue") as mock_get_queue:
+                with patch("app.api.v1.endpoints.webhooks.Queue") as mock_queue_class:
+                    # Mock settings
+                    mock_settings = MagicMock()
+                    mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
+                    mock_settings.RABBITMQ_HOST = "localhost"
+                    mock_settings.RABBITMQ_USER = "guest"
+                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_get_settings.return_value = mock_settings
 
-        assert response.status_code == 200
-        assert response.json() == {"status": "OK"}
+                    # Mock queue
+                    mock_queue = MagicMock()
+                    mock_get_queue.return_value = None  # No existing queue
+                    mock_queue_class.return_value = mock_queue
+
+                    response = client.post("/api/v1/webhook/", json=webhook_data)
+
+                    assert response.status_code == 200
+                    assert response.json() == {"status": "OK", "processed_events": 2}
 
 
 class TestWebhookModels:

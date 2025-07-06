@@ -1,7 +1,9 @@
 from functools import lru_cache
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
+from app.utils.queue import Queue
 
+queue: Queue = None
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Facebook Page API"
@@ -12,6 +14,12 @@ class Settings(BaseSettings):
     FACEBOOK_BASE_URL: str
     FACEBOOK_PAGE_ACCESS_TOKEN: str
     FACEBOOK_INBOX_VERIFY_TOKEN: str
+
+    # RabbitMQ
+    RABBITMQ_HOST: str = "localhost"
+    RABBITMQ_PORT: int = 15672
+    RABBITMQ_USER: str = "guest"
+    RABBITMQ_PASS: str = "guest"
 
     # Env
     DEBUG: bool = False
@@ -27,4 +35,16 @@ def get_settings() -> Settings:
     return Settings()
 
 
+def connect_queue(settings: Settings):
+    queue = Queue(
+        host=settings.RABBITMQ_HOST,
+        username=settings.RABBITMQ_USER,
+        password=settings.RABBITMQ_PASS
+    )
+    queue.connect()
+
+def get_queue() -> Queue:
+    return queue
+
 settings = get_settings()
+queue = get_queue()
