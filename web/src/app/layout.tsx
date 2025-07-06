@@ -5,7 +5,7 @@ import { PublicEnvScript } from 'next-runtime-env';
 
 import type { NextJSChildren } from '@/types';
 
-import './globals.css';
+import './globals.scss';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://vrich.cariva.co.th'),
@@ -17,9 +17,17 @@ const RootLayout = ({ children }: NextJSChildren) => {
     <html lang='th'>
       <head>
         <PublicEnvScript />
+
+        <link
+          as='font'
+          crossOrigin='anonymous'
+          href='/assets/fonts/noto-sans-thai/NotoSansThai-VariableFont_wdth,wght.ttf'
+          rel='preload'
+          type='font/ttf'
+        />
       </head>
 
-      <body>
+      <body className='bg-surface-primary'>
         <Suspense fallback={<></>}>{children}</Suspense>
       </body>
     </html>

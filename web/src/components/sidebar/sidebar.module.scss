@@ -1,0 +1,51 @@
+.container {
+  @apply flex flex-col justify-between overflow-hidden;
+  @apply w-[228px] rounded-2xl py-4;
+  @apply bg-white;
+
+  height: calc(100% - 16px);
+  box-shadow: rgba(17, 17, 26, 0.1) 0px 0px 16px;
+}
+
+.navBarContainer {
+  @apply flex flex-col;
+}
+
+.headerContainer {
+  @apply flex items-center justify-between;
+  @apply ml-7 mt-3;
+}
+
+.menuContainer {
+  @apply flex flex-col;
+  @apply mt-10 gap-2;
+}
+
+.menuItem {
+  @apply ml-1 mr-1 flex items-center gap-2 rounded-2xl py-4 pl-3;
+  @apply transition-colors hover:bg-gray-100;
+
+  p {
+    @apply text-gray-700;
+  }
+
+  &.isActive {
+    @apply bg-gray-200;
+
+    p {
+      @apply text-gray-900;
+    }
+
+    .iconActive {
+      @apply text-gray-900;
+    }
+  }
+}
+
+.iconActive {
+  @apply text-gray-700;
+}
+
+.footerContainer {
+  @apply flex;
+}

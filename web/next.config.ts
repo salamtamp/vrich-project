@@ -12,6 +12,16 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: false,
 
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/sign-in',
+        permanent: true,
+      },
+    ];
+  },
+
   // Optimize images
   images: {
     formats: ['image/webp', 'image/avif'],

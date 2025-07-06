@@ -12,7 +12,7 @@ const GRAY = {
   25: '#FDFDFD', // Almost white
   50: '#FAFAFA', // Very light gray
   100: '#F5F5F5', // Light gray
-  200: '#E9EAEB', // Soft gray
+  200: '#F0F0F0', // Soft gray
   300: '#D5D7DA', // Medium light gray
   400: '#A4A7AE', // Medium gray
   500: '#717680', // Base gray
@@ -297,24 +297,6 @@ export const SEMANTIC_COLORS = {
   info: INFO,
 } as const;
 
-// ===== UTILITY FUNCTIONS =====
-export const getColorWithOpacity = (color: string, opacity: number): string => {
-  const hex = color.replace('#', '');
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-};
-
-export const getContrastColor = (backgroundColor: string): string => {
-  const hex = backgroundColor.replace('#', '');
-  const r = parseInt(hex.substr(0, 2), 16);
-  const g = parseInt(hex.substr(2, 2), 16);
-  const b = parseInt(hex.substr(4, 2), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 128 ? BLACK : WHITE;
-};
-
 // ===== THEME PRESETS =====
 export const LIGHT_THEME = {
   background: WHITE,
@@ -327,7 +309,6 @@ export const LIGHT_THEME = {
     disabled: GRAY[400],
   },
   border: GRAY[200],
-  shadow: getColorWithOpacity(BLACK, 0.1),
 } as const;
 
 export const DARK_THEME = {
@@ -341,7 +322,6 @@ export const DARK_THEME = {
     disabled: GRAY[500],
   },
   border: GRAY[700],
-  shadow: getColorWithOpacity(BLACK, 0.3),
 } as const;
 
 // ===== EXPORT ALL =====
@@ -375,6 +355,5 @@ export {
 
 // ===== TYPE DEFINITIONS =====
 export type ColorScale = typeof GRAY;
-export type ColorValue = string;
 export type PaletteKey = keyof typeof PALETTES;
 export type SemanticKey = keyof typeof SEMANTIC_COLORS;

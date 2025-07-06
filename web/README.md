@@ -47,7 +47,7 @@ To further improve your coding experience and ensure consistent formatting and l
     "source.fixAll.eslint": true
   },
   "files.associations": {
-    "*.css": "tailwindcss"
+    "*.scss": "tailwindcss"
   }
 }
 ```

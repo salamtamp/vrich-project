@@ -1,0 +1,56 @@
+.container {
+  @apply flex size-full flex-col;
+}
+
+.filterContainer {
+  @apply flex items-center justify-between;
+  @apply px-4 py-3;
+  @apply min-h-[60px] w-full;
+  @apply rounded-2xl;
+  @apply bg-white;
+  box-shadow: rgba(17, 17, 26, 0.1) 0px 0px 16px;
+}
+
+.cardItemContainer {
+  @apply grid grid-cols-1;
+  @apply mt-4 gap-6 pb-1;
+  @apply overflow-y-scroll;
+
+  @media (min-width: 800px) {
+    @apply grid-cols-2;
+  }
+
+  @media (min-width: 1200px) {
+    @apply grid-cols-3;
+  }
+
+  @media (min-width: 1760px) {
+    @apply grid-cols-4;
+  }
+}
+
+.cardItemContainerScrollable {
+  @apply pr-[6px];
+}
+
+.itemCardContainer {
+  @apply flex;
+  @apply size-fit h-full max-h-[116px] min-w-full;
+  @apply gap-4 px-6 py-5;
+  @apply rounded-2xl;
+  @apply bg-white;
+  @apply border-[1.5px] border-solid border-gray-200;
+  @apply cursor-pointer;
+  @apply transition-all duration-200 ease-in-out;
+  @apply transform-gpu;
+
+  &:hover {
+    @apply bg-gray-100;
+    @apply shadow-md;
+  }
+
+  &:active {
+    @apply bg-gray-100;
+    @apply scale-[0.96];
+  }
+}

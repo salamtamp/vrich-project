@@ -1,0 +1,32 @@
+.cardContent {
+  @apply flex w-full flex-col;
+  @apply overflow-hidden;
+}
+
+.cardName {
+  @apply truncate;
+  @apply text-display-medium text-gray-800;
+}
+
+.cardText {
+  @apply line-clamp-2;
+  @apply mt-[10px];
+  @apply text-sm-regular text-gray-500;
+}
+
+.cardRight {
+  @apply flex flex-col items-end justify-between;
+  @apply min-w-12;
+  @apply gap-1;
+}
+
+.cardAvatar {
+  @apply size-10;
+  @apply rounded-full;
+  @apply bg-gray-300;
+}
+
+.cardTime {
+  @apply line-clamp-1;
+  @apply text-xxs-regular text-gray-500;
+}

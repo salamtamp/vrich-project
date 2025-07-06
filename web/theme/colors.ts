@@ -1,4 +1,4 @@
-import { PALETTES } from './palettes';
+import { BLUE_LIGHT, PALETTES } from './palettes';
 
 const { gray, brand, success, error, warning, info, blueGray, blue, indigo, purple, teal } = PALETTES;
 // emerald
@@ -54,10 +54,10 @@ export const BACKGROUND_COLORS = {
   subtle: gray[100],
 
   // Surface levels
-  'surface-primary': gray[25],
-  'surface-secondary': gray[50],
-  'surface-tertiary': gray[100],
-  'surface-quaternary': gray[200],
+  'surface-primary': BLUE_LIGHT[50],
+  'surface-secondary': BLUE_LIGHT[100],
+  'surface-tertiary': BLUE_LIGHT[200],
+  'surface-quaternary': BLUE_LIGHT[300],
 
   // Contrast surfaces
   'surface-contrast': blueGray[900],
