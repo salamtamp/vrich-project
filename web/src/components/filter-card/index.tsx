@@ -22,16 +22,10 @@ type FilterCardProps = {
   limitOptions?: number[];
   data?: CardData[];
   total?: number;
+  onCardClick?: (id: string, item: CardData) => void;
 };
 
-const defaultLimitOption = [12, 24, 48, 96];
-
-const FilterCard: React.FC<FilterCardProps> = ({
-  title,
-  limitOptions = defaultLimitOption,
-  data,
-  total = 0,
-}) => {
+const FilterCard: React.FC<FilterCardProps> = ({ title, limitOptions, data, total = 0, onCardClick }) => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
   const { pagination } = usePaginationContext();
@@ -103,7 +97,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
                 setSelectedIds(allIds);
               }}
             >
-              เลือกทั้งหมด
+              Select All
             </Button>
           ) : null}
 
@@ -117,7 +111,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
               }
             }}
           >
-            เลือก
+            Select
           </Button>
         </div>
       </div>
@@ -132,10 +126,12 @@ const FilterCard: React.FC<FilterCardProps> = ({
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
             <div
               key={item.id}
-              className={cn(styles.itemCardContainer, isSelected && '!border-blue-300')}
+              className={cn(styles.itemCardContainer, isSelected && isSelectMode && '!border-blue-300')}
               onClick={() => {
                 if (isSelectMode) {
                   setSelectedIds?.((c) => handleToggle(c, item.id));
+                } else {
+                  onCardClick?.(item.id, item);
                 }
               }}
               onKeyDown={(e) => {
@@ -143,6 +139,8 @@ const FilterCard: React.FC<FilterCardProps> = ({
                   if (isSelectMode) {
                     e.preventDefault();
                     setSelectedIds?.((c) => handleToggle(c, item.id));
+                  } else {
+                    onCardClick?.(item.id, item);
                   }
                 }
               }}

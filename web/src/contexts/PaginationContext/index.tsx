@@ -30,7 +30,7 @@ type PaginationContextType = {
 const defaultPagination: Omit<Pagination, 'offset' | 'isDisableNext' | 'isDisablePrev'> = {
   page: 1,
   total: 0,
-  limit: 12,
+  limit: 15,
   isLoading: false,
   sortBy: 'updated_at',
   order: 'DESC',

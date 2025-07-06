@@ -6,6 +6,8 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { ArrowDownNarrowWide, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
+import { MONTHS, MONTHS_SHORT, WEEK_DAYS } from '@/constant/data-time';
+
 type DatePickerState = {
   startDate: Dayjs | null;
   endDate: Dayjs | null;
@@ -16,38 +18,6 @@ type DatePickerProps = {
   minDate?: Dayjs;
   maxDate?: Dayjs;
 };
-
-const THAI_MONTHS = [
-  'มกราคม',
-  'กุมภาพันธ์',
-  'มีนาคม',
-  'เมษายน',
-  'พฤษภาคม',
-  'มิถุนายน',
-  'กรกฎาคม',
-  'สิงหาคม',
-  'กันยายน',
-  'ตุลาคม',
-  'พฤศจิกายน',
-  'ธันวาคม',
-];
-
-const THAI_MONTHS_SHORT = [
-  'ม.ค.',
-  'ก.พ.',
-  'มี.ค.',
-  'เม.ย.',
-  'พ.ค.',
-  'มิ.ย.',
-  'ก.ค.',
-  'ส.ค.',
-  'ก.ย.',
-  'ต.ค.',
-  'พ.ย.',
-  'ธ.ค.',
-];
-
-const WEEK_DAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 const isSameDay = (date1: Dayjs | null, date2: Dayjs | null): boolean => {
   if (!date1 || !date2) {
@@ -61,7 +31,7 @@ const formatDate = (date: Dayjs | null): string => {
     return '';
   }
   const day = date.date();
-  const month = THAI_MONTHS_SHORT[date.month()];
+  const month = MONTHS_SHORT[date.month()];
   const year = date.year();
   return `${day} ${month} ${year}`;
 };
@@ -106,11 +76,11 @@ const MonthDropdown: React.FC<MonthDropdownProps> = ({
 }) => (
   <div className='relative'>
     <button
-      aria-label='เลือกเดือน'
+      aria-label='select-mount'
       className='flex items-center gap-1 rounded-lg border border-solid border-gray-200 px-2 py-1 text-sm font-medium transition-colors hover:bg-gray-100'
       onClick={onToggle}
     >
-      {THAI_MONTHS[currentMonth.month()]}
+      {MONTHS[currentMonth.month()]}
       <ArrowDownNarrowWide
         size={10}
         strokeWidth={1.5}
@@ -118,7 +88,7 @@ const MonthDropdown: React.FC<MonthDropdownProps> = ({
     </button>
     {showDropdown ? (
       <div className='absolute left-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg'>
-        {THAI_MONTHS.map((month, index) => {
+        {MONTHS.map((month, index) => {
           const disabled = isMonthDisabled(index);
           const isSelected = index === currentMonth.month();
           const bgClass = isSelected ? 'bg-blue-50 text-blue-600' : '';
@@ -161,7 +131,7 @@ const YearDropdown: React.FC<YearDropdownProps> = ({
 }) => (
   <div className='relative'>
     <button
-      aria-label='เลือกปี'
+      aria-label='select-year'
       className='flex items-center gap-1 rounded-lg border border-solid border-gray-100 px-2 py-1 text-sm font-medium transition-colors hover:bg-gray-100'
       onClick={onToggle}
     >
@@ -455,23 +425,22 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
     if (isSelectingEnd && selectedStartDate) {
       if (hoveredDate) {
         const dayCount = calculateDaysDifference(selectedStartDate, hoveredDate);
-        return `${dayCount} วัน (ตัวอย่าง)`;
+        return `${dayCount} days (preview)`;
       }
-      return 'เลือกวันที่สิ้นสุด';
+      return 'Select end date';
     }
 
     if (!selectedStartDate) {
-      return 'เลือกวันที่เริ่มต้น';
+      return 'Select start date';
     }
 
     if (selectedStartDate && selectedEndDate) {
       const dayCount = calculateDaysDifference(selectedStartDate, selectedEndDate);
-      return `เลือกแล้ว ${dayCount} วัน`;
+      return `Selected ${dayCount} days`;
     }
 
-    return 'เลือกวันที่สิ้นสุด';
+    return 'Select end date';
   };
-
   return <div className='mt-4 text-center text-xs text-gray-500'>{getStatusText()}</div>;
 };
 
@@ -501,14 +470,14 @@ const CalendarFooter: React.FC<CalendarFooterProps> = ({
         className='px-3 py-1 text-xs text-gray-600 transition-colors hover:text-gray-800'
         onClick={onCancel}
       >
-        ยกเลิก
+        Cancel
       </button>
       <button
         className={getApplyButtonClassName()}
         disabled={!selectedStartDate || !selectedEndDate}
         onClick={onApply}
       >
-        ตกลง
+        Apply
       </button>
     </div>
   );
@@ -582,7 +551,7 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
   return (
     <dialog
       open
-      aria-label='ปฏิทินเลือกวันที่'
+      aria-label='date-picker-calendar'
       className='absolute inset-x-0 top-12 z-50 w-[260px] rounded-lg border border-gray-200 bg-white p-4 shadow-lg'
       onKeyDown={onCalendarKeyDown}
       onClick={(e) => {
@@ -859,9 +828,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
       return `${formatDate(selectedStartDate)} - ${formatDate(selectedEndDate)}`;
     }
     if (selectedStartDate) {
-      return `${formatDate(selectedStartDate)} - วันที่สิ้นสุด`;
+      return `${formatDate(selectedStartDate)} - End date`;
     }
-    return 'เลือกช่วงวันที่';
+    return 'Select date range';
   };
 
   const handleMonthDropdownToggle = (): void => {
@@ -879,7 +848,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
       <div
         aria-expanded={isOpen}
         aria-haspopup='true'
-        aria-label='เลือกช่วงวันที่'
+        aria-label='select-date-range'
         className='relative w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-2 text-left transition-colors hover:border-gray-400 focus:outline-none'
         onKeyDown={handleKeyDown}
         onClick={() => {
@@ -897,7 +866,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
           </div>
           {!isOpen && (selectedStartDate || selectedEndDate) ? (
             <button
-              aria-label='ล้างการเลือก'
+              aria-label='clear-selection'
               className='text-gray-400 hover:text-gray-600'
               onClick={(e) => {
                 e.stopPropagation();

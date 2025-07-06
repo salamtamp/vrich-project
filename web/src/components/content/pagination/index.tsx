@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import {
   Pagination,
@@ -20,14 +20,17 @@ type ContentPaginationProps = {
   total?: number;
   limitOptions?: number[];
 };
+const defaultLimitOption = [15, 30, 50, 100, 200];
 
-const ContentPagination: React.FC<ContentPaginationProps> = ({ className, total = 0, limitOptions = [] }) => {
+const ContentPagination: React.FC<ContentPaginationProps> = ({
+  className,
+  total = 0,
+  limitOptions = defaultLimitOption,
+}) => {
   const { update, pagination, reset } = usePaginationContext();
-  const { limit } = pagination;
+  const { limit, page } = pagination;
 
   const totalPages = Math.ceil(total / limit);
-
-  const [currentPage, setCurrentPage] = useState(1);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -37,13 +40,13 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({ className, total 
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
-    } else if (currentPage <= 4) {
+    } else if (page <= 4) {
       for (let i = 1; i <= 5; i++) {
         pages.push(i);
       }
       pages.push('ellipsis');
       pages.push(totalPages);
-    } else if (currentPage >= totalPages - 3) {
+    } else if (page >= totalPages - 3) {
       pages.push(1);
       pages.push('ellipsis');
       for (let i = totalPages - 4; i <= totalPages; i++) {
@@ -52,7 +55,7 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({ className, total 
     } else {
       pages.push(1);
       pages.push('ellipsis');
-      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+      for (let i = page - 1; i <= page + 1; i++) {
         pages.push(i);
       }
       pages.push('ellipsis');
@@ -62,10 +65,9 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({ className, total 
     return pages;
   };
 
-  const handlePageChange = (pageDispley: string | number) => {
-    const newPage = typeof pageDispley === 'string' ? Number(pageDispley) : pageDispley;
+  const handlePageChange = (pageDisplay: string | number) => {
+    const newPage = typeof pageDisplay === 'string' ? Number(pageDisplay) : pageDisplay;
     if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
       update({ page: newPage });
     }
   };
@@ -80,9 +82,17 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({ className, total 
     <Pagination className={cn('items-center justify-between gap-2', className)}>
       <div className='flex items-center gap-2'>
         <p> Results per page:</p>
-        <Select>
+        <Select
+          value={`${limit}`}
+          onValueChange={(value) => {
+            if (!value) {
+              return;
+            }
+            update({ limit: Number(value), page: 1 });
+          }}
+        >
           <SelectTrigger className='w-[70px] rounded-xl'>
-            <SelectValue placeholder='12' />
+            <SelectValue placeholder={limitOptions[0]} />
           </SelectTrigger>
           <SelectContent>
             {limitOptions.map((l) => (
@@ -102,27 +112,27 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({ className, total 
           <PaginationPrevious
             className={cn(
               'size-10 rounded-xl p-2 hover:bg-gray-300',
-              currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+              page === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'
             )}
             onClick={() => {
-              handlePageChange(currentPage - 1);
+              handlePageChange(page - 1);
             }}
           />
         </PaginationItem>
 
-        {getPageNumbers().map((pageDispley) => (
+        {getPageNumbers().map((pageDisplay) => (
           <PaginationItem key={`pagination-item-${crypto.randomUUID()}`}>
-            {pageDispley === 'ellipsis' ? (
+            {pageDisplay === 'ellipsis' ? (
               <PaginationEllipsis />
             ) : (
               <PaginationLink
                 className='size-9 cursor-pointer rounded-xl hover:bg-gray-300'
-                isActive={currentPage === pageDispley}
+                isActive={page === pageDisplay}
                 onClick={() => {
-                  handlePageChange(pageDispley);
+                  handlePageChange(pageDisplay);
                 }}
               >
-                {pageDispley}
+                {pageDisplay}
               </PaginationLink>
             )}
           </PaginationItem>
@@ -132,10 +142,10 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({ className, total 
           <PaginationNext
             className={cn(
               'size-10 rounded-xl p-2 hover:bg-gray-300',
-              currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+              page === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'
             )}
             onClick={() => {
-              handlePageChange(currentPage + 1);
+              handlePageChange(page + 1);
             }}
           />
         </PaginationItem>

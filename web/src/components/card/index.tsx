@@ -21,7 +21,7 @@ export type CardData = { id: string; title: string; content?: ReactNode; lastUpd
 
 const Card: React.FC<CardProps> = ({ isSelected = false, isSelectMode = false, cardData }) => {
   return (
-    <div className='flex w-full'>
+    <div className='flex w-full gap-2'>
       <div className={cn(styles.cardContent)}>
         <div className='flex items-center gap-2'>
           {isSelectMode ? (
