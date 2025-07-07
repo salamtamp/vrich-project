@@ -1,186 +1,39 @@
+version: "3.8"
+
 services:
-  # PostgreSQL Database
-  db:
+  # Migration Service
+  migration:
     image: postgres:15-alpine
-    container_name: vrich_db_dev
+    container_name: vrich_migration
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-vrich_db}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: vrich_db_dev
+      POSTGRES_PORT: ${POSTGRES_PORT}
     volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "5432:5432"
+      # แก้ path นี้ให้เป็น absolute path ของเครื่องคุณ
+      - ./facebook/migrations:/migrations
     networks:
       - vrich_network_dev
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vrich_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # FastAPI Application (Development)
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-      target: development
-    container_name: vrich_app_dev
-    environment:
-      # Database
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-vrich_db}
-      
-      # App Config
-      DEBUG: "True"
-      PROJECT_NAME: ${PROJECT_NAME:-VRich Project Dev}
-      VERSION: ${VERSION:-1.0.0-dev}
-      DESCRIPTION: ${DESCRIPTION:-A VRich project with PostgreSQL (Development)}
-      
-      # Security
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
-      
-      # CORS
-      ALLOWED_HOSTS_RAW: ${ALLOWED_HOSTS_RAW:-localhost,127.0.0.1,0.0.0.0}
-      
-      # API
-      API_V1_STR: ${API_V1_STR:-/api/v1}
-      
-      # Server
-      HOST: ${HOST:-0.0.0.0}
-      PORT: ${PORT:-8000}
-      WORKERS: ${WORKERS:-1}
-      
-      # File Upload
-      UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
-      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10485760}
-      ALLOWED_EXTENSIONS: ${ALLOWED_EXTENSIONS:-jpg,jpeg,png,gif,pdf,doc,docx}
-      
-      # Python path
-      PYTHONPATH: /app
-    
-    volumes:
-      # Mount source code for hot reloading
-      - ./app:/app/app:ro
-      - ./pyproject.toml:/app/pyproject.toml:ro
-      - ./poetry.lock:/app/poetry.lock:ro
-      - uploads_data_dev:/app/uploads
-      - logs_data_dev:/app/logs
-    
-    ports:
-      - "8000:8000"
-    
-    networks:
-      - vrich_network_dev
-    
-    depends_on:
-      db:
-        condition: service_healthy
-    
-    restart: unless-stopped
-    
-    # Development command with hot reload
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
-
-  # Database Seed Service (Development)
-  seed:
-    profiles: ["manual"]
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-      target: development
-    container_name: vrich_seed_dev
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-vrich_db}
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
-      
-      # Admin user credentials
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-adminpass123}
-      ADMIN_FULL_NAME: ${ADMIN_FULL_NAME:-System Administrator}
-      
-      # Python path
-      PYTHONPATH: /app
-    
-    volumes:
-      # Add the app directory mount for imports
-      - ./app:/app/app:ro
-      - ./seeds:/app/seeds:ro
-      - ./scripts:/app/scripts:ro
-    
-    networks:
-      - vrich_network_dev
-    
     command: >
       sh -c "
-        echo 'Waiting for database to be ready...' &&
-        sleep 5 &&
-        echo 'Creating admin user...' &&
-        python scripts/create_admin.py &&
-        echo 'Database setup completed!'
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        sleep 10 &&
+        echo 'Testing database connection...' &&
+        PGPASSWORD=${POSTGRES_PASSWORD} pg_isready -h vrich_db_dev -U ${POSTGRES_USER} -d ${POSTGRES_DB} &&
+        echo 'Database is ready! Running migrations...' &&
+        for file in /migrations/*.sql; do
+          if [ -f \"$file\" ]; then
+            echo \"Executing: $file\" &&
+            PGPASSWORD=${POSTGRES_PASSWORD} psql -h vrich_db_dev -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f \"$file\" &&
+            echo \"Completed: $file\"
+          fi
+        done &&
+        echo 'All migrations completed!'
       "
-    
-    restart: "no"
+    profiles: ["migration"]
 
-  # Redis (for development)
-  redis:
-    image: redis:7-alpine
-    container_name: vrich_redis_dev
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data_dev:/data
-    networks:
-      - vrich_network_dev
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-
-  # pgAdmin (for database management)
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: vrich_pgadmin_dev
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    volumes:
-      - pgadmin_data_dev:/var/lib/pgadmin
-    ports:
-      - "5050:80"
-    networks:
-      - vrich_network_dev
-    depends_on:
-      - db
-    restart: unless-stopped
-    profiles:
-      - admin
-
-# Networks
 networks:
   vrich_network_dev:
-    driver: bridge
-    name: vrich_network_dev
-
-# Volumes
-volumes:
-  postgres_data_dev:
-    driver: local
-    name: vrich_postgres_data_dev
-  
-  uploads_data_dev:
-    driver: local
-    name: vrich_uploads_data_dev
-  
-  logs_data_dev:
-    driver: local
-    name: vrich_logs_data_dev
-  
-  redis_data_dev:
-    driver: local
-    name: vrich_redis_data_dev
-  
-  pgadmin_data_dev:
-    driver: local
-    name: vrich_pgadmin_data_dev
+    external: true

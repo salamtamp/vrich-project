@@ -1,44 +1,54 @@
-version: "3.8"
-
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: vrich_postgres
-    environment:
-      POSTGRES_DB: vrich_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - vrich_network
-    # ⚠️ Removed ports: to avoid conflict with host 5432
-    # ports:
-    #   - "5432:5432"
-
   # Migration Service
   migration:
     image: postgres:15-alpine
     container_name: vrich_migration
     environment:
-      POSTGRES_DB: vrich_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-vrich_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_HOST: ${POSTGRES_HOST:-vrich_db_dev}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
     volumes:
       - ./facebook/migrations:/migrations
-    depends_on:
-      - postgres
     networks:
-      - vrich_network
-    entrypoint: ["sleep", "infinity"]
+      - vrich_network_dev
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        sleep 10 &&
+        echo 'Testing database connection...' &&
+        PGPASSWORD=${POSTGRES_PASSWORD:-password} pg_isready -h ${POSTGRES_HOST:-vrich_db_dev} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vrich_db} &&
+        echo 'Database is ready! Running migrations...' &&
+        for file in /migrations/*.up.sql; do
+          if [ -f \"$$file\" ]; then
+            echo \"Executing: $$file\" &&
+            PGPASSWORD=${POSTGRES_PASSWORD:-password} psql -h ${POSTGRES_HOST:-vrich_db_dev} -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-vrich_db} -f \"$$file\" &&
+            echo \"Completed: $$file\"
+          fi
+        done &&
+        echo 'All migrations completed!'
+      "
     profiles: ["migration"]
+
+  db:
+    image: postgres:15-alpine
+    container_name: vrich_db_dev
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vrich_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vrich_network_dev
+    profiles: ["db"]
+
+networks:
+  vrich_network_dev:
+    external: true
 
 volumes:
   postgres_data:
-
-networks:
-  vrich_network:
-    driver: bridge
