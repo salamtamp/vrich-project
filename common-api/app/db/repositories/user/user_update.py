@@ -12,7 +12,7 @@ def update_user_data(
     else:
         update_data = obj_in.model_dump(exclude_unset=True)
     if update_data.get("password"):
-        hashed_password = get_password_hash(update_data["password"])
+        password = get_password_hash(update_data["password"])
         del update_data["password"]
-        update_data["hashed_password"] = hashed_password
+        update_data["password"] = password
     return update_data

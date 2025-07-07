@@ -40,12 +40,7 @@ def create_user(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
-    user = user_repo.get_by_username(db, username=user_in.username)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this username already exists in the system.",
-        )
+
     return user_repo.create(db, obj_in=user_in)
 
 

@@ -51,9 +51,8 @@ def test_user(db_session: Session):
     """Create a test user"""
     user = User(  # noqa: F811
         email="testuser@example.com",
-        username="testuser",
-        full_name="Test User",
-        hashed_password=get_password_hash("testpass123"),
+        name="Test User",
+        password=get_password_hash("testpass123"),
     )
     db_session.add(user)
     db_session.commit()
@@ -74,14 +73,12 @@ def test_create_user_public(db_session):
         "/api/v1/auth/register",
         json={
             "email": "newuser@example.com",
-            "username": "newuser",
-            "full_name": "New User",
+            "name": "New User",
             "password": "newpass123",
         },
     )
     assert response.status_code == 201
     assert response.json()["email"] == "newuser@example.com"
-    assert response.json()["username"] == "newuser"
     assert "password" not in response.json()
 
 
@@ -91,8 +88,7 @@ def test_create_user_unauthorized(db_session: Session):
         "/api/v1/users/",
         json={
             "email": "unauthorized@example.com",
-            "username": "unauthorized",
-            "full_name": "Unauthorized User",
+            "name": "Unauthorized User",
             "password": "testpass123",
         },
     )
@@ -116,7 +112,6 @@ def test_get_current_user(db_session: Session, auth_headers: dict):
     """Test getting current user info"""
     response = client.get("/api/v1/users/me", headers=auth_headers)
     assert response.status_code == 200
-    assert response.json()["username"] == "testuser"
 
 
 def test_update_user_profile(db_session: Session, auth_headers: dict):
@@ -124,13 +119,13 @@ def test_update_user_profile(db_session: Session, auth_headers: dict):
     response = client.put(
         "/api/v1/users/me",
         json={
-            "full_name": "Updated Test User",
+            "name": "Updated Test User",
             "email": "updated@example.com",
         },
         headers=auth_headers,
     )
     assert response.status_code == 200
-    assert response.json()["full_name"] == "Updated Test User"
+    assert response.json()["name"] == "Updated Test User"
 
 
 def test_login_user(db_session: Session, test_user: User):
@@ -138,7 +133,7 @@ def test_login_user(db_session: Session, test_user: User):
     response = client.post(
         "/api/v1/auth/login",
         data={
-            "username": test_user.username,
+            "email": test_user.email,
             "password": "testpass123",
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -153,7 +148,7 @@ def test_login_invalid_credentials(db_session: Session):
     response = client.post(
         "/api/v1/auth/login",
         data={
-            "username": "nonexistent",
+            "email": "nonexistent",
             "password": "wrongpassword",
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -175,7 +170,6 @@ def test_create_user_validation_errors(db_session: Session):
         "/api/v1/auth/register",
         json={
             "email": "invalidemail",
-            "username": "testuser",
             "password": "testpass123",
         },
     )
@@ -196,7 +190,6 @@ def test_duplicate_user_creation(db_session: Session, test_user: User):
         "/api/v1/auth/register",
         json={
             "email": test_user.email,
-            "username": "differentusername",
             "password": "testpass123",
         },
     )

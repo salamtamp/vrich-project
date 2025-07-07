@@ -12,8 +12,7 @@ def main():
     db = SessionLocal()
     try:
         email = "admin@example.com"
-        username = "admin"
-        full_name = "Admin User"
+        name = "Admin User"
         password = "adminpass123"
 
         existing = db.query(User).filter(User.email == email).first()
@@ -23,9 +22,8 @@ def main():
 
         user = User(
             email=email,
-            username=username,
-            full_name=full_name,
-            hashed_password=get_password_hash(password),
+            name=name,
+            password=get_password_hash(password),
         )
         db.add(user)
         db.commit()
