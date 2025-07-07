@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, String, text
+from sqlalchemy import Column, DateTime, ForeignKey, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.db.models.base import UUIDPrimaryKeyMixin
@@ -7,6 +7,11 @@ from app.db.session import Base
 
 class FacebookPost(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "facebook_posts"
+    __table_args__ = (
+        UniqueConstraint(
+            "profile_id", "post_id", name="uq_facebookpost_profileid_postid"
+        ),
+    )
 
     profile_id = Column(
         UUID(as_uuid=True),

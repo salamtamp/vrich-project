@@ -1,31 +1,64 @@
+import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, Form, HTTPException, status
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import database as deps
+from app.constants.auth import (
+    ERR_EMAIL_OR_USERNAME_REQUIRED,
+    ERR_INCORRECT_EMAIL_OR_PASSWORD,
+    ERR_USER_ALREADY_REGISTERED,
+)
 from app.core import security
 from app.db.repositories.user import user_repo
 from app.db.session import get_db
 from app.schemas import user as user_schema
 
 router = APIRouter()
+logger = logging.getLogger("app.api.v1.endpoints.auth")
+
+
+class LoginRequest(BaseModel):
+    email: str | None = None
+    username: str | None = None
+    password: str
 
 
 @router.post("/login", response_model=user_schema.Token)
-def login_for_access_token(
+async def login_for_access_token(
+    request: Request,
     db: Session = Depends(get_db),
-    email: str = Form(...),
-    password: str = Form(...),
+    email: str = Form(None),
+    username: str = Form(None),
+    password: str = Form(None),
+    json_body: LoginRequest = Body(None),
 ) -> Any:
     """
-    Email/password login, get an access token for future requests
+    Email/password login, get an access token for future requests.
+    Accepts either form data or JSON. Accepts 'email' or 'username' for compatibility.
     """
+    try:
+        body = await request.body()
+        logger.info(f"Login request raw body: {body}")
+    except Exception as e:
+        logger.warning(f"Could not read request body: {e}")
+    if json_body:
+        email = json_body.email or json_body.username
+        password = json_body.password
+    if not email and username:
+        email = username
+    if not email or not password:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=ERR_EMAIL_OR_USERNAME_REQUIRED,
+        )
     user = user_repo.authenticate(db, email=email, password=password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail=ERR_INCORRECT_EMAIL_OR_PASSWORD,
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = security.create_access_token(data={"sub": str(user.id)})
@@ -47,7 +80,7 @@ def register_user(
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already registered in the system.",
+            detail=ERR_USER_ALREADY_REGISTERED,
         )
 
     return user_repo.create(db, obj_in=user_in)

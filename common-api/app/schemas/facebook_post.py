@@ -15,8 +15,10 @@ class FacebookPostBase(BaseModel):
     status: Literal["active", "inactive"]
     published_at: datetime
 
+
 class FacebookPostCreate(FacebookPostBase):
     pass
+
 
 class FacebookPostUpdate(BaseModel):
     message: str | None = None
@@ -27,12 +29,14 @@ class FacebookPostUpdate(BaseModel):
     published_at: datetime | None = None
     deleted_at: datetime | None = None
 
+
 class FacebookPostResponse(FacebookPostBase):
     id: UUID
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
     model_config = ConfigDict(from_attributes=True)
+
 
 class FacebookPost(FacebookPostResponse):
     pass

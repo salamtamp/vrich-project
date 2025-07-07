@@ -16,6 +16,7 @@ class UUIDPrimaryKeyMixin:
         index=True,
     )
 
+
 class BaseModel(Base):
     __abstract__ = True
 

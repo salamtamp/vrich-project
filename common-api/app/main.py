@@ -31,9 +31,9 @@ def create_app() -> FastAPI:
     app.add_middleware(LoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.allowed_hosts
-        if hasattr(settings, "ALLOWED_HOSTS")
-        else ["*"],
+        allow_origins=(
+            settings.allowed_hosts if hasattr(settings, "ALLOWED_HOSTS") else ["*"]
+        ),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

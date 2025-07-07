@@ -4,9 +4,7 @@ from app.core.security import get_password_hash
 from app.schemas.user import UserUpdate
 
 
-def update_user_data(
-    obj_in: UserUpdate | dict[str, Any]
-) -> dict[str, Any]:
+def update_user_data(obj_in: UserUpdate | dict[str, Any]) -> dict[str, Any]:
     if isinstance(obj_in, dict):
         update_data = obj_in
     else:

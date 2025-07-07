@@ -7,7 +7,7 @@ from app.db.session import Base
 class FacebookProfile(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "facebook_profiles"
 
-    facebook_id = Column(String, nullable=False)
+    facebook_id = Column(String, unique=True, nullable=False)
     type = Column(
         String,
         nullable=False,

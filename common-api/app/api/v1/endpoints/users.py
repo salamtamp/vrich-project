@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import database as deps
+from app.constants.user import ERR_USER_ALREADY_EXISTS, ERR_USER_NOT_FOUND
 from app.db import models
 from app.db.repositories.user import user_repo
 from app.db.session import get_db
@@ -38,7 +39,7 @@ def create_user(
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system.",
+            detail=ERR_USER_ALREADY_EXISTS,
         )
 
     return user_repo.create(db, obj_in=user_in)
@@ -92,7 +93,7 @@ def update_user(
     if not user:
         raise HTTPException(
             status_code=404,
-            detail="The user with this id does not exist in the system",
+            detail=ERR_USER_NOT_FOUND,
         )
     return user_repo.update(db, db_obj=user, obj_in=user_in)
 
@@ -110,6 +111,6 @@ def delete_user(
     if not user:
         raise HTTPException(
             status_code=404,
-            detail="The user with this id does not exist in the system",
+            detail=ERR_USER_NOT_FOUND,
         )
     return user_repo.remove(db, id=str(user_id))

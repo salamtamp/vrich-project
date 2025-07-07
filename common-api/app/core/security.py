@@ -16,9 +16,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.now(UTC) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    return jwt.encode(
-        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
-    )
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
 def verify_password(plain_password: str, password: str) -> bool:
@@ -31,9 +29,7 @@ def get_password_hash(password: str) -> str:
 
 def verify_token(token: str) -> dict:
     try:
-        return jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
