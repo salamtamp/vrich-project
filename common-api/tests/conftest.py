@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 import app.db.models
@@ -28,6 +28,8 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture
 def client():
+    import app.db.models
+
     Base.metadata.create_all(bind=engine)
     yield TestClient(app)
     Base.metadata.drop_all(bind=engine)
@@ -35,8 +37,10 @@ def client():
 
 @pytest.fixture
 def db():
+
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
+    db.execute(text("PRAGMA foreign_keys=ON"))
     try:
         yield db
     finally:

@@ -1,7 +1,14 @@
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import database as deps
-from app.api.v1.endpoints import auth, facebook_post, facebook_profile, users
+from app.api.v1.endpoints import (
+    auth,
+    facebook_comment,
+    facebook_messenger,
+    facebook_post,
+    facebook_profile,
+    users,
+)
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -25,4 +32,16 @@ api_router.include_router(
     prefix="/facebook-posts",
     tags=["facebook_post"],
     dependencies=[Depends(deps.store_current_user)],
+)
+
+api_router.include_router(
+    facebook_messenger.router,
+    prefix="/facebook_messengers",
+    tags=["facebook_messengers"],
+)
+
+api_router.include_router(
+    facebook_comment.router,
+    prefix="/facebook-comments",
+    tags=["facebook_comment"],
 )

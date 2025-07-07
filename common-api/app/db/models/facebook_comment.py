@@ -5,10 +5,10 @@ from app.db.models.base import UUIDPrimaryKeyMixin
 from app.db.session import Base
 
 
-class FacebookPost(Base, UUIDPrimaryKeyMixin):
-    __tablename__ = "facebook_posts"
+class FacebookComment(Base, UUIDPrimaryKeyMixin):
+    __tablename__ = "facebook_comments"
     __table_args__ = (
-        UniqueConstraint("profile_id", "post_id", name="facebook_posts_post_id_unique"),
+        UniqueConstraint("comment_id", name="facebook_comments_comment_id_unique"),
     )
 
     profile_id = Column(
@@ -16,18 +16,13 @@ class FacebookPost(Base, UUIDPrimaryKeyMixin):
         ForeignKey("facebook_profiles.id", ondelete="CASCADE"),
         nullable=False,
     )
-    post_id = Column(String, nullable=False)
-    message = Column(String, nullable=True)
-    link = Column(String, nullable=True)
-    media_url = Column(String, nullable=True)
-    media_type = Column(
-        String,
-        nullable=True,
-    )  # Should be validated at the schema/service level
-    status = Column(
-        String,
+    post_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("facebook_posts.id", ondelete="CASCADE"),
         nullable=False,
-    )  # Should be validated at the schema/service level
+    )
+    comment_id = Column(String, nullable=False, unique=True)
+    message = Column(String, nullable=True)
     published_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(
         DateTime(timezone=True),

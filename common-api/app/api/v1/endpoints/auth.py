@@ -1,5 +1,4 @@
 import logging
-from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request, status
 from pydantic import BaseModel
@@ -34,7 +33,7 @@ async def login_for_access_token(
     username: str = Form(None),
     password: str = Form(None),
     json_body: LoginRequest = Body(None),
-) -> Any:
+) -> dict[str, str]:
     """
     Email/password login, get an access token for future requests.
     Accepts either form data or JSON. Accepts 'email' or 'username' for compatibility.
@@ -72,7 +71,7 @@ def register_user(
     *,
     db: Session = Depends(get_db),
     user_in: user_schema.UserCreate,
-) -> Any:
+) -> user_schema.User:
     """
     Create new user via public registration.
     """
@@ -87,7 +86,9 @@ def register_user(
 
 
 @router.post("/test-token", response_model=user_schema.User)
-def test_token(current_user: user_schema.User = Depends(deps.get_current_user)) -> Any:
+def test_token(
+    current_user: user_schema.User = Depends(deps.get_current_user),
+) -> user_schema.User:
     """
     Test access token
     """

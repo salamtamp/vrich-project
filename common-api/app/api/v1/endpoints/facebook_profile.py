@@ -1,9 +1,14 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.api.dependencies.pagination import (
+    PaginationBuilder,
+    PaginationParams,
+    PaginationResponse,
+    get_pagination_params,
+)
 from app.constants.facebook_profile import (
     ERR_FACEBOOK_PROFILE_DUPLICATE_ID,
     ERR_FACEBOOK_PROFILE_NOT_FOUND,
@@ -20,20 +25,26 @@ from app.schemas.facebook_profile import (
 router = APIRouter()
 
 
-@router.get("/", response_model=list[FacebookProfile])
+@router.get("/", response_model=PaginationResponse[FacebookProfile])
 def list_facebook_profiles(
     db: Session = Depends(get_db),
-    skip: int = 0,
-    limit: int = 100,
-) -> Any:
-    return db.query(FacebookProfileModel).offset(skip).limit(limit).all()
+    pagination: PaginationParams = Depends(get_pagination_params),
+) -> PaginationResponse[FacebookProfile]:
+    builder = PaginationBuilder(FacebookProfileModel, db)
+    return (
+        builder.filter_deleted()
+        .date_range(pagination.since, pagination.until)
+        .search(pagination.search, pagination.search_by)
+        .order_by(pagination.order_by, pagination.order)
+        .paginate(pagination.limit, pagination.offset, serializer=FacebookProfile)
+    )
 
 
 @router.get("/{profile_id}", response_model=FacebookProfile)
 def get_facebook_profile(
     profile_id: UUID,
     db: Session = Depends(get_db),
-) -> Any:
+) -> FacebookProfile:
     profile = (
         db.query(FacebookProfileModel)
         .filter(FacebookProfileModel.id == profile_id)
@@ -47,7 +58,7 @@ def get_facebook_profile(
 @router.post("/", response_model=FacebookProfile, status_code=status.HTTP_201_CREATED)
 def create_facebook_profile(
     *, db: Session = Depends(get_db), profile_in: FacebookProfileCreate
-) -> Any:
+) -> FacebookProfile:
     existing = (
         db.query(FacebookProfileModel)
         .filter(FacebookProfileModel.facebook_id == profile_in.facebook_id)
@@ -67,7 +78,7 @@ def update_facebook_profile(
     db: Session = Depends(get_db),
     profile_id: UUID,
     profile_in: FacebookProfileUpdate,
-) -> Any:
+) -> FacebookProfile:
     db_obj = (
         db.query(FacebookProfileModel)
         .filter(FacebookProfileModel.id == profile_id)
@@ -93,7 +104,9 @@ def update_facebook_profile(
 
 
 @router.delete("/{profile_id}", response_model=FacebookProfile)
-def delete_facebook_profile(*, db: Session = Depends(get_db), profile_id: UUID) -> Any:
+def delete_facebook_profile(
+    *, db: Session = Depends(get_db), profile_id: UUID
+) -> FacebookProfile:
     db_obj = (
         db.query(FacebookProfileModel)
         .filter(FacebookProfileModel.id == profile_id)

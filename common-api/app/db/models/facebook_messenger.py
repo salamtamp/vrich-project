@@ -5,10 +5,12 @@ from app.db.models.base import UUIDPrimaryKeyMixin
 from app.db.session import Base
 
 
-class FacebookPost(Base, UUIDPrimaryKeyMixin):
-    __tablename__ = "facebook_posts"
+class FacebookMessenger(Base, UUIDPrimaryKeyMixin):
+    __tablename__ = "facebook_messengers"
     __table_args__ = (
-        UniqueConstraint("profile_id", "post_id", name="facebook_posts_post_id_unique"),
+        UniqueConstraint(
+            "messenger_id", name="facebook_messengers_messenger_id_unique"
+        ),
     )
 
     profile_id = Column(
@@ -16,19 +18,9 @@ class FacebookPost(Base, UUIDPrimaryKeyMixin):
         ForeignKey("facebook_profiles.id", ondelete="CASCADE"),
         nullable=False,
     )
-    post_id = Column(String, nullable=False)
-    message = Column(String, nullable=True)
-    link = Column(String, nullable=True)
-    media_url = Column(String, nullable=True)
-    media_type = Column(
-        String,
-        nullable=True,
-    )  # Should be validated at the schema/service level
-    status = Column(
-        String,
-        nullable=False,
-    )  # Should be validated at the schema/service level
-    published_at = Column(DateTime(timezone=True), nullable=False)
+    messenger_id = Column(String, nullable=False, unique=True)
+    message = Column(String, nullable=False)
+    sent_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
