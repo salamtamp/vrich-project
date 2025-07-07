@@ -15,6 +15,7 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    connect_queue(settings)
     yield
 
 
@@ -28,15 +29,13 @@ def create_app() -> FastAPI:
     if not settings.FACEBOOK_INBOX_VERIFY_TOKEN:
         raise ValueError("FACEBOOK_INBOX_VERIFY_TOKEN is not set")
 
-    # Connect to RabbitMQ
-    connect_queue(settings)
-
-    # Create FastAPI app
     app = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
         description=settings.DESCRIPTION,
         lifespan=lifespan,
+        port=settings.API_PORT,
+        host=settings.API_HOST,
     )
 
     app.add_middleware(SecurityMiddleware)
