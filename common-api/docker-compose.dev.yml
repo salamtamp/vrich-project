@@ -78,21 +78,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      migration:
-        condition: service_completed_successfully
     
     restart: unless-stopped
     
     # Development command with hot reload
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app/app
 
-  # Database Migration Service (Development)
-  migration:
+  # Database Seed Service (Development)
+  seed:
+    profiles: ["manual"]
     build:
       context: .
       dockerfile: Dockerfile.dev
       target: development
-    container_name: vrich_migration_dev
+    container_name: vrich_seed_dev
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-vrich_db}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
@@ -108,15 +107,11 @@ services:
     volumes:
       # Add the app directory mount for imports
       - ./app:/app/app:ro
-      - ./migrations:/app/migrations:ro
+      - ./seeds:/app/seeds:ro
       - ./scripts:/app/scripts:ro
     
     networks:
       - vrich_network_dev
-    
-    depends_on:
-      db:
-        condition: service_healthy
     
     command: >
       sh -c "

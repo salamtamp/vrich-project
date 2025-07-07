@@ -12,8 +12,8 @@ FastAPI application with PostgreSQL, Redis, and monitoring.
    docker compose -f docker-compose.dev.yml up -d
    ```
 
-  # Run migrations only 
-  docker compose -f docker-compose.dev.yml up migration
+  # Run seeds only 
+  docker compose -f docker-compose.dev.yml up seed
 
 2. **Access**
    - API: http://localhost:8000
@@ -39,8 +39,8 @@ FastAPI application with PostgreSQL, Redis, and monitoring.
    # Basic
    docker compose up -d
 
-   # Run migrations only
-  docker compose up migration
+   # Run seeds only
+  docker compose up seed
    
    # Full stack
    docker compose --profile backup up -d

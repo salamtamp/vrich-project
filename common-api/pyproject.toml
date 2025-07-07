@@ -26,7 +26,6 @@ uvicorn = {extras = ["standard"], version = "^0.32.1"}
 # Database
 sqlalchemy = "^2.0.36"
 psycopg2-binary = "^2.9.10"
-alembic = "^1.14.0"
 
 # HTTP Client
 httpx = "^0.28.1"
@@ -171,7 +170,6 @@ color_output = true
 # Per-module options
 [[tool.mypy.overrides]]
 module = [
-    "alembic.*",
     "factory_boy.*",
     "jose.*",
     "passlib.*",

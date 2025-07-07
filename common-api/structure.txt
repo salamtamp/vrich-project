@@ -82,12 +82,6 @@ fastapi-project/
 │       ├── email_service.py
 │       └── payment_gateway.py
 │
-├── migrations/                      # Database migrations (Alembic)
-│   ├── versions/
-│   ├── env.py
-│   ├── script.py.mako
-│   └── alembic.ini
-│
 ├── tests/                          # Test suite
 │   ├── __init__.py
 │   ├── conftest.py                 # Pytest configuration
