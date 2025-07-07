@@ -2,16 +2,7 @@
 
 ## How to Run Migration
 
-### 1. Start Database
-```bash
-# Start PostgreSQL database
-docker compose up -d postgres
-
-# Check if database is running
-docker compose ps
-```
-
-### 2. Run Migration
+### 1. Run Migration
 
 ```bash
 # Run all migrations in one command
@@ -19,7 +10,7 @@ docker compose --profile migration up -d migration && \
 docker exec vrich_migration bash -c 'export PGPASSWORD=postgres; for file in /migrations/*.up.sql; do echo "Running: $file"; psql -h postgres -U postgres -d vrich_db -f "$file"; done'
 ```
 
-### 3. Clean Up
+### 2. Clean Up
 ```bash
 # Stop migration container
 docker compose --profile migration down
