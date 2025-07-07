@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     DESCRIPTION: str = "Facebook Page API"
 
+    # API
+    API_PORT: int = 8000
+    API_HOST: str = "0.0.0.0"
+
     # Facebook
     FACEBOOK_BASE_URL: str
     FACEBOOK_PAGE_ACCESS_TOKEN: str
