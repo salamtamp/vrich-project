@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { LeftColorIcon, VRichIcon, VRichSmallIcon } from '@public/assets/icon';
-import { ArrowLeft } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 import { PATH } from '@/constants/path.constant';
 import { cn } from '@/lib/utils';
@@ -95,7 +95,7 @@ const Sidebar = () => {
           {sidebarConfig.map((item) => {
             const IconComponent = item.icon;
 
-            const isActive = pathname === item.path;
+            const isActive = pathname?.includes(item.path);
             return (
               <div
                 key={item.path}
@@ -146,10 +146,10 @@ const Sidebar = () => {
               isCollapse && 'justify-center'
             )}
             onClick={() => {
-              router.push(PATH.SIGN_IN);
+              router.push(PATH.LOGIN);
             }}
           >
-            <ArrowLeft
+            <LogOut
               className={cn(styles.iconActive, 'transition-all duration-300 ease-in-out')}
               strokeWidth={2.5}
             />
@@ -160,7 +160,7 @@ const Sidebar = () => {
                   isCollapse ? 'w-0 opacity-0' : 'w-auto opacity-100'
                 )}
               >
-                <p className='ml-2 whitespace-nowrap text-display-medium'>Back</p>
+                <p className='ml-2 whitespace-nowrap text-display-medium'>Logout</p>
               </div>
             ) : null}
           </button>

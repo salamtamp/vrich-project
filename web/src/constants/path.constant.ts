@@ -1,7 +1,7 @@
 export const PATH = {
-  SIGN_IN: '/sign-in',
+  LOGIN: '/login',
 
-  MESSAGE: '/message',
-  COMMENT: '/comment',
+  INBOX: '/inbox',
+  POST: '/post',
   PROFILE: '/profile',
 };

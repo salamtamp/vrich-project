@@ -2,11 +2,14 @@
 
 import React from 'react';
 
-import { ProfileMaleIcon } from '@public/assets/icon';
+import Image from 'next/image';
+
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
+import mockLogo from '../../../public/assets/image/logo.png';
+import { Badge } from '../ui/badge';
 import { Checkbox } from '../ui/checkbox';
 
 import styles from './card.module.scss';
@@ -17,7 +20,13 @@ export type CardProps = {
   cardData: CardData;
 };
 
-export type CardData = { id: string; title: string; content?: ReactNode; lastUpdate: string };
+export type CardData = {
+  id: string;
+  title?: string;
+  content?: ReactNode;
+  isLiveMode?: boolean;
+  lastUpdate: string;
+};
 
 const Card: React.FC<CardProps> = ({ isSelected = false, isSelectMode = false, cardData }) => {
   return (
@@ -31,13 +40,21 @@ const Card: React.FC<CardProps> = ({ isSelected = false, isSelectMode = false, c
               className='-mt-[1px]'
             />
           ) : null}
-          <p className={styles.cardName}>{cardData.title} </p>
+          {cardData?.title ? <p className={styles.cardName}>{cardData.title} </p> : ''}{' '}
+          <div className='flex h-full items-start pt-[2px]'>
+            {cardData?.isLiveMode ? <Badge className='bg-green-200 text-green-800'>Live</Badge> : null}
+          </div>
         </div>
         <div className={styles.cardText}>{cardData.content}</div>
       </div>
       <div className={styles.cardRight}>
         <div className={styles.cardAvatar}>
-          <ProfileMaleIcon />
+          <Image
+            alt='logo'
+            height={40}
+            src={mockLogo}
+            width={40}
+          />
         </div>
         <p className={styles.cardTime}>{cardData.lastUpdate}</p>
       </div>

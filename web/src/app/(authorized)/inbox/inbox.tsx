@@ -7,24 +7,15 @@ import FilterCard from '@/components/filter-card';
 import TextList from '@/components/text-list';
 import useModalContext from '@/hooks/useContext/useModalContext';
 
-const MockContent = () => {
-  return (
-    <div className='flex flex-col'>
-      <p>type: user</p>
-      <p>facebook_id: 0001</p>
-    </div>
-  );
-};
+const itemData = Array.from({ length: 150 }, (_, i) => ({
+  id: `${i + 1}`,
+  title: 'จิมมี่ ปิยะวัช',
+  content: 'น่ากินมาก',
+  lastUpdate: '3 นาทีที่แล้ว',
+}));
 
-const Post = () => {
+const Inbox = () => {
   const { open } = useModalContext();
-
-  const itemData = Array.from({ length: 150 }, (_, i) => ({
-    id: `${i + 1}`,
-    title: 'จิมมี่ ปิยะวัช',
-    content: <MockContent />,
-    lastUpdate: '3 นาทีที่แล้ว',
-  }));
 
   const handleCardClick = useCallback(
     (id: string, data: CardData) => {
@@ -32,6 +23,7 @@ const Post = () => {
         content: (
           <TextList
             cardData={data}
+            defaultTab='inbox'
             id={id}
           />
         ),
@@ -43,10 +35,10 @@ const Post = () => {
   return (
     <FilterCard
       data={itemData}
-      title='Profile'
+      title='Inbox'
       total={itemData.length}
       onCardClick={handleCardClick}
     />
   );
 };
-export default Post;
+export default Inbox;

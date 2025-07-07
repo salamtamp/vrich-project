@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ProfileMaleIcon } from '@public/assets/icon';
 import { Trash } from 'lucide-react';
@@ -8,38 +8,37 @@ import { cn } from '@/lib/utils';
 
 import type { CardData } from '../card';
 import ContentPagination from '../content/pagination';
+import ListItem from '../list-item';
 import { Button } from '../ui/button';
-import { Checkbox } from '../ui/checkbox';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
-type TextData = {
-  id: string;
-  text: string;
-};
+import { MockInbox, MockPost } from './mock';
 
 type TextListProps = {
   id?: string;
   cardData?: CardData;
-  textData?: TextData[];
+  defaultTab?: 'comment' | 'inbox';
 };
 
-const TextList: React.FC<TextListProps> = ({ cardData, textData = [] }) => {
+const TextList: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment' }) => {
   const [selectAbleMode, setSelectAbleMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [tab, setTab] = useState<string>(defaultTab);
 
   const { update, reset } = usePaginationContext();
 
-  const allItemIds = textData.map((i) => i.id) || [];
+  let mockData = MockPost;
+  if (tab === 'comment') {
+    mockData = MockPost;
+  }
+  if (tab === 'inbox') {
+    mockData = MockInbox;
+  }
+
+  const allItemIds = mockData.map((i) => i.id) || [];
   const isSelectAll = allItemIds.length && selectedItems.length && allItemIds.length === selectedItems.length;
 
   const { title } = cardData ?? {};
-
-  const handleToggleSelection = useCallback((isSelected: boolean, id: string) => {
-    if (!isSelected) {
-      setSelectedItems((prev) => [...prev, id]);
-      return;
-    }
-    setSelectedItems((prev) => prev.filter((p) => p !== id));
-  }, []);
 
   useEffect(() => {
     update({ limit: 20 });
@@ -53,12 +52,13 @@ const TextList: React.FC<TextListProps> = ({ cardData, textData = [] }) => {
   }, [reset]);
 
   return (
-    <div className='flex w-full max-w-full flex-col sm:w-[400px] md:w-[660px]'>
+    <div className='flex h-[540px] w-full max-w-full flex-col sm:w-[400px] md:w-[660px]'>
       <div className='mr-10 flex justify-between overflow-hidden'>
         <div className='flex items-center gap-2'>
           <ProfileMaleIcon />
           <p className='text-display-medium'>{title}</p>
         </div>
+
         <div className='flex items-center gap-2'>
           {selectAbleMode ? (
             <>
@@ -92,7 +92,8 @@ const TextList: React.FC<TextListProps> = ({ cardData, textData = [] }) => {
             variant='outline'
             className={cn(
               'px-[10px] py-[2px] text-gray-600 transition-colors',
-              selectAbleMode && 'border-blue-300'
+              selectAbleMode && 'border-blue-300',
+              'hidden'
             )}
             onClick={() => {
               if (allItemIds) {
@@ -105,39 +106,36 @@ const TextList: React.FC<TextListProps> = ({ cardData, textData = [] }) => {
           </Button>
         </div>
       </div>
-      <div className='mt-4 flex max-h-[520px] min-h-[200px] flex-1 flex-col overflow-scroll pr-2'>
-        {textData?.map((t) => {
+
+      <Tabs
+        className='mt-2'
+        defaultValue='comment'
+        value={tab}
+        onValueChange={(newTab) => {
+          setTab(newTab);
+        }}
+      >
+        <TabsList className='bg-gray-300'>
+          <TabsTrigger value='comment'>Comment</TabsTrigger>
+          <TabsTrigger value='inbox'>Inbox</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      <div className='mt-2 h-[2px] w-full rounded-xl bg-gray-300' />
+
+      <div className='mt-2 flex h-full flex-1 flex-col overflow-scroll'>
+        {mockData?.map((t) => {
           const isSelected = selectedItems.includes(t.id);
           return (
-            <div
+            <ListItem
               key={t.id}
-              className='flex flex-1 flex-col justify-start py-2'
-            >
-              <div className='flex w-full justify-between gap-2'>
-                <div className='flex gap-4'>
-                  {selectAbleMode ? (
-                    <Checkbox
-                      checked={isSelected}
-                      className='size-7 rounded-md'
-                      onClick={() => {
-                        handleToggleSelection(isSelected, t.id);
-                      }}
-                    />
-                  ) : (
-                    ''
-                  )}
-                  <p className='flex h-full items-center'>{t.text}</p>
-                </div>
-                <div className='flex h-full min-w-[100px] flex-col justify-between gap-2'>
-                  <p className='line-clamp-1 flex justify-end text-sm-medium'>2 min ago</p>
-                  <p className='line-clamp-1 flex justify-end text-xs-regular'>11/06/41 11:22</p>
-                </div>
-              </div>
-              <div className='mt-2 h-[2px] w-full rounded-xl bg-gray-300' />
-            </div>
+              data={t}
+              isSelected={isSelected}
+              selectAbleMode={selectAbleMode}
+            />
           );
         })}
       </div>
+
       <ContentPagination
         className='mt-2'
         limitOptions={[20, 40, 100, 200]}

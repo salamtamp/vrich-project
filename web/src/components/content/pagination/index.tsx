@@ -19,6 +19,7 @@ type ContentPaginationProps = {
   className?: string;
   total?: number;
   limitOptions?: number[];
+  shotMode?: boolean;
 };
 const defaultLimitOption = [15, 30, 50, 100, 200];
 
@@ -26,6 +27,7 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({
   className,
   total = 0,
   limitOptions = defaultLimitOption,
+  shotMode = false,
 }) => {
   const { update, pagination, reset } = usePaginationContext();
   const { limit, page } = pagination;
@@ -81,7 +83,7 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({
   return (
     <Pagination className={cn('items-center justify-between gap-2', className)}>
       <div className='flex items-center gap-2'>
-        <p> Results per page:</p>
+        {!shotMode ? <p> Results per page:</p> : <p> Limit:</p>}
         <Select
           value={`${limit}`}
           onValueChange={(value) => {

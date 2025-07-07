@@ -13,7 +13,7 @@
 
 .cardItemContainer {
   @apply grid grid-cols-1;
-  @apply mt-4 gap-6 pb-1;
+  @apply gap-6 pb-1;
   @apply overflow-y-scroll;
 
   @media (min-width: 800px) {
@@ -33,9 +33,9 @@
   @apply pr-[6px];
 }
 
-.itemCardContainer {
+.cardContainer {
   @apply flex;
-  @apply size-fit h-full max-h-[116px] min-w-full;
+  @apply size-fit h-fit min-w-full;
   @apply gap-4 px-5 py-4;
   @apply rounded-2xl;
   @apply bg-white;

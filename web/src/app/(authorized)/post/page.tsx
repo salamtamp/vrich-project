@@ -1,9 +1,9 @@
-import Message from './message';
+import Post from './post';
 
 const MassagePage = () => {
   return (
     <div className='flex size-full flex-col'>
-      <Message />
+      <Post />
     </div>
   );
 };

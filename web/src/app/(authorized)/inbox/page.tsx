@@ -1,9 +1,9 @@
-import Comment from './comment';
+import Inbox from './inbox';
 
 const MassagePage = () => {
   return (
     <div className='flex size-full flex-col'>
-      <Comment />
+      <Inbox />
     </div>
   );
 };

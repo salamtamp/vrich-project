@@ -1,38 +1,45 @@
-'use client';
-
-import React, { useCallback } from 'react';
-
-import type { CardData } from '@/components/card';
-import FilterCard from '@/components/filter-card';
-import TextList from '@/components/text-list';
-import useModalContext from '@/hooks/useContext/useModalContext';
-
-const itemData = Array.from({ length: 150 }, (_, i) => ({
-  id: `${i + 1}`,
-  title: 'จิมมี่ ปิยะวัช',
-  content: 'น่ากินมาก',
-  lastUpdate: '3 นาทีที่แล้ว',
-}));
-
-const textData = [
+export const MockPost = [
   {
     id: '1',
     text: 'คือ เนื้อหาจำลองแบบเรียบๆ ที่ใช้กันในธุรกิจงานพิมพ์หรืองานเรียงพิมพ์ มันได้กลายมาเป็นเนื้อหาจำลองมาตรฐาน',
+    postUrl:
+      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
   },
   {
     id: '2',
     text: '1960 เมื่อแผ่น Letraset วางจำหน่ายโดยมีข้อความบนนั้นเป็น Lorem Ipsum และล่าสุดกว่านั้น คือเมื่อซอฟท์แวร์การทำสื่อสิ่งพิมพ์ (Desktop Publishing) อย่าง Aldus PageMaker',
+    postUrl:
+      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
   },
-  { id: '3', text: 'ภาษาอังกฤษที่' },
+  {
+    id: '3',
+    text: 'ภาษาอังกฤษที่',
+    postUrl:
+      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
+  },
   {
     id: '4',
     text: '1960 เมื่อแผ่น Letraset วางจำหน่ายโดยมีข้อความบนนั้นเป็น Lorem Ipsum และล่าสุดกว่านั้น คือเมื่อซอฟท์แวร์การทำสื่อสิ่งพิมพ์ (Desktop Publishing) อย่าง Aldus PageMaker',
+    postUrl:
+      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
   },
-  { id: '5', text: 'ภาษาอังกฤษที่' },
-  { id: '6', text: 'ภาษาอังกฤษที่' },
+  {
+    id: '5',
+    text: 'ภาษาอังกฤษที่',
+    postUrl:
+      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
+  },
+  {
+    id: '6',
+    text: 'ภาษาอังกฤษที่',
+    postUrl:
+      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
+  },
   {
     id: '7',
     text: 'คือ เนื้อหาจำลองแบบเรียบๆ ที่ใช้กันในธุรกิจงานพิมพ์หรืองานเรียงพิมพ์ มันได้กลายมาเป็นเนื้อหาจำลองมาตรฐาน',
+    postUrl:
+      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
   },
   { id: '8', text: 'ภาษาอังกฤษที่' },
   { id: '9', text: 'ภาษาอังกฤษที่' },
@@ -77,31 +84,16 @@ const textData = [
   },
 ];
 
-const Message = () => {
-  const { open } = useModalContext();
+export const MockInbox = [
+  {
+    id: '100',
+    text: 'คือ เนื้อหาจำลองแบบเรียบๆ ที่ใช้กันในธุรกิจงานพิมพ์หรืองานเรียงพิมพ์ มันได้กลายมาเป็นเนื้อหาจำลองมาตรฐาน',
+  },
+];
 
-  const handleCardClick = useCallback(
-    (id: string, data: CardData) => {
-      open({
-        content: (
-          <TextList
-            cardData={data}
-            id={id}
-            textData={textData}
-          />
-        ),
-      });
-    },
-    [open]
-  );
-
-  return (
-    <FilterCard
-      data={itemData}
-      title='Message'
-      total={itemData.length}
-      onCardClick={handleCardClick}
-    />
-  );
-};
-export default Message;
+export const MockProfile = [
+  {
+    id: '1000',
+    text: 'เพศ ชาย',
+  },
+];

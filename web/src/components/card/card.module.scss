@@ -6,11 +6,11 @@
 .cardName {
   @apply truncate;
   @apply text-display-medium text-gray-800;
+  @apply mb-[10px];
 }
 
 .cardText {
-  @apply line-clamp-2;
-  @apply mt-[10px];
+  @apply line-clamp-4;
   @apply text-sm-regular text-gray-500;
 }
 

@@ -1,0 +1,27 @@
+.profileContainer {
+  @apply hidden;
+
+  @media (min-width: 1200px) {
+    @apply flex;
+  }
+}
+
+.detailBreadcrumbContainer {
+  @apply mb-3 flex items-center justify-between;
+  @apply px-4 py-3;
+  @apply min-h-[60px] w-full;
+  @apply rounded-2xl;
+  @apply bg-white;
+
+  box-shadow: rgba(17, 17, 26, 0.1) 0px 0px 16px;
+  @media (min-width: 1200px) {
+    @apply hidden;
+  }
+}
+
+.detailContainer {
+  @apply flex h-full flex-1 flex-col;
+  @apply h-full overflow-hidden bg-white p-6;
+  @apply rounded-2xl;
+  @apply border border-solid border-gray-200;
+}

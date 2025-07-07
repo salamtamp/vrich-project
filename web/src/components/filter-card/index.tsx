@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 import dayjs from 'dayjs';
 import { Trash } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import ContentPagination from '@/components/content/pagination';
 import DatePicker from '@/components/date-picker';
@@ -18,14 +19,28 @@ import Card from '../card';
 import styles from './filter-card.module.scss';
 
 type FilterCardProps = {
-  title: string;
+  title: ReactNode;
   limitOptions?: number[];
   data?: CardData[];
   total?: number;
   onCardClick?: (id: string, item: CardData) => void;
+  className?: string;
+  cardClassName?: string;
+  cardItemClassName?: string;
+  shotModePagination?: boolean;
 };
 
-const FilterCard: React.FC<FilterCardProps> = ({ title, limitOptions, data, total = 0, onCardClick }) => {
+const FilterCard: React.FC<FilterCardProps> = ({
+  title,
+  limitOptions,
+  data,
+  total = 0,
+  onCardClick,
+  className,
+  cardClassName,
+  cardItemClassName,
+  shotModePagination,
+}) => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
   const { pagination } = usePaginationContext();
@@ -60,14 +75,14 @@ const FilterCard: React.FC<FilterCardProps> = ({ title, limitOptions, data, tota
   }, [page]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.filterContainer}>
-        <p className='ml-1 text-display-medium'>{title}</p>
+    <div className={cn(styles.container, className)}>
+      <div className={cn(styles.filterContainer)}>
+        <div className='ml-1 text-xl-semibold'>{title}</div>
         <div className='flex'>
           <DatePicker maxDate={dayjs()} />
         </div>
       </div>
-      <div className='mt-3 flex justify-between'>
+      <div className='mb-4 mt-3 flex justify-between'>
         <div className='flex h-full items-center'>
           Page {page} of {totalPages}
         </div>
@@ -102,7 +117,7 @@ const FilterCard: React.FC<FilterCardProps> = ({ title, limitOptions, data, tota
           ) : null}
 
           <Button
-            className={cn(isSelectMode && 'border-blue-300')}
+            className={cn('hidden', isSelectMode && 'border-blue-300')}
             variant='outline'
             onClick={() => {
               setIsSelectMode((prev) => !prev);
@@ -115,9 +130,10 @@ const FilterCard: React.FC<FilterCardProps> = ({ title, limitOptions, data, tota
           </Button>
         </div>
       </div>
+
       <div
         ref={ref}
-        className={cn(styles.cardItemContainer, styles.cardItemContainerScrollable)}
+        className={cn(styles.cardItemContainer, styles.cardItemContainerScrollable, cardItemClassName)}
       >
         {paginatedData.map((item) => {
           const isSelected = selectedIds?.includes(item.id);
@@ -126,7 +142,11 @@ const FilterCard: React.FC<FilterCardProps> = ({ title, limitOptions, data, tota
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
             <div
               key={item.id}
-              className={cn(styles.itemCardContainer, isSelected && isSelectMode && '!border-blue-300')}
+              className={cn(
+                styles.cardContainer,
+                isSelected && isSelectMode && '!border-blue-300',
+                cardClassName
+              )}
               onClick={() => {
                 if (isSelectMode) {
                   setSelectedIds?.((c) => handleToggle(c, item.id));
@@ -157,6 +177,7 @@ const FilterCard: React.FC<FilterCardProps> = ({ title, limitOptions, data, tota
       <ContentPagination
         className='mt-5'
         limitOptions={limitOptions}
+        shotMode={shotModePagination}
         total={total}
       />
     </div>
