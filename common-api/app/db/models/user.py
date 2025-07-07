@@ -1,18 +1,11 @@
-import uuid
-
 from sqlalchemy import Column, DateTime, String, text
 
+from app.db.models.base import UUIDPrimaryKeyMixin
 from app.db.session import Base
 
 
-def generate_uuid():
-    return str(uuid.uuid4())
-
-
-class User(Base):
+class User(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "users"
-
-    id = Column(String(36), primary_key=True, default=generate_uuid, index=True)
 
     name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)

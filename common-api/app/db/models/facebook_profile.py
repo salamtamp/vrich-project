@@ -1,24 +1,16 @@
-import uuid
-
 from sqlalchemy import Column, DateTime, String, text
-from sqlalchemy.dialects.postgresql import UUID
 
+from app.db.models.base import UUIDPrimaryKeyMixin
 from app.db.session import Base
 
 
-class FacebookProfile(Base):
+class FacebookProfile(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "facebook_profiles"
 
-    id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
-        index=True,
-    )
     facebook_id = Column(String, nullable=False)
     type = Column(
-        String, nullable=False
+        String,
+        nullable=False,
     )  # Should be validated at the schema/service level
     name = Column(String, nullable=False)
     profile_picture_url = Column(String, nullable=False)

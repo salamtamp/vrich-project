@@ -1,3 +1,4 @@
+import uuid
 from typing import Any, TypeVar
 from uuid import UUID
 
@@ -21,6 +22,15 @@ class CRUDBase[
         self.model = model
 
     def get(self, db: Session, id: Any) -> ModelType | None:
+        # Convert string id to UUID if needed
+        id_column = getattr(self.model, 'id', None)
+        if (
+            id_column is not None
+            and hasattr(id_column.type, 'python_type')
+            and id_column.type.python_type is uuid.UUID
+            and isinstance(id, str)
+        ):
+            id = uuid.UUID(id)
         return db.query(self.model).filter(self.model.id == id).first()
 
     def get_multi(

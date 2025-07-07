@@ -1,8 +1,20 @@
-from sqlalchemy import Column, DateTime, Integer
+import uuid
+
+from sqlalchemy import Column, DateTime, Integer, text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
 from app.db.session import Base
 
+
+class UUIDPrimaryKeyMixin:
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        server_default=text("gen_random_uuid()"),
+        index=True,
+    )
 
 class BaseModel(Base):
     __abstract__ = True
