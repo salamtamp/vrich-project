@@ -25,6 +25,22 @@ class Settings(BaseSettings):
     RABBITMQ_USER: str = "guest"
     RABBITMQ_PASS: str = "guest"
 
+    # Scheduler
+    SCHEDULER_ENABLED: bool = True
+    SCHEDULER_TIMEZONE: str = "UTC"
+    SCHEDULER_MAX_INSTANCES: int = 3
+    SCHEDULER_COALESCE: bool = False
+    SCHEDULER_MISFIRE_GRACE_TIME: int = 300  # 5 minutes
+    SCHEDULER_THREAD_POOL_SIZE: int = 20
+
+    # Facebook Posts Scheduler
+    FACEBOOK_POSTS_CRON_SCHEDULE: str = "0 * * * *"
+    FACEBOOK_POSTS_ENABLED: bool = True
+
+    # Facebook Comments Scheduler
+    FACEBOOK_COMMENTS_CRON_SCHEDULE: str = "*/5 * * * *"
+    FACEBOOK_COMMENTS_ENABLED: bool = True
+
     # Env
     DEBUG: bool = False
     ENVIRONMENT: str = "development"
