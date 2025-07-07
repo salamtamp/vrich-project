@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: vrich_postgres
+    environment:
+      POSTGRES_DB: vrich_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - vrich_network
+
+  # Migration Service
+  migration:
+    image: postgres:15-alpine
+    container_name: vrich_migration
+    environment:
+      POSTGRES_DB: vrich_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+    volumes:
+      - ./facebook/migrations:/migrations
+    depends_on:
+      - postgres
+    networks:
+      - vrich_network
+    entrypoint: ["sleep", "infinity"]
+    profiles: ["migration"]
+
+volumes:
+  postgres_data:
+
+networks:
+  vrich_network:
+    driver: bridge
