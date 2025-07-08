@@ -16,8 +16,8 @@
 
 .cardRight {
   @apply flex flex-col items-end justify-between;
-  @apply min-w-12;
-  @apply gap-1;
+  @apply min-w-16;
+  @apply gap-2;
 }
 
 .cardAvatar {

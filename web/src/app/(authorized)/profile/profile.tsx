@@ -9,22 +9,25 @@ import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
+import { getRelativeTimeInThai } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { FacebookProfile } from '@/types/api/facebook-profile';
+import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
 
-const ProfileContent: React.FC<{ profile: FacebookProfile }> = ({ profile }) => (
-  <div className='flex flex-col gap-1'>
-    <span>Type: {profile.type}</span>
-    <span>ID: {profile.facebook_id}</span>
+const ProfileContent: React.FC<{ profile: FacebookProfileResponse }> = ({ profile }) => (
+  <div className='flex max-w-[200px] flex-col gap-1'>
+    <p>Type: {profile.type}</p>
+    <p className='truncate'>ID: {profile.facebook_id}</p>
   </div>
 );
 
 const Profile = () => {
   const { open } = useModalContext();
 
-  const { handleConfirm, data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookProfile>>({
-    url: API.PROFILE.PAGINATION,
-  });
+  const { handleConfirm, data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookProfileResponse>>(
+    {
+      url: API.PROFILE.PAGINATION,
+    }
+  );
 
   const itemData = useMemo(
     () =>
@@ -32,7 +35,7 @@ const Profile = () => {
         id: profile.facebook_id,
         title: profile.name,
         content: <ProfileContent profile={profile} />,
-        lastUpdate: '',
+        lastUpdate: getRelativeTimeInThai(profile.created_at),
         profile_picture_url: profile.profile_picture_url,
         name: profile.name,
       })),
@@ -59,6 +62,7 @@ const Profile = () => {
       defaultEndDate={dayjs()}
       defaultStartDate={dayjs().subtract(6, 'day')}
       isLoading={isLoading}
+      skeletonSize='large'
       title='Profile'
       total={data?.total}
       onCardClick={handleCardClick}

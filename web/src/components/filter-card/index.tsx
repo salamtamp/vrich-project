@@ -32,6 +32,7 @@ type FilterCardProps = {
   defaultEndDate?: dayjs.Dayjs;
   onConfirm?: (startDate: dayjs.Dayjs | null, endDate: dayjs.Dayjs | null) => void;
   isLoading?: boolean;
+  skeletonSize?: 'small' | 'medium' | 'large';
 };
 
 const FilterCard: React.FC<FilterCardProps> = ({
@@ -48,20 +49,21 @@ const FilterCard: React.FC<FilterCardProps> = ({
   defaultEndDate,
   onConfirm,
   isLoading = false,
+  skeletonSize = 'medium',
 }) => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
   const { pagination } = usePaginationContext();
   const { page, limit } = pagination;
-
-  const totalPages = Math.ceil(total / limit);
-
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const paginatedData = data ?? [];
   const skeletonCount = limit;
 
   const isAllSelect = selectedIds.length === limit;
+
+  const start = total === 0 ? 0 : (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total);
 
   const handleToggle = (c: string[], newId: string) => {
     const isSelected = selectedIds?.includes(newId);
@@ -83,7 +85,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
 
   return (
     <div className={cn(styles.container, className)}>
-      <div className={cn(styles.filterContainer)}>
+      <div className={cn(styles.filterContainer, 'text-gray-800')}>
         <div className='ml-1 text-xl-semibold'>{title}</div>
         <div className='flex'>
           <DatePicker
@@ -95,10 +97,8 @@ const FilterCard: React.FC<FilterCardProps> = ({
           />
         </div>
       </div>
-      <div className='mb-4 mt-3 flex justify-between'>
-        <div className='flex h-full items-center'>
-          Page {page} of {totalPages}
-        </div>
+      <div className='mb-4 mt-5 flex justify-between text-gray-800'>
+        <div className='flex h-full items-center'>{`Showing ${start}–${end} of ${total} items`}</div>
 
         <div className='flex gap-2'>
           {isSelectMode ? (
@@ -106,7 +106,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
               disabled={!selectedIds.length}
               variant='outline'
               className={cn(
-                'text-gray-600 transition-colors hover:border-red-200 hover:bg-red-100 hover:text-red-400'
+                'text-gray-800 transition-colors hover:border-red-200 hover:bg-red-100 hover:text-red-400'
               )}
             >
               <Trash />
@@ -114,7 +114,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
           ) : null}
           {isSelectMode ? (
             <Button
-              className={cn(isAllSelect && 'border-blue-300')}
+              className={cn('text-gray-800', isAllSelect && 'border-blue-300')}
               variant='outline'
               onClick={() => {
                 if (isAllSelect) {
@@ -130,7 +130,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
           ) : null}
 
           <Button
-            className={cn('hidden', isSelectMode && 'border-blue-300')}
+            className={cn('hidden text-gray-800', isSelectMode && 'border-blue-300')}
             variant='outline'
             onClick={() => {
               setIsSelectMode((prev) => !prev);
@@ -159,6 +159,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
                   <Card
                     isLoading
                     cardData={{ id: key, lastUpdate: '' }}
+                    skeletonSize={skeletonSize}
                   />
                 </div>
               );
@@ -196,6 +197,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
                     cardData={item}
                     isSelectMode={isSelectMode}
                     isSelected={isSelected}
+                    skeletonSize={skeletonSize}
                   />
                 </div>
               );

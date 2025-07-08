@@ -1,14 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponseHeaders,
-  CancelTokenSource,
-  RawAxiosResponseHeaders,
-} from 'axios';
+import type { AxiosError, AxiosRequestConfig, AxiosResponseHeaders, RawAxiosResponseHeaders } from 'axios';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 
@@ -48,17 +42,9 @@ const useRequest = <T, D = object>({
   });
 
   const { data, headers, error, isLoading } = requestState;
-  const [cancelToken, setCancelToken] = useState<CancelTokenSource | null>(null);
 
   const onRequest = useCallback(
     async (updateRequest?: UpdateRequest) => {
-      if (cancelToken) {
-        cancelToken.cancel('Operation canceled due to new request.');
-      }
-
-      const newCancelToken = axios.CancelToken.source();
-      setCancelToken(newCancelToken);
-
       try {
         setRequestState({
           data: null,
@@ -99,7 +85,6 @@ const useRequest = <T, D = object>({
           data: isFormData
             ? (updateRequest?.data ?? request.data)
             : { ...request.data, ...(updateRequest?.data ?? {}) },
-          cancelToken: newCancelToken.token,
         };
 
         const response = await axiosClient<T>(updatedRequest);
@@ -143,7 +128,7 @@ const useRequest = <T, D = object>({
         throw err;
       }
     },
-    [cancelToken, error, request, session?.accessToken]
+    [error, request, session?.accessToken]
   );
 
   const handleRequest = useCallback(
@@ -157,15 +142,7 @@ const useRequest = <T, D = object>({
     [actionAfterRequest, onRequest]
   );
 
-  useEffect(() => {
-    return () => {
-      if (cancelToken) {
-        cancelToken.cancel('Component unmounted, request canceled.');
-      }
-    };
-  }, [cancelToken]);
-
-  return { data, error, headers, isLoading, handleRequest, cancelToken };
+  return { data, error, headers, isLoading, handleRequest };
 };
 
 export default useRequest;

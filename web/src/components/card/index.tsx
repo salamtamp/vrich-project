@@ -23,6 +23,7 @@ export type CardProps = {
   cardData: CardData;
   fallbackAvatar?: React.ReactNode;
   isLoading?: boolean;
+  skeletonSize?: 'small' | 'medium' | 'large';
 };
 
 export type CardData = {
@@ -45,6 +46,7 @@ const Card: React.FC<CardProps> = ({
   cardData,
   fallbackAvatar,
   isLoading = false,
+  skeletonSize = 'medium',
 }) => {
   const { showFallback, handleImgError } = useImageFallback();
   const [imgLoading, setImgLoading] = useState(false);
@@ -57,7 +59,12 @@ const Card: React.FC<CardProps> = ({
   };
 
   if (isLoading) {
-    return <SkeletonCard disableTitle={!cardData?.title} />;
+    return (
+      <SkeletonCard
+        disableTitle={!cardData?.title}
+        skeletonSize={skeletonSize}
+      />
+    );
   }
   return (
     <div className='flex w-full gap-2'>

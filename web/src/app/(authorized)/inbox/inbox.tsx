@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import type { CardData } from '@/components/card';
 import FilterCard from '@/components/filter-card';
@@ -8,23 +8,34 @@ import TextList from '@/components/text-list';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
-import dayjs from '@/lib/dayjs';
+import { getRelativeTimeInThai } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { FacebookMessenger } from '@/types/api/facebook-messenger';
+import type { FacebookMessengerResponse } from '@/types/api/facebook-messenger';
+
+const MessageContent: React.FC<{ message: FacebookMessengerResponse }> = ({ message }) => (
+  <p className='line-clamp-4 text-md-medium'>{message.message ?? 'ไม่มีข้อความ'}</p>
+);
 
 const Inbox = () => {
   const { open } = useModalContext();
 
-  const { handleConfirm, data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookMessenger>>({
+  const { handleConfirm, data, isLoading } = usePaginatedRequest<
+    PaginationResponse<FacebookMessengerResponse>
+  >({
     url: API.MESSAGE.PAGINATION,
   });
 
-  const itemData =
-    data?.docs?.map((msg) => ({
-      id: msg.messenger_id,
-      content: msg.message,
-      lastUpdate: dayjs(msg.sent_at).fromNow(),
-    })) ?? [];
+  const itemData = useMemo(
+    () =>
+      data?.docs?.map((message) => {
+        return {
+          id: message.messenger_id,
+          content: <MessageContent message={message} />,
+          lastUpdate: getRelativeTimeInThai(message.created_at),
+        };
+      }),
+    [data?.docs]
+  );
 
   const handleCardClick = useCallback(
     (id: string, data: CardData) => {
@@ -45,6 +56,7 @@ const Inbox = () => {
     <FilterCard
       data={itemData}
       isLoading={isLoading}
+      skeletonSize='medium'
       title='Inbox'
       total={data?.total}
       onCardClick={handleCardClick}

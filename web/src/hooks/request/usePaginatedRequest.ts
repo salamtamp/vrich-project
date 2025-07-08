@@ -34,7 +34,7 @@ function usePaginatedRequest<T, D = object>({
     setUntil(endDate ? endDate.endOf('day').toISOString() : null);
   }, []);
 
-  const { data, error, headers, isLoading, handleRequest, cancelToken } = useRequest<T, D>({
+  const { data, error, headers, isLoading, handleRequest } = useRequest<T, D>({
     request: {
       url,
       params: {
@@ -55,7 +55,6 @@ function usePaginatedRequest<T, D = object>({
     headers,
     isLoading,
     handleRequest,
-    cancelToken,
     since,
     until,
     handleConfirm,
