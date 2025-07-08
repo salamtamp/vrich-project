@@ -81,7 +81,6 @@ class FacebookPostProcessor:
                 'media_url': message["media_url"],
                 'media_type': message["media_type"],
                 'status': "inactive",
-                'type': message["type"],
                 'published_at': published_at.isoformat(),
                 'created_at': now.isoformat(),
                 'updated_at': now.isoformat(),

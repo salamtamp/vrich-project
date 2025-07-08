@@ -85,20 +85,3 @@ class QueueConsumer:
             log_message("QueueConsumer", "error", f"Error in consume loop: {e}")
         finally:
             self.is_running = False
-
-    # def _route_message(self, message: Dict[str, Any]) -> bool:
-    #     """Route message to appropriate processor based on message type."""
-    #     try:
-    #         message_type = message.get('type', 'unknown')
-
-    #         if message_type == 'post':
-    #             return self.facebook_post_processor.process_facebook_post(message)
-    #         elif message_type == 'comment':
-    #             return self.facebook_comment_processor.process_facebook_comment(message)
-    #         else:
-    #             log_message("QueueConsumer", "warning", f"Unknown message type: {message_type}")
-    #             return False
-
-    #     except Exception as e:
-    #         log_message("QueueConsumer", "error", f"Error routing message: {e}")
-    #         return False
