@@ -10,9 +10,9 @@ queue: Queue = None
 database: Database = None
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Facebook Page API"
+    PROJECT_NAME: str = "Facebook Post Worker"
     VERSION: str = "1.0.0"
-    DESCRIPTION: str = "Facebook Page API"
+    DESCRIPTION: str = "Facebook Post Worker"
 
     # API
     API_PORT: int = 8000

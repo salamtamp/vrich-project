@@ -1,10 +1,10 @@
-# Makefile for Facebook Page API
+# Makefile for Facebook Post Worker
 
 .PHONY: help install install-dev install-test dev test test-watch lint format type-check clean clean-all docker-build docker-run docker-stop
 
 # Default target
 help:
-	@echo "Facebook Page API - Available Commands:"
+	@echo "Facebook Post Worker - Available Commands:"
 	@echo ""
 	@echo "Development:"
 	@echo "  install      - Install production dependencies"
@@ -102,24 +102,24 @@ type-check: check-poetry
 # Docker commands
 docker-build:
 	@echo "Building Docker image..."
-	docker build -t facebook-page-api .
+	docker build -t facebook-post-worker .
 
 docker-build-dev:
 	@echo "Building development Docker image..."
-	docker build -f Dockerfile.dev -t facebook-page-api:dev .
+	docker build -f Dockerfile.dev -t facebook-post-worker:dev .
 
 docker-run:
 	@echo "Running Docker container..."
-	docker run -d --name facebook-page-api -p 3002:3002 --env-file .env facebook-page-api
+	docker run -d --name facebook-post-worker -p 3002:3002 --env-file .env facebook-post-worker
 
 docker-run-dev:
 	@echo "Running development Docker container..."
-	docker run -d --name facebook-page-api-dev -p 8001:3002 -v $(PWD)/app:/app/app --env-file .env facebook-page-api:dev
+	docker run -d --name facebook-post-worker-dev -p 8001:3002 -v $(PWD)/app:/app/app --env-file .env facebook-post-worker:dev
 
 docker-stop:
 	@echo "Stopping Docker containers..."
-	docker stop facebook-page-api facebook-page-api-dev || true
-	docker rm facebook-page-api facebook-page-api-dev || true
+	docker stop facebook-post-worker facebook-post-worker-dev || true
+	docker rm facebook-post-worker facebook-post-worker-dev || true
 
 docker-compose-up:
 	@echo "Starting services with Docker Compose..."
