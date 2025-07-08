@@ -1,35 +1,67 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 'use client';
-import { useCallback, useEffect } from 'react';
+
+import { useCallback, useEffect, useState } from 'react';
 
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 import { ProfileMaleIcon } from '@public/assets/icon';
-import { ExternalLink } from 'lucide-react';
+import dayjs from 'dayjs';
+import { ExternalLink, User } from 'lucide-react';
 
 import type { CardData } from '@/components/card';
+import SkeletonCard from '@/components/card/SkeletonCard';
 import ContentPagination from '@/components/content/pagination';
 import TextList from '@/components/text-list';
-import { MockPost } from '@/components/text-list/mock';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { API } from '@/constants/api.constant';
+import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
-
-import mockLogo from '../../../../../public/assets/image/logo.png';
+import useImageFallback from '@/hooks/useImageFallback';
+import { cn, getRelativeTimeInThai } from '@/lib/utils';
+import type { PaginationResponse } from '@/types/api/api-response';
+import type { FacebookMessengerResponse } from '@/types/api/facebook-messenger';
 
 type CommentListProps = {
   onCheckedChange?: (checked: boolean) => void;
+  image?: string;
+  title?: string;
+  link?: string;
+  status?: 'active' | 'inactive';
 };
 
-const CommentList: React.FC<CommentListProps> = ({ onCheckedChange }) => {
-  const data = {
-    postUrl:
-      'https://web.facebook.com/linemanth/posts/pfbid02QwKj1bm2BGTU1N8a4dSqht8Qapu8ZiUbZpfQD8XPrq5iZ7qZqVCsstAKyGjYASoZl',
-  };
-  const { update, reset } = usePaginationContext();
+const isValidImageUrl = (url?: string): url is string => {
+  return !!url && /^https?:\/\//.test(url) && !url.includes('example.com');
+};
+
+const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title, link, status }) => {
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
+
+  const { reset } = usePaginationContext();
+
+  const { data } = usePaginatedRequest<PaginationResponse<FacebookMessengerResponse>>({
+    url: API.COMMENT.PAGINATION,
+    additionalParams: { post_id: id },
+    requireFields: ['post_id'],
+    defaultStartDate: dayjs().subtract(100, 'year'),
+  });
+
   const { open } = useModalContext();
+  const { showFallback, handleImgError } = useImageFallback();
+  const [imgLoading, setImgLoading] = useState(false);
+  const [postStatus, setPostStatus] = useState(status);
+
+  const handleImgLoadStart = () => {
+    setImgLoading(true);
+  };
+  const handleImgLoad = () => {
+    setImgLoading(false);
+  };
 
   const handleCardClick = useCallback(
     (id: string, data: CardData) => {
@@ -48,48 +80,72 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange }) => {
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
       onCheckedChange?.(checked);
+      setPostStatus(checked ? 'active' : 'inactive');
     },
     [onCheckedChange]
   );
 
   useEffect(() => {
-    update({ limit: 50 });
-
     return () => {
       reset();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setPostStatus(status === 'active' ? 'active' : 'inactive');
+  }, [status, id]);
+
   return (
     <>
       <div className='flex w-full justify-between'>
         <div className='flex w-full items-center gap-4 pb-2'>
-          <Image
-            alt='logo'
-            height={40}
-            src={mockLogo}
-            width={40}
-          />
+          {image ? (
+            <div className='size-10 rounded-full bg-gray-300'>
+              {!showFallback && isValidImageUrl(image) ? (
+                <>
+                  {imgLoading ? <SkeletonCard avatarOnly /> : null}
+                  <Image
+                    alt={title ?? 'post-image'}
+                    className={imgLoading ? 'hidden' : ''}
+                    height={40}
+                    src={image}
+                    style={{ borderRadius: '50%' }}
+                    width={40}
+                    onError={handleImgError}
+                    onLoad={handleImgLoad}
+                    onLoadStart={handleImgLoadStart}
+                    onLoadingComplete={handleImgLoad}
+                  />
+                </>
+              ) : (
+                <div className='flex size-10 items-center justify-center rounded-full'>
+                  <User size={25} />
+                </div>
+              )}
+            </div>
+          ) : null}
           <div className='flex max-w-[260px]'>
-            <p className='truncate text-display-medium'>LineMan</p>
+            <p className='truncate text-display-medium'>{title ?? ''}</p>
           </div>
-          <Button
-            className='px-3 py-2'
-            variant='outline'
-            onClick={() => {
-              if (data.postUrl) {
-                window.open(data.postUrl, '_blank');
-              }
-            }}
-          >
-            <ExternalLink />
-          </Button>
+          {link ? (
+            <Button
+              className='px-3 py-2'
+              variant='outline'
+              onClick={() => {
+                window.open(link, '_blank');
+              }}
+            >
+              <ExternalLink />
+            </Button>
+          ) : null}
         </div>
 
         <div className='flex h-full w-fit items-center gap-2'>
           <p className='text-nowrap'>Live Mode</p>{' '}
           <Switch
+            checked={postStatus === 'active'}
+            className={cn(postStatus === 'active' && '!bg-green-400')}
             onCheckedChange={(checked) => {
               handleCheckedChange(checked);
             }}
@@ -99,32 +155,34 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange }) => {
       <div className='mt-2 h-[2px] w-full rounded-xl bg-gray-100' />
 
       <div className='flex h-full flex-1 flex-col overflow-y-scroll'>
-        {MockPost.map((c) => {
-          const mock: CardData = {
-            id: c.id,
-            title: 'จิมมี่ ปิยะวัช',
-            lastUpdate: '2 min ago',
+        {data?.docs?.map((m) => {
+          const card: CardData = {
+            id: m.messenger_id,
+            title: m.profile?.name ?? 'Unknown',
+            lastUpdate: getRelativeTimeInThai(m.created_at),
           };
           return (
             <div
-              key={c.id}
+              key={`${m.messenger_id}-${crypto.randomUUID()}`}
               className='mx-2 my-4'
             >
               <div
                 className='flex cursor-pointer justify-between gap-2 rounded-lg px-4 py-3 hover:bg-gray-200'
                 onClick={() => {
-                  handleCardClick(c.id, mock);
+                  handleCardClick(m.messenger_id, card);
                 }}
               >
                 <div className='flex flex-col gap-2'>
-                  <p className='text-display-medium'> จิมมี่ ปิยะวัช</p>
-                  <p>{c.text} </p>
+                  <p className='text-display-medium'>{m.profile?.name ?? 'Unknown'}</p>
+                  <p>{m.message}</p>
                 </div>
                 <div className='flex min-w-[100px] flex-col justify-between gap-1'>
                   <div className='flex w-full justify-end'>
                     <ProfileMaleIcon />
                   </div>
-                  <p className='line-clamp-1 flex justify-end text-sm-medium'>2 min ago</p>
+                  <p className='line-clamp-1 flex justify-end text-sm-medium'>
+                    {dayjs(m.created_at).format('YYYY-MM-DD HH:mm')}
+                  </p>
                 </div>
               </div>
               <div className='mt-2 h-[2px] w-full rounded-xl bg-gray-300' />
@@ -136,7 +194,7 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange }) => {
       <ContentPagination
         shotMode
         className='mt-5'
-        total={MockPost.length}
+        total={data?.total ?? 0}
       />
     </>
   );

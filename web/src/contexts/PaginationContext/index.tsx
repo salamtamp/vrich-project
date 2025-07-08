@@ -38,8 +38,13 @@ const defaultPagination: Omit<Pagination, 'offset' | 'isDisableNext' | 'isDisabl
 
 export const PaginationContext = createContext<PaginationContextType | null>(null);
 
-export const PaginationProvider: FC<NextJSChildren> = ({ children }) => {
-  const [pagination, setPagination] = useState(defaultPagination);
+type PaginationProviderProps = NextJSChildren & {
+  defaultValue?: Partial<Omit<Pagination, 'offset' | 'isDisableNext' | 'isDisablePrev'>>;
+};
+
+export const PaginationProvider: FC<PaginationProviderProps> = ({ children, defaultValue }) => {
+  const initialPagination = { ...defaultPagination, ...defaultValue };
+  const [pagination, setPagination] = useState(initialPagination);
 
   const offset = (pagination.page - 1) * pagination.limit;
   const isDisableNext = pagination.page * pagination.limit >= pagination.total;

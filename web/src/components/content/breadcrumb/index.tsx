@@ -1,4 +1,7 @@
+'use client';
 import React from 'react';
+
+import { useRouter } from 'next/navigation';
 
 import {
   Breadcrumb,
@@ -13,6 +16,7 @@ import { cn } from '@/lib/utils';
 export type BreadcrumbItem = {
   label: string;
   href?: string | null;
+  push?: string | null;
 };
 
 type BreadcrumbContentProps = {
@@ -22,6 +26,8 @@ type BreadcrumbContentProps = {
 };
 
 const BreadcrumbContent: React.FC<BreadcrumbContentProps> = ({ items, labelClassName, className }) => {
+  const router = useRouter();
+
   return (
     <Breadcrumb className={className}>
       <BreadcrumbList>
@@ -30,30 +36,33 @@ const BreadcrumbContent: React.FC<BreadcrumbContentProps> = ({ items, labelClass
 
           let content: React.ReactNode;
           if (isLast) {
-            if (item.label) {
-              content = (
-                <BreadcrumbPage className={cn(labelClassName, '!font-medium')}>{item.label}</BreadcrumbPage>
-              );
-            } else {
-              content = <p className='bg-loading-container h-6 w-14' />;
-            }
+            content = (
+              <BreadcrumbPage className={cn(labelClassName, '!font-medium')}>{item.label}</BreadcrumbPage>
+            );
           } else if (item.label) {
             content = (
               <BreadcrumbLink
-                className={labelClassName}
+                className={cn(labelClassName, item.push && 'cursor-pointer')}
                 href={item.href ?? undefined}
+                onClick={() => {
+                  if (item.push) {
+                    router.push(item.push);
+                  }
+                }}
               >
                 {item.label}
               </BreadcrumbLink>
             );
-          } else {
+          }
+
+          if (!item.label) {
             content = <p className='bg-loading-container h-6 w-14' />;
           }
 
           return (
             <React.Fragment key={crypto.randomUUID()}>
               <BreadcrumbItem className='max-w-[100px]'>
-                <p className='truncate'>{content}</p>
+                <div className='truncate'>{content}</div>
               </BreadcrumbItem>
               {!isLast && <BreadcrumbSeparator />}
             </React.Fragment>

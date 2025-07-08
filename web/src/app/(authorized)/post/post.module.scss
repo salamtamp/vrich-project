@@ -1,0 +1,10 @@
+.profileContainer {
+  @apply hidden;
+  @apply w-[400px];
+}
+
+@media (min-width: 1200px) {
+  .profileContainer {
+    @apply flex;
+  }
+}
