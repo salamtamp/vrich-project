@@ -3,10 +3,10 @@
 import React, { useState } from 'react';
 
 import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
-import { ArrowDownNarrowWide, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
-import { MONTHS, MONTHS_SHORT, WEEK_DAYS } from '@/constant/data-time';
+import { MONTHS, MONTHS_SHORT, WEEK_DAYS } from '@/constants/data-time';
+import dayjs from '@/lib/dayjs';
 
 type DatePickerState = {
   startDate: Dayjs | null;
@@ -17,6 +17,10 @@ type DatePickerState = {
 type DatePickerProps = {
   minDate?: Dayjs;
   maxDate?: Dayjs;
+  defaultStartDate?: Dayjs;
+  defaultEndDate?: Dayjs;
+  onChange?: (startDate: Dayjs | null, endDate: Dayjs | null) => void;
+  onConfirm?: (startDate: Dayjs | null, endDate: Dayjs | null) => void;
 };
 
 const isSameDay = (date1: Dayjs | null, date2: Dayjs | null): boolean => {
@@ -81,10 +85,6 @@ const MonthDropdown: React.FC<MonthDropdownProps> = ({
       onClick={onToggle}
     >
       {MONTHS[currentMonth.month()]}
-      <ArrowDownNarrowWide
-        size={10}
-        strokeWidth={1.5}
-      />
     </button>
     {showDropdown ? (
       <div className='absolute left-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg'>
@@ -136,10 +136,6 @@ const YearDropdown: React.FC<YearDropdownProps> = ({
       onClick={onToggle}
     >
       {currentMonth.year()}
-      <ArrowDownNarrowWide
-        size={10}
-        strokeWidth={1.5}
-      />
     </button>
     {showDropdown ? (
       <div className='absolute left-0 top-full z-10 mt-1 max-h-48 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg'>
@@ -181,6 +177,7 @@ type CalendarHeaderProps = {
   isMonthDisabled: (monthIndex: number) => boolean;
   isYearDisabled: (year: number) => boolean;
   getYearOptions: () => number[];
+  isSingleYearRange?: boolean;
 };
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -197,6 +194,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   isMonthDisabled,
   isYearDisabled,
   getYearOptions,
+  isSingleYearRange,
 }) => {
   const isPrevDisabled = minDate
     ? currentMonth.subtract(1, 'month').endOf('month').isBefore(minDate, 'day')
@@ -226,14 +224,16 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           onMonthChange={onMonthChange}
           onToggle={onMonthDropdownToggle}
         />
-        <YearDropdown
-          currentMonth={currentMonth}
-          getYearOptions={getYearOptions}
-          isYearDisabled={isYearDisabled}
-          showDropdown={showYearDropdown}
-          onToggle={onYearDropdownToggle}
-          onYearChange={onYearChange}
-        />
+        {!isSingleYearRange && (
+          <YearDropdown
+            currentMonth={currentMonth}
+            getYearOptions={getYearOptions}
+            isYearDisabled={isYearDisabled}
+            showDropdown={showYearDropdown}
+            onToggle={onYearDropdownToggle}
+            onYearChange={onYearChange}
+          />
+        )}
       </div>
 
       <button
@@ -511,6 +511,7 @@ type DatePickerDialogProps = {
   getYearOptions: () => number[];
   setShowYearDropdown: (show: boolean) => void;
   setShowMonthDropdown: (show: boolean) => void;
+  isSingleYearRange?: boolean;
 };
 
 const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
@@ -541,6 +542,7 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
   getYearOptions,
   setShowYearDropdown,
   setShowMonthDropdown,
+  isSingleYearRange,
 }) => {
   if (!isOpen) {
     return null;
@@ -565,11 +567,12 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
         currentMonth={currentMonth}
         getYearOptions={getYearOptions}
         isMonthDisabled={isMonthDisabled}
+        isSingleYearRange={isSingleYearRange}
         isYearDisabled={isYearDisabled}
         maxDate={maxDate}
         minDate={minDate}
         showMonthDropdown={showMonthDropdown}
-        showYearDropdown={showYearDropdown}
+        showYearDropdown={showYearDropdown ? !isSingleYearRange : false}
         onMonthChange={onMonthChange}
         onMonthDropdownToggle={onMonthDropdownToggle}
         onNavigateMonth={onNavigateMonth}
@@ -606,16 +609,27 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
   );
 };
 
-const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
-  const [selectedStartDate, setSelectedStartDate] = useState<Dayjs | null>(null);
-  const [selectedEndDate, setSelectedEndDate] = useState<Dayjs | null>(null);
-  const [currentMonth, setCurrentMonth] = useState<Dayjs>(dayjs());
+const DatePicker: React.FC<DatePickerProps> = ({
+  minDate,
+  maxDate,
+  defaultStartDate,
+  defaultEndDate,
+  onChange,
+  onConfirm,
+}) => {
+  const [selectedStartDate, setSelectedStartDate] = useState<Dayjs | null>(defaultStartDate ?? null);
+  const [selectedEndDate, setSelectedEndDate] = useState<Dayjs | null>(defaultEndDate ?? null);
+  const [currentMonth, setCurrentMonth] = useState<Dayjs>(defaultStartDate ?? dayjs());
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isSelectingEnd, setIsSelectingEnd] = useState<boolean>(false);
+  const [isSelectingEnd, setIsSelectingEnd] = useState<boolean>(
+    defaultStartDate !== null && defaultEndDate === null
+  );
   const [hoveredDate, setHoveredDate] = useState<Dayjs | null>(null);
   const [showYearDropdown, setShowYearDropdown] = useState<boolean>(false);
   const [showMonthDropdown, setShowMonthDropdown] = useState<boolean>(false);
   const [previousState, setPreviousState] = useState<DatePickerState | null>(null);
+
+  const isSingleYearRange = minDate && maxDate && minDate.year() === maxDate.year();
 
   const isDateDisabled = (date: Dayjs): boolean => {
     if (minDate && date.isBefore(minDate, 'day')) {
@@ -690,6 +704,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
     setSelectedStartDate(date);
     setSelectedEndDate(null);
     setIsSelectingEnd(true);
+    onChange?.(date, null);
   };
 
   const handleEndDateSelection = (date: Dayjs): void => {
@@ -699,10 +714,12 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
       setSelectedEndDate(date);
       setIsSelectingEnd(false);
       setHoveredDate(null);
+      onChange?.(selectedStartDate, date);
     } else {
       setSelectedStartDate(date);
       setSelectedEndDate(null);
       setIsSelectingEnd(true);
+      onChange?.(date, null);
     }
   };
 
@@ -778,6 +795,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
     setSelectedEndDate(null);
     setIsSelectingEnd(false);
     setHoveredDate(null);
+    onChange?.(null, null);
   };
 
   const handleOpen = (): void => {
@@ -795,6 +813,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
       setSelectedStartDate(previousState.startDate);
       setSelectedEndDate(previousState.endDate);
       setIsSelectingEnd(previousState.isSelectingEnd);
+      onChange?.(previousState.startDate, previousState.endDate);
     }
     setHoveredDate(null);
     setIsOpen(false);
@@ -807,6 +826,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
     setIsOpen(false);
     setShowYearDropdown(false);
     setShowMonthDropdown(false);
+    if (onConfirm) {
+      onConfirm(selectedStartDate, selectedEndDate);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent): void => {
@@ -887,6 +909,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ minDate, maxDate }) => {
         isMonthDisabled={isMonthDisabled}
         isOpen={isOpen}
         isSelectingEnd={isSelectingEnd}
+        isSingleYearRange={isSingleYearRange}
         isYearDisabled={isYearDisabled}
         maxDate={maxDate}
         minDate={minDate}

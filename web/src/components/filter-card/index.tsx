@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 
-import dayjs from 'dayjs';
 import { Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -11,6 +10,7 @@ import DatePicker from '@/components/date-picker';
 import { Button } from '@/components/ui/button';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import { useScrollable } from '@/hooks/useScrollable';
+import dayjs from '@/lib/dayjs';
 import { cn } from '@/lib/utils';
 
 import type { CardData } from '../card';
@@ -28,6 +28,11 @@ type FilterCardProps = {
   cardClassName?: string;
   cardItemClassName?: string;
   shotModePagination?: boolean;
+  defaultStartDate?: dayjs.Dayjs;
+  defaultEndDate?: dayjs.Dayjs;
+  onConfirm?: (startDate: dayjs.Dayjs | null, endDate: dayjs.Dayjs | null) => void;
+  isLoading?: boolean;
+  skeletonSize?: 'small' | 'medium' | 'large';
 };
 
 const FilterCard: React.FC<FilterCardProps> = ({
@@ -40,21 +45,25 @@ const FilterCard: React.FC<FilterCardProps> = ({
   cardClassName,
   cardItemClassName,
   shotModePagination,
+  defaultStartDate,
+  defaultEndDate,
+  onConfirm,
+  isLoading = false,
+  skeletonSize = 'medium',
 }) => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
   const { pagination } = usePaginationContext();
   const { page, limit } = pagination;
-
-  const totalPages = Math.ceil(total / limit);
-
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedData = data ? data?.slice(startIndex, endIndex) : [];
+  const paginatedData = data ?? [];
+  const skeletonCount = limit;
 
   const isAllSelect = selectedIds.length === limit;
+
+  const start = total === 0 ? 0 : (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total);
 
   const handleToggle = (c: string[], newId: string) => {
     const isSelected = selectedIds?.includes(newId);
@@ -76,16 +85,20 @@ const FilterCard: React.FC<FilterCardProps> = ({
 
   return (
     <div className={cn(styles.container, className)}>
-      <div className={cn(styles.filterContainer)}>
+      <div className={cn(styles.filterContainer, 'text-gray-800')}>
         <div className='ml-1 text-xl-semibold'>{title}</div>
         <div className='flex'>
-          <DatePicker maxDate={dayjs()} />
+          <DatePicker
+            defaultEndDate={defaultEndDate}
+            defaultStartDate={defaultStartDate}
+            maxDate={dayjs()}
+            minDate={dayjs().subtract(3, 'month')}
+            onConfirm={onConfirm}
+          />
         </div>
       </div>
-      <div className='mb-4 mt-3 flex justify-between'>
-        <div className='flex h-full items-center'>
-          Page {page} of {totalPages}
-        </div>
+      <div className='mb-4 mt-5 flex justify-between text-gray-800'>
+        <div className='flex h-full items-center'>{`Showing ${start}–${end} of ${total} items`}</div>
 
         <div className='flex gap-2'>
           {isSelectMode ? (
@@ -93,7 +106,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
               disabled={!selectedIds.length}
               variant='outline'
               className={cn(
-                'text-gray-600 transition-colors hover:border-red-200 hover:bg-red-100 hover:text-red-400'
+                'text-gray-800 transition-colors hover:border-red-200 hover:bg-red-100 hover:text-red-400'
               )}
             >
               <Trash />
@@ -101,7 +114,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
           ) : null}
           {isSelectMode ? (
             <Button
-              className={cn(isAllSelect && 'border-blue-300')}
+              className={cn('text-gray-800', isAllSelect && 'border-blue-300')}
               variant='outline'
               onClick={() => {
                 if (isAllSelect) {
@@ -117,7 +130,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
           ) : null}
 
           <Button
-            className={cn('hidden', isSelectMode && 'border-blue-300')}
+            className={cn('hidden text-gray-800', isSelectMode && 'border-blue-300')}
             variant='outline'
             onClick={() => {
               setIsSelectMode((prev) => !prev);
@@ -135,44 +148,60 @@ const FilterCard: React.FC<FilterCardProps> = ({
         ref={ref}
         className={cn(styles.cardItemContainer, styles.cardItemContainerScrollable, cardItemClassName)}
       >
-        {paginatedData.map((item) => {
-          const isSelected = selectedIds?.includes(item.id);
-
-          return (
-            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-            <div
-              key={item.id}
-              className={cn(
-                styles.cardContainer,
-                isSelected && isSelectMode && '!border-blue-300',
-                cardClassName
-              )}
-              onClick={() => {
-                if (isSelectMode) {
-                  setSelectedIds?.((c) => handleToggle(c, item.id));
-                } else {
-                  onCardClick?.(item.id, item);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  if (isSelectMode) {
-                    e.preventDefault();
-                    setSelectedIds?.((c) => handleToggle(c, item.id));
-                  } else {
-                    onCardClick?.(item.id, item);
-                  }
-                }
-              }}
-            >
-              <Card
-                cardData={item}
-                isSelectMode={isSelectMode}
-                isSelected={isSelected}
-              />
-            </div>
-          );
-        })}
+        {isLoading
+          ? Array.from({ length: skeletonCount }).map(() => {
+              const key = crypto.randomUUID();
+              return (
+                <div
+                  key={key}
+                  className={cn(styles.cardContainer, cardClassName)}
+                >
+                  <Card
+                    isLoading
+                    cardData={{ id: key, lastUpdate: '' }}
+                    skeletonSize={skeletonSize}
+                  />
+                </div>
+              );
+            })
+          : paginatedData.map((item) => {
+              const isSelected = selectedIds?.includes(item.id);
+              return (
+                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                <div
+                  key={item.id}
+                  className={cn(
+                    styles.cardContainer,
+                    isSelected && isSelectMode && '!border-blue-300',
+                    cardClassName
+                  )}
+                  onClick={() => {
+                    if (isSelectMode) {
+                      setSelectedIds?.((c) => handleToggle(c, item.id));
+                    } else {
+                      onCardClick?.(item.id, item);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      if (isSelectMode) {
+                        e.preventDefault();
+                        setSelectedIds?.((c) => handleToggle(c, item.id));
+                      } else {
+                        onCardClick?.(item.id, item);
+                      }
+                    }
+                  }}
+                >
+                  <Card
+                    cardData={item}
+                    isSelectMode={isSelectMode}
+                    isSelected={isSelected}
+                    skeletonSize={skeletonSize}
+                  />
+                </div>
+              );
+            })}
       </div>
       <ContentPagination
         className='mt-5'

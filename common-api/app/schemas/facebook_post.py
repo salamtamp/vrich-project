@@ -21,6 +21,7 @@ class FacebookPostCreate(FacebookPostBase):
 
 
 class FacebookPostUpdate(BaseModel):
+    profile_id: UUID | None = None
     message: str | None = None
     link: str | None = None
     media_url: str | None = None

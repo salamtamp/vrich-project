@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, Integer, text
+from sqlalchemy import Column, DateTime, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -12,7 +12,6 @@ class UUIDPrimaryKeyMixin:
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
         index=True,
     )
 

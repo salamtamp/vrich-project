@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -18,8 +17,8 @@ router = APIRouter()
 def read_users(
     db: Session = Depends(get_db),
     skip: int = 0,
-    limit: int = 100,
-) -> Any:
+    limit: int = 1000000,
+) -> list[user_schema.User]:
     """
     Retrieve users.
     """
@@ -31,7 +30,7 @@ def create_user(
     *,
     db: Session = Depends(get_db),
     user_in: user_schema.UserCreate,
-) -> Any:
+) -> user_schema.User:
     """
     Create new user.
     """
@@ -48,7 +47,7 @@ def create_user(
 @router.get("/me", response_model=user_schema.User)
 def read_user_me(
     request: Request,
-) -> Any:
+) -> user_schema.User:
     """
     Get current user.
     """
@@ -61,7 +60,7 @@ def update_user_me(
     db: Session = Depends(get_db),
     user_in: user_schema.UserUpdate,
     current_user: models.User = Depends(deps.get_current_user),
-) -> Any:
+) -> user_schema.User:
     """
     Update own user.
     """
@@ -72,11 +71,11 @@ def update_user_me(
 def read_user_by_id(
     user_id: UUID,
     db: Session = Depends(get_db),
-) -> Any:
+) -> user_schema.User:
     """
     Get a specific user by id.
     """
-    return user_repo.get(db, id=str(user_id))
+    return user_repo.get(db, _id=str(user_id))
 
 
 @router.put("/{user_id}", response_model=user_schema.User)
@@ -85,11 +84,11 @@ def update_user(
     db: Session = Depends(get_db),
     user_id: UUID,
     user_in: user_schema.UserUpdate,
-) -> Any:
+) -> user_schema.User:
     """
     Update a user.
     """
-    user = user_repo.get(db, id=str(user_id))
+    user = user_repo.get(db, _id=str(user_id))
     if not user:
         raise HTTPException(
             status_code=404,
@@ -103,11 +102,11 @@ def delete_user(
     *,
     db: Session = Depends(get_db),
     user_id: UUID,
-) -> Any:
+) -> user_schema.User:
     """
     Delete a user.
     """
-    user = user_repo.get(db, id=str(user_id))
+    user = user_repo.get(db, _id=str(user_id))
     if not user:
         raise HTTPException(
             status_code=404,

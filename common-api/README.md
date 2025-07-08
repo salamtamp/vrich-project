@@ -102,3 +102,25 @@ http {
 - **API Docs**: http://localhost:8000/docs
 - **Health**: http://localhost:8000/health
 - **Prometheus**: http://localhost:9090
+
+## Seeding the Database
+
+### Seeding Order (Important)
+Run each script in this order to satisfy foreign key dependencies:
+
+```bash
+python app/seeds/seed_users.py
+python app/seeds/seed_facebook_profiles.py
+python app/seeds/seed_facebook_posts.py
+python app/seeds/seed_facebook_messengers.py
+python app/seeds/seed_facebook_comments.py
+```
+
+- Each script is idempotent: running it multiple times will not create duplicate data.
+- If you encounter constraint errors, ensure you have the correct allowed values for each field (see `app/seeds/constants.py`).
+- If you need to reset, truncate the relevant tables in your database before seeding again.
+
+### Troubleshooting
+- If you see errors about database connection, check your `DATABASE_URL` in `.env` or config files.
+- If you see constraint errors (e.g., for `type`, `media_type`, or `status`), check the allowed values in the schema and constants.
+- For Docker users, make sure to run the seed scripts inside the container if your database hostname is not `localhost`.

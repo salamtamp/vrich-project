@@ -33,4 +33,5 @@ class FacebookProfileResponse(FacebookProfileBase):
 
 
 class FacebookProfile(FacebookProfileResponse):
-    pass
+    class Config:
+        orm_mode = True

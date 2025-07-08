@@ -8,9 +8,7 @@ from app.db.session import Base
 class FacebookPost(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "facebook_posts"
     __table_args__ = (
-        UniqueConstraint(
-            "profile_id", "post_id", name="uq_facebookpost_profileid_postid"
-        ),
+        UniqueConstraint("profile_id", "post_id", name="facebook_posts_post_id_unique"),
     )
 
     profile_id = Column(

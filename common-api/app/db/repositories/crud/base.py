@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, TypeVar
+from typing import TypeVar
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
@@ -21,20 +21,20 @@ class CRUDBase[
     def __init__(self, model: type[ModelType]):
         self.model = model
 
-    def get(self, db: Session, id: Any) -> ModelType | None:
+    def get(self, db: Session, _id: UUID | str) -> ModelType | None:
         # Convert string id to UUID if needed
         id_column = getattr(self.model, "id", None)
         if (
             id_column is not None
             and hasattr(id_column.type, "python_type")
             and id_column.type.python_type is uuid.UUID
-            and isinstance(id, str)
+            and isinstance(_id, str)
         ):
-            id = uuid.UUID(id)
-        return db.query(self.model).filter(self.model.id == id).first()
+            _id = uuid.UUID(_id)
+        return db.query(self.model).filter(self.model.id == _id).first()
 
     def get_multi(
-        self, db: Session, *, skip: int = 0, limit: int = 100
+        self, db: Session, *, skip: int = 0, limit: int = 1000000
     ) -> list[ModelType]:
         return db.query(self.model).offset(skip).limit(limit).all()
 
@@ -51,7 +51,7 @@ class CRUDBase[
         db: Session,
         *,
         db_obj: ModelType,
-        obj_in: UpdateSchemaType | dict[str, Any],
+        obj_in: UpdateSchemaType | dict[str, object],
     ) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):

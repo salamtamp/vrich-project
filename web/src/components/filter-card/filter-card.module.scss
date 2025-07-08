@@ -35,7 +35,7 @@
 
 .cardContainer {
   @apply flex;
-  @apply size-fit h-fit min-w-full;
+  @apply size-fit h-full min-w-full max-w-full;
   @apply gap-4 px-5 py-4;
   @apply rounded-2xl;
   @apply bg-white;

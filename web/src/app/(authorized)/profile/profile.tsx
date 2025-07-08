@@ -1,30 +1,46 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import type { CardData } from '@/components/card';
 import FilterCard from '@/components/filter-card';
 import TextList from '@/components/text-list';
+import { API } from '@/constants/api.constant';
+import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
+import dayjs from '@/lib/dayjs';
+import { getRelativeTimeInThai } from '@/lib/utils';
+import type { PaginationResponse } from '@/types/api/api-response';
+import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
 
-const MockContent = () => {
-  return (
-    <div className='flex flex-col'>
-      <p>type: user</p>
-      <p>facebook_id: 0001</p>
-    </div>
-  );
-};
+const ProfileContent: React.FC<{ profile: FacebookProfileResponse }> = ({ profile }) => (
+  <div className='flex max-w-[200px] flex-col gap-1'>
+    <p>Type: {profile.type}</p>
+    <p className='truncate'>ID: {profile.facebook_id}</p>
+  </div>
+);
 
-const Post = () => {
+const Profile = () => {
   const { open } = useModalContext();
 
-  const itemData = Array.from({ length: 150 }, (_, i) => ({
-    id: `${i + 1}`,
-    title: 'จิมมี่ ปิยะวัช',
-    content: <MockContent />,
-    lastUpdate: '3 นาทีที่แล้ว',
-  }));
+  const { handleConfirm, data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookProfileResponse>>(
+    {
+      url: API.PROFILE.PAGINATION,
+    }
+  );
+
+  const itemData = useMemo(
+    () =>
+      data?.docs?.map((profile) => ({
+        id: profile.facebook_id,
+        title: profile.name,
+        content: <ProfileContent profile={profile} />,
+        lastUpdate: getRelativeTimeInThai(profile.created_at),
+        profile_picture_url: profile.profile_picture_url,
+        name: profile.name,
+      })),
+    [data?.docs]
+  );
 
   const handleCardClick = useCallback(
     (id: string, data: CardData) => {
@@ -43,10 +59,15 @@ const Post = () => {
   return (
     <FilterCard
       data={itemData}
+      defaultEndDate={dayjs()}
+      defaultStartDate={dayjs().subtract(6, 'day')}
+      isLoading={isLoading}
+      skeletonSize='large'
       title='Profile'
-      total={itemData.length}
+      total={data?.total}
       onCardClick={handleCardClick}
+      onConfirm={handleConfirm}
     />
   );
 };
-export default Post;
+export default Profile;
