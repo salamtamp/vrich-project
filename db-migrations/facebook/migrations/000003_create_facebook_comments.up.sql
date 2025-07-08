@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS facebook_comments (
     post_id UUID NOT NULL,
     comment_id TEXT NOT NULL,
     message TEXT,
+    "type" TEXT NOT NULL,
+    link TEXT,
     published_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
