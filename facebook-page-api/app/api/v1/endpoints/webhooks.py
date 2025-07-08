@@ -14,21 +14,34 @@ logger = logging.getLogger(__name__)
 
 class FacebookSender(BaseModel):
     id: str
+    name: Optional[str] = None
+
+class FacebookRecipient(BaseModel):
+    id: str
+    name: Optional[str] = None
+
+class FacebookMessageAttachmentPayload(BaseModel):
+    url: Optional[str] = None
+    title: Optional[str] = None
 
 class FacebookMessageAttachment(BaseModel):
     type: str
-    payload: Dict[str, Any]
+    payload: FacebookMessageAttachmentPayload
 
 class FacebookMessage(BaseModel):
+    mid: str
     text: Optional[str] = None
     attachments: Optional[List[FacebookMessageAttachment]] = None
 
 class FacebookMessagingEvent(BaseModel):
     sender: FacebookSender
-    message: Optional[FacebookMessage] = None
+    recipient: FacebookRecipient
     timestamp: Optional[int] = None
+    message: Optional[FacebookMessage] = None
 
 class FacebookEntry(BaseModel):
+    id: str
+    time: int
     messaging: List[FacebookMessagingEvent]
 
 class FacebookWebhookBody(BaseModel):
@@ -224,10 +237,32 @@ async def handle_webhook(request: Request):
                 status_code=400
             )
 
-        processed_data = process_webhook_body(body)
+        msg = body.entry[0]
+
+        print("msg:", json.dumps(msg.model_dump(), indent=4))
+
+        processed_data = {
+            "id": msg.messaging[0].message.mid,
+            "message": msg.messaging[0].message.text,
+            "created_time": msg.time,
+            "from_name": msg.messaging[0].sender.name if msg.messaging[0].sender.name else "UNKNOWN",
+            "from_id": msg.messaging[0].sender.id if msg.messaging[0].sender.id else "0000000000000999",
+            "page_id": msg.id,
+        }
+
+        if msg.messaging[0].message.attachments:
+            processed_data["media_url"] = msg.messaging[0].message.attachments[0].payload.url
+            processed_data["media_type"] = msg.messaging[0].message.attachments[0].type
+            processed_data["type"] = "photo"
+        else:
+            processed_data["media_url"] = None
+            processed_data["media_type"] = None
+            processed_data["type"] = "text"
+
+        print("data:", json.dumps(processed_data, indent=4))
 
         if processed_data:
-            queue.publish("facebook-inboxes", processed_data)
+            queue.publish("facebook_inboxes", processed_data)
             logger.info(f"Published message to with data: {json.dumps(processed_data, indent=2)}")
         else:
             logger.info("No events to publish to queue")
