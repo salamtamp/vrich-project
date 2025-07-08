@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { useSearchParams } from 'next/navigation';
+
 import { Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -30,9 +32,10 @@ type FilterCardProps = {
   shotModePagination?: boolean;
   defaultStartDate?: dayjs.Dayjs;
   defaultEndDate?: dayjs.Dayjs;
-  onConfirm?: (startDate: dayjs.Dayjs | null, endDate: dayjs.Dayjs | null) => void;
+  onConfirmPeriod?: (startDate: dayjs.Dayjs | null, endDate: dayjs.Dayjs | null) => void;
   isLoading?: boolean;
   skeletonSize?: 'small' | 'medium' | 'large';
+  disableDatePicker?: boolean;
 };
 
 const FilterCard: React.FC<FilterCardProps> = ({
@@ -47,15 +50,19 @@ const FilterCard: React.FC<FilterCardProps> = ({
   shotModePagination,
   defaultStartDate,
   defaultEndDate,
-  onConfirm,
+  onConfirmPeriod,
   isLoading = false,
   skeletonSize = 'medium',
+  disableDatePicker = false,
 }) => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
   const { pagination } = usePaginationContext();
   const { page, limit } = pagination;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
 
   const paginatedData = data ?? [];
   const skeletonCount = limit;
@@ -87,15 +94,17 @@ const FilterCard: React.FC<FilterCardProps> = ({
     <div className={cn(styles.container, className)}>
       <div className={cn(styles.filterContainer, 'text-gray-800')}>
         <div className='ml-1 text-xl-semibold'>{title}</div>
-        <div className='flex'>
-          <DatePicker
-            defaultEndDate={defaultEndDate}
-            defaultStartDate={defaultStartDate}
-            maxDate={dayjs()}
-            minDate={dayjs().subtract(3, 'month')}
-            onConfirm={onConfirm}
-          />
-        </div>
+        {!disableDatePicker ? (
+          <div className='flex'>
+            <DatePicker
+              defaultEndDate={defaultEndDate}
+              defaultStartDate={defaultStartDate}
+              maxDate={dayjs()}
+              minDate={dayjs().subtract(3, 'month')}
+              onConfirm={onConfirmPeriod}
+            />
+          </div>
+        ) : null}
       </div>
       <div className='mb-4 mt-5 flex justify-between text-gray-800'>
         <div className='flex h-full items-center'>{`Showing ${start}–${end} of ${total} items`}</div>
@@ -166,12 +175,16 @@ const FilterCard: React.FC<FilterCardProps> = ({
             })
           : paginatedData.map((item) => {
               const isSelected = selectedIds?.includes(item.id);
+
+              const isActive = item.id === id;
+
               return (
                 // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                 <div
                   key={item.id}
                   className={cn(
                     styles.cardContainer,
+                    isActive && '!border-blue-300',
                     isSelected && isSelectMode && '!border-blue-300',
                     cardClassName
                   )}

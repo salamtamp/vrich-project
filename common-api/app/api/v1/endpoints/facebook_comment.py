@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -34,6 +34,9 @@ def list_facebook_comments(
     post_id: str | None = None,
 ) -> PaginationResponse[FacebookComment]:
     builder = PaginationBuilder(FacebookCommentModel, db)
+    builder.query = builder.query.options(
+        joinedload(FacebookCommentModel.profile), joinedload(FacebookCommentModel.post)
+    )
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
@@ -51,6 +54,10 @@ def get_facebook_comment(
 ) -> FacebookComment:
     comment = (
         db.query(FacebookCommentModel)
+        .options(
+            joinedload(FacebookCommentModel.profile),
+            joinedload(FacebookCommentModel.post),
+        )
         .filter(FacebookCommentModel.comment_id == comment_id)
         .first()
     )

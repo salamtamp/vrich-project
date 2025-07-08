@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -33,6 +33,7 @@ def list_facebook_messengers(
     pagination: PaginationParams = Depends(get_pagination_params),
 ) -> PaginationResponse[FacebookMessenger]:
     builder = PaginationBuilder(FacebookMessengerModel, db)
+    builder.query = builder.query.options(joinedload(FacebookMessengerModel.profile))
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
@@ -49,6 +50,7 @@ def get_facebook_messenger(
 ) -> FacebookMessenger:
     messenger = (
         db.query(FacebookMessengerModel)
+        .options(joinedload(FacebookMessengerModel.profile))
         .filter(FacebookMessengerModel.id == messenger_id)
         .first()
     )

@@ -23,11 +23,11 @@ const ProfileContent: React.FC<{ profile: FacebookProfileResponse }> = ({ profil
 const Profile = () => {
   const { open } = useModalContext();
 
-  const { handleConfirm, data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookProfileResponse>>(
-    {
-      url: API.PROFILE.PAGINATION,
-    }
-  );
+  const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
+    PaginationResponse<FacebookProfileResponse>
+  >({
+    url: API.PROFILE,
+  });
 
   const itemData = useMemo(
     () =>
@@ -66,7 +66,7 @@ const Profile = () => {
       title='Profile'
       total={data?.total}
       onCardClick={handleCardClick}
-      onConfirm={handleConfirm}
+      onConfirmPeriod={handleConfirmPeriod}
     />
   );
 };

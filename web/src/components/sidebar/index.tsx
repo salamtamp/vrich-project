@@ -34,7 +34,7 @@ const Sidebar = () => {
       className={cn(
         styles.container,
         'transition-all duration-300 ease-in-out',
-        isCollapse ? '!w-[110px] !px-0' : 'w-full'
+        isCollapse ? '!min-w-[110px] !px-0' : 'w-full'
       )}
     >
       <div className={styles.navBarContainer}>
@@ -42,7 +42,7 @@ const Sidebar = () => {
           className={cn(
             styles.headerContainer,
             'transition-all duration-300 ease-in-out',
-            isCollapse && 'ml-2 pl-1'
+            isCollapse && '!ml-2 pl-5'
           )}
         >
           <div className='h-[30px] overflow-hidden'>

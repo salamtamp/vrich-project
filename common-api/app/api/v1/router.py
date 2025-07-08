@@ -38,10 +38,12 @@ api_router.include_router(
     facebook_messenger.router,
     prefix="/facebook_messengers",
     tags=["facebook_messengers"],
+    dependencies=[Depends(deps.store_current_user)],
 )
 
 api_router.include_router(
     facebook_comment.router,
     prefix="/facebook-comments",
     tags=["facebook_comment"],
+    dependencies=[Depends(deps.store_current_user)],
 )

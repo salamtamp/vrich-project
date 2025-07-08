@@ -1,5 +1,6 @@
 from sqlalchemy import Column, DateTime, ForeignKey, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from app.db.models.base import UUIDPrimaryKeyMixin
 from app.db.session import Base
@@ -40,3 +41,5 @@ class FacebookPost(Base, UUIDPrimaryKeyMixin):
         server_default=text("CURRENT_TIMESTAMP"),
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    profile = relationship("FacebookProfile", backref="posts")

@@ -30,7 +30,7 @@ export type CardData = {
   id: string;
   title?: string;
   content?: ReactNode;
-  isLiveMode?: boolean;
+  status?: 'active' | 'inactive';
   lastUpdate: string;
   profile_picture_url?: string;
   name?: string;
@@ -66,6 +66,7 @@ const Card: React.FC<CardProps> = ({
       />
     );
   }
+
   return (
     <div className='flex w-full gap-2'>
       <div className={cn(styles.cardContent)}>
@@ -79,37 +80,43 @@ const Card: React.FC<CardProps> = ({
           ) : null}
           {cardData?.title ? <p className={styles.cardName}>{cardData.title} </p> : ''}{' '}
           <div className='flex h-full items-start pt-[2px]'>
-            {cardData?.isLiveMode ? <Badge className='bg-green-200 text-green-800'>Live</Badge> : null}
+            {cardData?.status === 'active' ? (
+              <Badge className='mb-2 bg-green-200 text-green-800'>Live</Badge>
+            ) : null}
           </div>
         </div>
         <div className={styles.cardText}>{cardData.content}</div>
       </div>
-      <div className={styles.cardRight}>
-        <div className={styles.cardAvatar}>
-          {!showFallback && isValidImageUrl(cardData.profile_picture_url) ? (
-            <>
-              {imgLoading ? <SkeletonCard avatarOnly /> : null}
-              <Image
-                alt={cardData.name ?? 'profile'}
-                className={imgLoading ? 'hidden' : ''}
-                height={40}
-                src={cardData.profile_picture_url}
-                style={{ borderRadius: '50%' }}
-                width={40}
-                onError={handleImgError}
-                onLoad={handleImgLoad}
-                onLoadStart={handleImgLoadStart}
-                onLoadingComplete={handleImgLoad}
-              />
-            </>
-          ) : (
-            (fallbackAvatar ?? (
-              <div className='flex size-10 items-center justify-center rounded-full'>
-                <User size={25} />
-              </div>
-            ))
-          )}
-        </div>
+      <div className={cn(styles.cardRight, !cardData?.profile_picture_url && '!h-full !justify-end')}>
+        {cardData?.profile_picture_url ? (
+          <div className={styles.cardAvatar}>
+            {!showFallback && isValidImageUrl(cardData?.profile_picture_url) ? (
+              <>
+                {imgLoading ? <SkeletonCard avatarOnly /> : null}
+                <Image
+                  alt={cardData.name ?? 'profile'}
+                  className={imgLoading ? 'hidden' : ''}
+                  height={40}
+                  src={cardData?.profile_picture_url}
+                  style={{ borderRadius: '50%' }}
+                  width={40}
+                  onError={handleImgError}
+                  onLoad={handleImgLoad}
+                  onLoadStart={handleImgLoadStart}
+                  onLoadingComplete={handleImgLoad}
+                />
+              </>
+            ) : (
+              (fallbackAvatar ?? (
+                <div className='flex size-10 items-center justify-center rounded-full'>
+                  <User size={25} />
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          <></>
+        )}
         <p className={styles.cardTime}>{cardData.lastUpdate}</p>
       </div>
     </div>

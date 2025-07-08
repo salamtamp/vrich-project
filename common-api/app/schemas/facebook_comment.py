@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.facebook_profile import FacebookProfile
+
 
 class FacebookCommentBase(BaseModel):
     profile_id: UUID
@@ -31,4 +33,4 @@ class FacebookCommentResponse(FacebookCommentBase):
 
 
 class FacebookComment(FacebookCommentResponse):
-    pass
+    profile: FacebookProfile | None = None

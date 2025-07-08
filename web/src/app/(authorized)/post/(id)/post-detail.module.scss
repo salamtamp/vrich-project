@@ -1,9 +1,6 @@
 .profileContainer {
   @apply hidden;
-
-  @media (min-width: 1200px) {
-    @apply flex;
-  }
+  @apply w-[400px];
 }
 
 .detailBreadcrumbContainer {
@@ -24,4 +21,10 @@
   @apply h-full overflow-hidden bg-white p-6;
   @apply rounded-2xl;
   @apply border border-solid border-gray-200;
+}
+
+@media (min-width: 1200px) {
+  .profileContainer {
+    @apply flex;
+  }
 }

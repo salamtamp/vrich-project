@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import type { AxiosRequestConfig } from 'axios';
 import type { Dayjs } from 'dayjs';
 
 import dayjs from '@/lib/dayjs';
@@ -14,6 +15,9 @@ type UsePaginatedRequestProps = {
   orderBy?: string;
   defaultStartDate?: Dayjs;
   defaultEndDate?: Dayjs;
+  additionalParams?: AxiosRequestConfig['params'];
+  requireFields?: string[];
+  waiting?: boolean;
 };
 
 function usePaginatedRequest<T, D = object>({
@@ -22,6 +26,9 @@ function usePaginatedRequest<T, D = object>({
   orderBy = 'created_at',
   defaultStartDate = dayjs().subtract(6, 'day'),
   defaultEndDate = dayjs(),
+  additionalParams = {},
+  requireFields = [],
+  waiting = false,
 }: UsePaginatedRequestProps) {
   const { pagination } = usePaginationContext();
   const { limit, offset } = pagination;
@@ -29,7 +36,7 @@ function usePaginatedRequest<T, D = object>({
   const [since, setSince] = useState<string | null>(defaultStartDate.startOf('day').toISOString());
   const [until, setUntil] = useState<string | null>(defaultEndDate.endOf('day').toISOString());
 
-  const handleConfirm = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
+  const handleConfirmPeriod = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
     setSince(startDate ? startDate.startOf('day').toISOString() : null);
     setUntil(endDate ? endDate.endOf('day').toISOString() : null);
   }, []);
@@ -40,14 +47,26 @@ function usePaginatedRequest<T, D = object>({
       params: {
         order,
         order_by: orderBy,
+        ...additionalParams,
       },
     },
   });
 
   useEffect(() => {
-    void handleRequest({ params: { offset, limit, since, until } });
+    const newParams = { offset, limit, since, until, ...additionalParams };
+    if (waiting) {
+      return;
+    }
+
+    for (const requireField of requireFields) {
+      if (requireField && !newParams[requireField]) {
+        return;
+      }
+    }
+
+    void handleRequest({ params: newParams });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, offset, since, until]);
+  }, [limit, offset, since, until, JSON.stringify(requireFields), JSON.stringify(additionalParams), waiting]);
 
   return {
     data,
@@ -57,7 +76,7 @@ function usePaginatedRequest<T, D = object>({
     handleRequest,
     since,
     until,
-    handleConfirm,
+    handleConfirmPeriod,
     setSince,
     setUntil,
     limit,
