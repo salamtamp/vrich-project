@@ -199,8 +199,8 @@ async def verify_webhook(
 @router.post("/")
 async def handle_webhook(request: Request):
     settings = get_settings()
-    queue = get_queue()
 
+    queue = get_queue()
     if not queue:
         queue = Queue(
             host=settings.QUEUE_HOST,

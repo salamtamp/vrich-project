@@ -212,12 +212,17 @@ async def get_facebook_post_comments(
 
             comments = []
             for comment in data.get("data", []):
-                comments.append(FacebookCommentResponse(
-                    id=comment.get("id"),
-                    message=comment.get("message", ""),
-                    created_time=comment.get("created_time"),
-                    from_user=comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN"
-                ))
+                comment_data = {
+                    "id": comment.get("id"),
+                    "message": comment.get("message", ""),
+                    "created_time": comment.get("created_time"),
+                    "from_name": comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN",
+                    "from_id": comment.get("from", {}).get("id") if comment.get("from") else "0000000000000000",
+                    "post_id": post_id,
+                    "type": "text"
+                }
+
+                comments.append(comment_data)
 
             return FacebookCommentsResponse(
                 data=comments,
@@ -298,7 +303,6 @@ async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
                     post_data["media_type"] = None
                     post_data["type"] = "text"
 
-                print("post_data", json.dumps(post_data, indent=4))
                 posts.append(post_data)
 
             if posts:
@@ -486,11 +490,12 @@ async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
                     "id": comment.get("id"),
                     "message": comment.get("message", ""),
                     "created_time": comment.get("created_time"),
-                    "from_user": comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN",
-                    "from_user_id": comment.get("from", {}).get("id") if comment.get("from") else None,
+                    "from_name": comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN",
+                    "from_id": comment.get("from", {}).get("id") if comment.get("from") else "0000000000000999",
                     "post_id": post_id,
-                    "fetched_at": datetime.now().isoformat()
+                    "type": "text"
                 }
+
                 comments.append(comment_data)
 
             if comments:
