@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
+import useRequest from '@/hooks/request/useRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import useImageFallback from '@/hooks/useImageFallback';
@@ -44,8 +45,10 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
 
   const { reset } = usePaginationContext();
 
+  const { handleRequest } = useRequest({ request: { url: `${API.POST}/${id}`, method: 'PUT' } });
+
   const { data } = usePaginatedRequest<PaginationResponse<FacebookMessengerResponse>>({
-    url: API.COMMENT.PAGINATION,
+    url: API.COMMENT,
     additionalParams: { post_id: id },
     requireFields: ['post_id'],
     defaultStartDate: dayjs().subtract(100, 'year'),
@@ -79,10 +82,15 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
 
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
-      onCheckedChange?.(checked);
-      setPostStatus(checked ? 'active' : 'inactive');
+      try {
+        void handleRequest({ data: { status: checked ? 'active' : 'inactive' } });
+        setPostStatus(checked ? 'active' : 'inactive');
+        onCheckedChange?.(checked);
+      } catch (error) {
+        console.error(error);
+      }
     },
-    [onCheckedChange]
+    [handleRequest, onCheckedChange]
   );
 
   useEffect(() => {

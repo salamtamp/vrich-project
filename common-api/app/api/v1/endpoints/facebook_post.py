@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -24,6 +25,7 @@ from app.schemas.facebook_post import (
 )
 
 router = APIRouter()
+logger = logging.getLogger("app.api.v1.endpoints.facebook_post")
 
 
 @router.get("/", response_model=PaginationResponse[FacebookPost])
@@ -116,7 +118,25 @@ def update_facebook_post(
                 status_code=400,
                 detail=ERR_FACEBOOK_POST_DUPLICATE_ID,
             )
-    return facebook_post_repo.update(db, db_obj=db_obj, obj_in=post_in)
+
+    if post_in.status == "active":
+        other_active_posts = (
+            db.query(FacebookPostModel)
+            .filter(
+                FacebookPostModel.status == "active",
+                FacebookPostModel.id != post_id,
+            )
+            .all()
+        )
+        for other_post in other_active_posts:
+            other_post.status = "inactive"
+        db.flush()
+    for field, value in post_in.model_dump(exclude_unset=True).items():
+        setattr(db_obj, field, value)
+    db.add(db_obj)
+    db.commit()
+    db.refresh(db_obj)
+    return db_obj
 
 
 @router.delete("/{post_id}", response_model=FacebookPost)

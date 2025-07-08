@@ -34,7 +34,7 @@ const Post = () => {
   const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
     PaginationResponse<FacebookPostResponse>
   >({
-    url: API.POST.PAGINATION,
+    url: API.POST,
   });
 
   const breadcrumbItems: BreadcrumbItem[] = [

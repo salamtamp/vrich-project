@@ -22,7 +22,7 @@ const Inbox = () => {
   const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
     PaginationResponse<FacebookMessengerResponse>
   >({
-    url: API.MESSAGE.PAGINATION,
+    url: API.MESSAGE,
   });
 
   const itemData = useMemo(

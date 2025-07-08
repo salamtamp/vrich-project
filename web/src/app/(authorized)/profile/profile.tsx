@@ -26,7 +26,7 @@ const Profile = () => {
   const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
     PaginationResponse<FacebookProfileResponse>
   >({
-    url: API.PROFILE.PAGINATION,
+    url: API.PROFILE,
   });
 
   const itemData = useMemo(
