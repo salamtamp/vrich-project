@@ -1,5 +1,4 @@
 from app.core.config import settings
-from app.services.facebook_comment_processor import FacebookCommentProcessor
 from app.services.facebook_post_processor import FacebookPostProcessor
 from app.utils.logging import log_message
 from app.utils.queue import Queue
@@ -12,7 +11,6 @@ class QueueConsumer:
     def __init__(self):
         self.queue = None
         self.facebook_post_processor = FacebookPostProcessor()
-        self.facebook_comment_processor = FacebookCommentProcessor()
         self.consumer_thread = None
         self.is_running = False
 
