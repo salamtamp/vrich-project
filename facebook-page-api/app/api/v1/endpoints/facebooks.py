@@ -267,6 +267,9 @@ async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
             "limit": 50
         }
 
+        print("[post] url", url)
+        print("[post] params", params)
+
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params)
             response.raise_for_status()
@@ -473,6 +476,9 @@ async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
             "limit": 50,
             "summary": "true"
         }
+
+        print("[comment] url", url)
+        print("[comment] params", params)
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params)
