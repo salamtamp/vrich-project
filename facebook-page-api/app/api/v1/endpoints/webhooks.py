@@ -227,13 +227,13 @@ async def handle_webhook(request: Request):
         processed_data = process_webhook_body(body)
 
         if processed_data:
-            queue.publish("inbox", processed_data)
-            logger.info(f"Published {len(processed_data)} events to inbox queue")
+            queue.publish("facebook-inbox", processed_data)
+            logger.info(f"Published message to with data: {json.dumps(processed_data, indent=2)}")
         else:
             logger.info("No events to publish to queue")
 
         return JSONResponse(
-            content={"status": "OK", "processed_events": len(processed_data)},
+            content={"status": "OK", "processed_events": processed_data},
             status_code=200
         )
 
