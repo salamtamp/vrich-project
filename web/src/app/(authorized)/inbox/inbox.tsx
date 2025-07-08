@@ -19,7 +19,7 @@ const MessageContent: React.FC<{ message: FacebookMessengerResponse }> = ({ mess
 const Inbox = () => {
   const { open } = useModalContext();
 
-  const { handleConfirm, data, isLoading } = usePaginatedRequest<
+  const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
     PaginationResponse<FacebookMessengerResponse>
   >({
     url: API.MESSAGE.PAGINATION,
@@ -32,6 +32,7 @@ const Inbox = () => {
           id: message.messenger_id,
           content: <MessageContent message={message} />,
           lastUpdate: getRelativeTimeInThai(message.created_at),
+          profile_picture_url: message.profile?.profile_picture_url,
         };
       }),
     [data?.docs]
@@ -60,7 +61,7 @@ const Inbox = () => {
       title='Inbox'
       total={data?.total}
       onCardClick={handleCardClick}
-      onConfirm={handleConfirm}
+      onConfirmPeriod={handleConfirmPeriod}
     />
   );
 };

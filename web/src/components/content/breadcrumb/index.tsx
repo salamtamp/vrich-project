@@ -28,19 +28,32 @@ const BreadcrumbContent: React.FC<BreadcrumbContentProps> = ({ items, labelClass
         {items?.map((item, index) => {
           const isLast = index === items.length - 1;
 
+          let content: React.ReactNode;
+          if (isLast) {
+            if (item.label) {
+              content = (
+                <BreadcrumbPage className={cn(labelClassName, '!font-medium')}>{item.label}</BreadcrumbPage>
+              );
+            } else {
+              content = <p className='bg-loading-container h-6 w-14' />;
+            }
+          } else if (item.label) {
+            content = (
+              <BreadcrumbLink
+                className={labelClassName}
+                href={item.href ?? undefined}
+              >
+                {item.label}
+              </BreadcrumbLink>
+            );
+          } else {
+            content = <p className='bg-loading-container h-6 w-14' />;
+          }
+
           return (
             <React.Fragment key={crypto.randomUUID()}>
-              <BreadcrumbItem>
-                {isLast ? (
-                  <BreadcrumbPage className={cn(labelClassName, '!font-medium')}>{item.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink
-                    className={labelClassName}
-                    href={item.href ?? undefined}
-                  >
-                    {item.label}
-                  </BreadcrumbLink>
-                )}
+              <BreadcrumbItem className='max-w-[100px]'>
+                <p className='truncate'>{content}</p>
               </BreadcrumbItem>
               {!isLast && <BreadcrumbSeparator />}
             </React.Fragment>

@@ -29,7 +29,7 @@ function usePaginatedRequest<T, D = object>({
   const [since, setSince] = useState<string | null>(defaultStartDate.startOf('day').toISOString());
   const [until, setUntil] = useState<string | null>(defaultEndDate.endOf('day').toISOString());
 
-  const handleConfirm = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
+  const handleConfirmPeriod = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
     setSince(startDate ? startDate.startOf('day').toISOString() : null);
     setUntil(endDate ? endDate.endOf('day').toISOString() : null);
   }, []);
@@ -57,7 +57,7 @@ function usePaginatedRequest<T, D = object>({
     handleRequest,
     since,
     until,
-    handleConfirm,
+    handleConfirmPeriod,
     setSince,
     setUntil,
     limit,

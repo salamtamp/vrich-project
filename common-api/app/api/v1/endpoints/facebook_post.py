@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -32,6 +32,7 @@ def list_facebook_posts(
     pagination: PaginationParams = Depends(get_pagination_params),
 ) -> PaginationResponse[FacebookPost]:
     builder = PaginationBuilder(FacebookPostModel, db)
+    builder.query = builder.query.options(joinedload(FacebookPostModel.profile))
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)

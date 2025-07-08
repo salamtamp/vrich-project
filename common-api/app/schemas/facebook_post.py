@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.facebook_profile import FacebookProfile
+
 
 class FacebookPostBase(BaseModel):
     profile_id: UUID
@@ -40,4 +42,4 @@ class FacebookPostResponse(FacebookPostBase):
 
 
 class FacebookPost(FacebookPostResponse):
-    pass
+    profile: FacebookProfile | None = None

@@ -866,7 +866,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   return (
-    <div className='relative w-[250px]'>
+    <div className='relative w-[220px]'>
       <div
         aria-expanded={isOpen}
         aria-haspopup='true'

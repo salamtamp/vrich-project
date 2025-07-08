@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.facebook_profile import FacebookProfile
+
 
 class FacebookMessengerBase(BaseModel):
     profile_id: UUID
@@ -30,4 +32,4 @@ class FacebookMessengerResponse(FacebookMessengerBase):
 
 
 class FacebookMessenger(FacebookMessengerResponse):
-    pass
+    profile: FacebookProfile | None = None

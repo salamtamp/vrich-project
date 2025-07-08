@@ -1,3 +1,5 @@
+import type { FacebookProfileResponse } from './facebook-profile';
+
 export type FacebookPost = {
   profile_id: string;
   post_id: string;
@@ -7,6 +9,7 @@ export type FacebookPost = {
   media_type?: 'image' | 'video';
   status: 'active' | 'inactive';
   published_at: string;
+  profile?: FacebookProfileResponse;
 };
 
 export type FacebookPostUpdate = Partial<

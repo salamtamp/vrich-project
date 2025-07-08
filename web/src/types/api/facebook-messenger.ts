@@ -1,8 +1,11 @@
+import type { FacebookProfileResponse } from './facebook-profile';
+
 export type FacebookMessenger = {
   profile_id: string;
   messenger_id: string;
   message: string;
   sent_at: string;
+  profile?: FacebookProfileResponse;
 };
 
 export type FacebookMessengerUpdate = Partial<Pick<FacebookMessenger, 'message' | 'sent_at'>> & {
