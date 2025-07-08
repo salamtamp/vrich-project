@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 
-import dayjs from 'dayjs';
 import { Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -11,6 +10,7 @@ import DatePicker from '@/components/date-picker';
 import { Button } from '@/components/ui/button';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import { useScrollable } from '@/hooks/useScrollable';
+import dayjs from '@/lib/dayjs';
 import { cn } from '@/lib/utils';
 
 import type { CardData } from '../card';
@@ -28,6 +28,10 @@ type FilterCardProps = {
   cardClassName?: string;
   cardItemClassName?: string;
   shotModePagination?: boolean;
+  defaultStartDate?: dayjs.Dayjs;
+  defaultEndDate?: dayjs.Dayjs;
+  onConfirm?: (startDate: dayjs.Dayjs | null, endDate: dayjs.Dayjs | null) => void;
+  isLoading?: boolean;
 };
 
 const FilterCard: React.FC<FilterCardProps> = ({
@@ -40,6 +44,10 @@ const FilterCard: React.FC<FilterCardProps> = ({
   cardClassName,
   cardItemClassName,
   shotModePagination,
+  defaultStartDate,
+  defaultEndDate,
+  onConfirm,
+  isLoading = false,
 }) => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
@@ -50,9 +58,8 @@ const FilterCard: React.FC<FilterCardProps> = ({
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + limit;
-  const paginatedData = data ? data?.slice(startIndex, endIndex) : [];
+  const paginatedData = data ?? [];
+  const skeletonCount = limit;
 
   const isAllSelect = selectedIds.length === limit;
 
@@ -79,7 +86,13 @@ const FilterCard: React.FC<FilterCardProps> = ({
       <div className={cn(styles.filterContainer)}>
         <div className='ml-1 text-xl-semibold'>{title}</div>
         <div className='flex'>
-          <DatePicker maxDate={dayjs()} />
+          <DatePicker
+            defaultEndDate={defaultEndDate}
+            defaultStartDate={defaultStartDate}
+            maxDate={dayjs()}
+            minDate={dayjs().subtract(3, 'month')}
+            onConfirm={onConfirm}
+          />
         </div>
       </div>
       <div className='mb-4 mt-3 flex justify-between'>
@@ -135,44 +148,58 @@ const FilterCard: React.FC<FilterCardProps> = ({
         ref={ref}
         className={cn(styles.cardItemContainer, styles.cardItemContainerScrollable, cardItemClassName)}
       >
-        {paginatedData.map((item) => {
-          const isSelected = selectedIds?.includes(item.id);
-
-          return (
-            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-            <div
-              key={item.id}
-              className={cn(
-                styles.cardContainer,
-                isSelected && isSelectMode && '!border-blue-300',
-                cardClassName
-              )}
-              onClick={() => {
-                if (isSelectMode) {
-                  setSelectedIds?.((c) => handleToggle(c, item.id));
-                } else {
-                  onCardClick?.(item.id, item);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  if (isSelectMode) {
-                    e.preventDefault();
-                    setSelectedIds?.((c) => handleToggle(c, item.id));
-                  } else {
-                    onCardClick?.(item.id, item);
-                  }
-                }
-              }}
-            >
-              <Card
-                cardData={item}
-                isSelectMode={isSelectMode}
-                isSelected={isSelected}
-              />
-            </div>
-          );
-        })}
+        {isLoading
+          ? Array.from({ length: skeletonCount }).map(() => {
+              const key = crypto.randomUUID();
+              return (
+                <div
+                  key={key}
+                  className={cn(styles.cardContainer, cardClassName)}
+                >
+                  <Card
+                    isLoading
+                    cardData={{ id: key, lastUpdate: '' }}
+                  />
+                </div>
+              );
+            })
+          : paginatedData.map((item) => {
+              const isSelected = selectedIds?.includes(item.id);
+              return (
+                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                <div
+                  key={item.id}
+                  className={cn(
+                    styles.cardContainer,
+                    isSelected && isSelectMode && '!border-blue-300',
+                    cardClassName
+                  )}
+                  onClick={() => {
+                    if (isSelectMode) {
+                      setSelectedIds?.((c) => handleToggle(c, item.id));
+                    } else {
+                      onCardClick?.(item.id, item);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      if (isSelectMode) {
+                        e.preventDefault();
+                        setSelectedIds?.((c) => handleToggle(c, item.id));
+                      } else {
+                        onCardClick?.(item.id, item);
+                      }
+                    }
+                  }}
+                >
+                  <Card
+                    cardData={item}
+                    isSelectMode={isSelectMode}
+                    isSelected={isSelected}
+                  />
+                </div>
+              );
+            })}
       </div>
       <ContentPagination
         className='mt-5'

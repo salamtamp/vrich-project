@@ -8,7 +8,7 @@ import type { AuthUserResponse } from '@/types/next-auth';
 
 import { decodeAccessToken } from './jwtDecode';
 
-export const handleSignIn = async (email: string, password: string): Promise<User | null> => {
+export const handleSignIn = async (email: string, password: string): Promise<User> => {
   try {
     const response = await axios.post<AuthUserResponse>(
       `${serverEnv.baseApiURL}${API.AUTH.LOGIN}`,
@@ -30,11 +30,11 @@ export const handleSignIn = async (email: string, password: string): Promise<Use
     }
 
     return {
-      accessToken: response.data.access_token,
       id: response.data.email,
       email: response.data.email,
-      expiredAt: dayjs(decodedToken.exp * 1000).toISOString(),
-      expires: decodedToken.exp * 1000,
+      accessToken: response.data.access_token,
+      expiredAt: dayjs.unix(decodedToken.exp).toISOString(),
+      expires: decodedToken.exp,
     };
   } catch (error) {
     console.error('SignIn error:', error);

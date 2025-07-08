@@ -7,24 +7,28 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from app.db.models.facebook_post import FacebookPost
 from app.db.models.facebook_profile import FacebookProfile
 from app.db.session import SessionLocal
-from app.seeds.constants import MEDIA_TYPES, POST_MESSAGES, POST_STATUSES
+
+# Directly define mock data for 50 posts
+POST_MESSAGES = [f"Mock post message {i+1}" for i in range(50)]
+POST_STATUSES = ["active" if i % 2 == 0 else "inactive" for i in range(50)]
+MEDIA_TYPES = ["image" if i % 2 == 0 else "video" for i in range(50)]
 
 
 def main():
     db = SessionLocal()
     try:
         profiles = db.query(FacebookProfile).all()
-        if len(profiles) < 15:
+        if len(profiles) < 50:
             print("Not enough facebook profiles to seed posts.")
             return
-        for i in range(15):
+        for i in range(50):
             post_id = f"postid{i+1}"
-            profile_id = profiles[i].id
+            profile_id = profiles[i % len(profiles)].id
             message = POST_MESSAGES[i]
             link = f"https://example.com/post/{i+1}"
             media_url = f"https://example.com/media/{i+1}.jpg"
-            media_type = MEDIA_TYPES[i % len(MEDIA_TYPES)]
-            status = POST_STATUSES[i % len(POST_STATUSES)]
+            media_type = MEDIA_TYPES[i]
+            status = POST_STATUSES[i]
             published_at = datetime.now() - timedelta(days=i)
             existing = (
                 db.query(FacebookPost)
@@ -51,7 +55,7 @@ def main():
             )
             db.add(post)
         db.commit()
-        print("15 facebook posts seeded!")
+        print("50 facebook posts seeded!")
     finally:
         db.close()
 

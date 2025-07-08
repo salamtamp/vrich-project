@@ -7,10 +7,12 @@ import type { FacebookProfile } from './facebook-profile';
 
 // Generic pagination response type (should match backend)
 export type PaginationResponse<T> = {
-  items: T[];
   total: number;
+  docs: T[];
   limit: number;
   offset: number;
+  has_next: boolean;
+  has_prev: boolean;
 };
 
 // Generic error response

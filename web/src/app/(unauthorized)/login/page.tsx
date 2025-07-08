@@ -2,29 +2,53 @@
 
 import { useCallback, useState } from 'react';
 
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+type LoginFormInputs = {
+  email: string;
+  password: string;
+};
+
+const schema = yup.object({
+  email: yup.string().email('Invalid email address').required('Email is required'),
+  password: yup.string().required('Password is required'),
+});
+
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+    clearErrors,
+  } = useForm<LoginFormInputs>({
+    mode: 'onSubmit',
+    resolver: yupResolver(schema),
+  });
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const res = await signIn('credentials', { redirect: false, email, password });
+  const handleFormSubmit = useCallback(
+    async (data: LoginFormInputs) => {
+      clearErrors('root');
+      const res = await signIn('credentials', {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
       if (!res?.ok) {
-        // setError email
-        // setError password
+        setError('root', { type: 'manual', message: 'Invalid email or password' });
       }
     },
-    [email, password]
+    [setError, clearErrors]
   );
 
   return (
@@ -38,11 +62,10 @@ const LoginPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form
-              onSubmit={(e) => {
-                void handleSubmit(e);
-              }}
-            >
+            {errors.root && typeof errors.root.message === 'string' ? (
+              <div className='mb-4 text-center text-sm text-red-600'>{errors.root.message}</div>
+            ) : null}
+            <form onSubmit={(e) => void handleSubmit(handleFormSubmit)(e)}>
               <div className='space-y-4'>
                 <div className='space-y-2'>
                   <Label
@@ -54,16 +77,15 @@ const LoginPage = () => {
                   <div className='relative'>
                     <Mail className='absolute left-3 top-1/2 size-4 -translate-y-1/2 transform text-gray-400' />
                     <Input
-                      required
-                      className='h-11 border-gray-300 pl-10 focus:border-blue-500 focus:ring-blue-500'
+                      className='h-11 border-gray-300 pl-10'
                       id='email'
                       placeholder='Enter your email'
                       type='email'
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                      }}
+                      {...register('email')}
                     />
+                    {errors.email && typeof errors.email.message === 'string' ? (
+                      <span className='text-xs text-red-600'>{errors.email.message}</span>
+                    ) : null}
                   </div>
                 </div>
 
@@ -77,15 +99,11 @@ const LoginPage = () => {
                   <div className='relative'>
                     <Lock className='absolute left-3 top-1/2 size-4 -translate-y-1/2 transform text-gray-400' />
                     <Input
-                      required
-                      className='h-11 border-gray-300 px-10 focus:border-blue-500 focus:ring-blue-500'
+                      className='h-11 border-gray-300 px-10'
                       id='password'
                       placeholder='Enter your password'
                       type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                      }}
+                      {...register('password')}
                     />
                     <button
                       className='absolute right-3 top-1/2 -translate-y-1/2 transform text-gray-400 hover:text-gray-600'
@@ -96,6 +114,9 @@ const LoginPage = () => {
                     >
                       {showPassword ? <EyeOff className='size-4' /> : <Eye className='size-4' />}
                     </button>
+                    {errors.password && typeof errors.password.message === 'string' ? (
+                      <span className='text-xs text-red-600'>{errors.password.message}</span>
+                    ) : null}
                   </div>
                 </div>
 

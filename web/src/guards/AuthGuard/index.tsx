@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
 
@@ -12,35 +12,22 @@ import type { NextJSChildren } from '@/types';
 const AuthGuard: React.FC<NextJSChildren> = ({ children }) => {
   const { status, data: session } = useSession();
   const router = useRouter();
-  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') {
-      const timeout = setTimeout(() => {
-        setTimedOut(true);
-      }, 5000);
-      return () => {
-        clearTimeout(timeout);
-      };
-    }
-    setTimedOut(false);
-  }, [status]);
-
-  useEffect(() => {
-    if (status === 'loading' && !timedOut) {
       return;
     }
-    if (!session || session?.error || timedOut) {
+    if (!session || session?.error) {
       void signOut({ redirect: false });
       router.push(PATH.LOGIN);
     }
-  }, [session, status, router, timedOut]);
+  }, [session, status, router]);
 
-  if (status === 'loading' && !timedOut) {
+  if (status === 'loading') {
     return <></>;
   }
 
-  if (!session || session?.error || timedOut) {
+  if (!session || session?.error) {
     return <></>;
   }
 

@@ -28,27 +28,52 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     jwt({ token, user, account }) {
       if (account && user) {
-        const { id, ...restUser } = user;
-        return { ...token, userId: id, ...restUser };
+        return {
+          ...token,
+          email: user.email,
+          accessToken: user.accessToken,
+          expiredAt: user.expiredAt,
+          expires: user.expires,
+        };
       }
 
-      if (token.expires && dayjs().isBefore(dayjs(token.expires))) {
-        return token;
+      if (token.expires) {
+        const isExpired = dayjs().isAfter(dayjs.unix(token.expires));
+
+        if (isExpired) {
+          return {
+            ...token,
+            error: 'AccessTokenIsExpiredError' as const,
+            accessToken: '',
+          };
+        }
       }
 
-      return { ...token, error: 'AccessTokenIsExpiredError' };
+      return token;
     },
+
     session({ session, token }) {
-      session.user = {
-        email: token.email,
-      };
-      session.accessToken = token.accessToken;
-      session.expiredAt = token.expiredAt;
-      session.expires = token.expires;
-      session.error = token.error;
+      if (token.error === 'AccessTokenIsExpiredError') {
+        return {
+          ...session,
+          user: { email: token.email },
+          accessToken: '',
+          expiredAt: token.expiredAt,
+          expires: token.expires,
+          error: 'AccessTokenIsExpiredError' as const,
+        };
+      }
 
-      return session;
+      return {
+        ...session,
+        user: { email: token.email },
+        accessToken: token.accessToken,
+        expiredAt: token.expiredAt,
+        expires: token.expires,
+        error: null,
+      };
     },
+
     redirect({ baseUrl }) {
       return baseUrl;
     },

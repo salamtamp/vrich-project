@@ -7,19 +7,21 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from app.db.models.facebook_messenger import FacebookMessenger
 from app.db.models.facebook_profile import FacebookProfile
 from app.db.session import SessionLocal
-from app.seeds.constants import MESSENGER_MESSAGES
+
+# Directly define mock data for 50 messenger messages
+MESSENGER_MESSAGES = [f"Mock messenger message {i+1}" for i in range(50)]
 
 
 def main():
     db = SessionLocal()
     try:
         profiles = db.query(FacebookProfile).all()
-        if len(profiles) < 15:
+        if len(profiles) < 50:
             print("Not enough facebook profiles to seed messengers.")
             return
-        for i in range(15):
+        for i in range(50):
             messenger_id = f"msgid{i+1}"
-            profile_id = profiles[i].id
+            profile_id = profiles[i % len(profiles)].id
             message = MESSENGER_MESSAGES[i]
             sent_at = datetime.now() - timedelta(hours=i)
             existing = (
@@ -38,7 +40,7 @@ def main():
             )
             db.add(messenger)
         db.commit()
-        print("15 facebook messengers seeded!")
+        print("50 facebook messengers seeded!")
     finally:
         db.close()
 

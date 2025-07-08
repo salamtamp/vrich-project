@@ -1,0 +1,171 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+
+import type {
+  AxiosError,
+  AxiosRequestConfig,
+  AxiosResponseHeaders,
+  CancelTokenSource,
+  RawAxiosResponseHeaders,
+} from 'axios';
+import axios from 'axios';
+import { useSession } from 'next-auth/react';
+
+import { axiosClient } from '@/lib/axios/axiosClient';
+
+export type UseRequestProps<T> = {
+  request: AxiosRequestConfig;
+  actionAfterRequest?: (data?: T) => unknown;
+  defaultLoading?: boolean;
+};
+
+export type UpdateRequest = {
+  params?: AxiosRequestConfig['params'];
+  headers?: AxiosRequestConfig['headers'];
+  data?: AxiosRequestConfig['data'];
+  patchId?: string;
+};
+
+type RequestState<T, D> = {
+  data: T | null;
+  headers: RawAxiosResponseHeaders | AxiosResponseHeaders | null;
+  error: AxiosError<D> | null;
+  isLoading: boolean;
+};
+
+const useRequest = <T, D = object>({
+  request,
+  actionAfterRequest,
+  defaultLoading = false,
+}: UseRequestProps<T>) => {
+  const { data: session } = useSession();
+  const [requestState, setRequestState] = useState<RequestState<T, D>>({
+    data: null,
+    headers: null,
+    error: null,
+    isLoading: defaultLoading,
+  });
+
+  const { data, headers, error, isLoading } = requestState;
+  const [cancelToken, setCancelToken] = useState<CancelTokenSource | null>(null);
+
+  const onRequest = useCallback(
+    async (updateRequest?: UpdateRequest) => {
+      if (cancelToken) {
+        cancelToken.cancel('Operation canceled due to new request.');
+      }
+
+      const newCancelToken = axios.CancelToken.source();
+      setCancelToken(newCancelToken);
+
+      try {
+        setRequestState({
+          data: null,
+          headers: null,
+          error: null,
+          isLoading: true,
+        });
+
+        const isFormData = request.data instanceof FormData || updateRequest?.data instanceof FormData;
+
+        const requestHeaders: AxiosRequestConfig['headers'] = {
+          ...request.headers,
+          ...(updateRequest?.headers ?? {}),
+        };
+
+        if (session?.accessToken) {
+          requestHeaders.Authorization = `Bearer ${session.accessToken}`;
+        }
+
+        const requestParams: AxiosRequestConfig['params'] = {
+          ...request.params,
+          ...(updateRequest?.params ?? {}),
+        };
+
+        let requestUrl: AxiosRequestConfig['url'] = updateRequest?.patchId
+          ? `${request.url}/${updateRequest.patchId}`
+          : request.url;
+
+        if (requestParams) {
+          requestUrl = `${requestUrl}/`;
+        }
+
+        const updatedRequest = {
+          ...request,
+          url: requestUrl,
+          headers: requestHeaders,
+          params: requestParams,
+          data: isFormData
+            ? (updateRequest?.data ?? request.data)
+            : { ...request.data, ...(updateRequest?.data ?? {}) },
+          cancelToken: newCancelToken.token,
+        };
+
+        const response = await axiosClient<T>(updatedRequest);
+
+        setRequestState({
+          data: response.data,
+          headers: response.headers,
+          error: null,
+          isLoading: false,
+        });
+
+        return response.data;
+      } catch (err) {
+        if (axios.isCancel(err)) {
+          setRequestState((c) => ({ ...c, isLoading: false }));
+          return null as T;
+        }
+
+        if (axios.isAxiosError(err)) {
+          const serverError = {
+            ...err,
+            message: 'Internal Server Error',
+            code: 'ERR_INTERNAL_SERVER',
+          };
+
+          setRequestState({
+            data: null,
+            headers: null,
+            error: serverError,
+            isLoading: false,
+          });
+          throw serverError;
+        }
+
+        setRequestState({
+          data: null,
+          headers: null,
+          error,
+          isLoading: false,
+        });
+        throw err;
+      }
+    },
+    [cancelToken, error, request, session?.accessToken]
+  );
+
+  const handleRequest = useCallback(
+    async (updateRequest?: UpdateRequest) => {
+      const data = await onRequest(updateRequest);
+
+      await actionAfterRequest?.(data);
+
+      return data;
+    },
+    [actionAfterRequest, onRequest]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (cancelToken) {
+        cancelToken.cancel('Component unmounted, request canceled.');
+      }
+    };
+  }, [cancelToken]);
+
+  return { data, error, headers, isLoading, handleRequest, cancelToken };
+};
+
+export default useRequest;

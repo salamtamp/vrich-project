@@ -75,7 +75,7 @@ def read_user_by_id(
     """
     Get a specific user by id.
     """
-    return user_repo.get(db, id=str(user_id))
+    return user_repo.get(db, _id=str(user_id))
 
 
 @router.put("/{user_id}", response_model=user_schema.User)
@@ -88,7 +88,7 @@ def update_user(
     """
     Update a user.
     """
-    user = user_repo.get(db, id=str(user_id))
+    user = user_repo.get(db, _id=str(user_id))
     if not user:
         raise HTTPException(
             status_code=404,
@@ -106,7 +106,7 @@ def delete_user(
     """
     Delete a user.
     """
-    user = user_repo.get(db, id=str(user_id))
+    user = user_repo.get(db, _id=str(user_id))
     if not user:
         raise HTTPException(
             status_code=404,

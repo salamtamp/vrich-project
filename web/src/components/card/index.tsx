@@ -1,16 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 
 import Image from 'next/image';
 
+import { User } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import useImageFallback from '@/hooks/useImageFallback';
 import { cn } from '@/lib/utils';
 
-import mockLogo from '../../../public/assets/image/logo.png';
 import { Badge } from '../ui/badge';
 import { Checkbox } from '../ui/checkbox';
+
+import SkeletonCard from './SkeletonCard';
 
 import styles from './card.module.scss';
 
@@ -18,6 +21,8 @@ export type CardProps = {
   isSelectMode?: boolean;
   isSelected?: boolean;
   cardData: CardData;
+  fallbackAvatar?: React.ReactNode;
+  isLoading?: boolean;
 };
 
 export type CardData = {
@@ -26,9 +31,34 @@ export type CardData = {
   content?: ReactNode;
   isLiveMode?: boolean;
   lastUpdate: string;
+  profile_picture_url?: string;
+  name?: string;
 };
 
-const Card: React.FC<CardProps> = ({ isSelected = false, isSelectMode = false, cardData }) => {
+function isValidImageUrl(url?: string): url is string {
+  return !!url && /^https?:\/\//.test(url) && !url.includes('example.com');
+}
+
+const Card: React.FC<CardProps> = ({
+  isSelected = false,
+  isSelectMode = false,
+  cardData,
+  fallbackAvatar,
+  isLoading = false,
+}) => {
+  const { showFallback, handleImgError } = useImageFallback();
+  const [imgLoading, setImgLoading] = useState(false);
+
+  const handleImgLoadStart = () => {
+    setImgLoading(true);
+  };
+  const handleImgLoad = () => {
+    setImgLoading(false);
+  };
+
+  if (isLoading) {
+    return <SkeletonCard disableTitle={!cardData?.title} />;
+  }
   return (
     <div className='flex w-full gap-2'>
       <div className={cn(styles.cardContent)}>
@@ -49,12 +79,29 @@ const Card: React.FC<CardProps> = ({ isSelected = false, isSelectMode = false, c
       </div>
       <div className={styles.cardRight}>
         <div className={styles.cardAvatar}>
-          <Image
-            alt='logo'
-            height={40}
-            src={mockLogo}
-            width={40}
-          />
+          {!showFallback && isValidImageUrl(cardData.profile_picture_url) ? (
+            <>
+              {imgLoading ? <SkeletonCard avatarOnly /> : null}
+              <Image
+                alt={cardData.name ?? 'profile'}
+                className={imgLoading ? 'hidden' : ''}
+                height={40}
+                src={cardData.profile_picture_url}
+                style={{ borderRadius: '50%' }}
+                width={40}
+                onError={handleImgError}
+                onLoad={handleImgLoad}
+                onLoadStart={handleImgLoadStart}
+                onLoadingComplete={handleImgLoad}
+              />
+            </>
+          ) : (
+            (fallbackAvatar ?? (
+              <div className='flex size-10 items-center justify-center rounded-full'>
+                <User size={25} />
+              </div>
+            ))
+          )}
         </div>
         <p className={styles.cardTime}>{cardData.lastUpdate}</p>
       </div>
