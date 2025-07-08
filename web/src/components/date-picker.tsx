@@ -6,7 +6,7 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { ArrowDownNarrowWide, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
-import { MONTHS, MONTHS_SHORT, WEEK_DAYS } from '@/constant/data-time';
+import { MONTHS, MONTHS_SHORT, WEEK_DAYS } from '@/constants/data-time';
 
 type DatePickerState = {
   startDate: Dayjs | null;

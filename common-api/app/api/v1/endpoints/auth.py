@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Body, Depends, Form, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -32,7 +32,6 @@ async def login_for_access_token(
     email: str = Form(None),
     username: str = Form(None),
     password: str = Form(None),
-    json_body: LoginRequest = Body(None),
 ) -> dict[str, str]:
     """
     Email/password login, get an access token for future requests.
@@ -43,9 +42,6 @@ async def login_for_access_token(
         logger.info(f"Login request raw body: {body}")
     except Exception as e:
         logger.warning(f"Could not read request body: {e}")
-    if json_body:
-        email = json_body.email or json_body.username
-        password = json_body.password
     if not email and username:
         email = username
     if not email or not password:
@@ -61,7 +57,7 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = security.create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "email": user.email}
 
 
 @router.post(

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { usePathname, useRouter } from 'next/navigation';
 
 import { LeftColorIcon, VRichIcon, VRichSmallIcon } from '@public/assets/icon';
 import { LogOut } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 
 import { PATH } from '@/constants/path.constant';
 import { cn } from '@/lib/utils';
@@ -20,27 +21,13 @@ const Sidebar = () => {
 
   const [isCollapse, setIsCollapse] = useState<boolean | null>(null);
 
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: PATH.LOGIN });
+  };
+
   const handleMenuClick = (path: string) => {
     router.push(path);
   };
-
-  useEffect(() => {
-    const storedCollapse = localStorage.getItem('sidebar-collapse');
-    if (storedCollapse !== null) {
-      setIsCollapse(storedCollapse === 'true');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isCollapse === null) {
-      return;
-    }
-    localStorage.setItem('sidebar-collapse', isCollapse.toString());
-  }, [isCollapse]);
-
-  if (isCollapse === null) {
-    return <></>;
-  }
 
   return (
     <div
@@ -134,7 +121,6 @@ const Sidebar = () => {
           })}
         </div>
       </div>
-
       <div className={styles.navBarContainer}>
         <div className='mt-6 h-[2px] w-full rounded-lg bg-gray-300' />
         <div className={cn('flex flex-col px-3')}>
@@ -146,7 +132,7 @@ const Sidebar = () => {
               isCollapse && 'justify-center'
             )}
             onClick={() => {
-              router.push(PATH.LOGIN);
+              void handleLogout();
             }}
           >
             <LogOut

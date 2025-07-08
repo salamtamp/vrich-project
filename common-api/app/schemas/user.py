@@ -39,3 +39,4 @@ class TokenPayload(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    email: EmailStr | None = None

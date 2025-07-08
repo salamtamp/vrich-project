@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useMemo, useState } from 'react';
 
 import type { FC } from 'react';
 
@@ -40,7 +40,6 @@ export const PaginationContext = createContext<PaginationContextType | null>(nul
 
 export const PaginationProvider: FC<NextJSChildren> = ({ children }) => {
   const [pagination, setPagination] = useState(defaultPagination);
-  const [isCollapse, setIsCollapse] = useState<boolean | null>(null);
 
   const offset = (pagination.page - 1) * pagination.limit;
   const isDisableNext = pagination.page * pagination.limit >= pagination.total;
@@ -82,16 +81,5 @@ export const PaginationProvider: FC<NextJSChildren> = ({ children }) => {
     ]
   );
 
-  useEffect(() => {
-    const storedCollapse = localStorage.getItem('sidebar-collapse');
-    if (storedCollapse !== null) {
-      setIsCollapse(storedCollapse === 'true');
-    }
-  }, []);
-
-  return (
-    <PaginationContext.Provider value={value}>
-      {isCollapse === null ? <></> : children}
-    </PaginationContext.Provider>
-  );
+  return <PaginationContext.Provider value={value}>{children}</PaginationContext.Provider>;
 };

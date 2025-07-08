@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { PublicEnvScript } from 'next-runtime-env';
 
+import { SessionProvider } from '@/contexts/SessionContext';
 import type { NextJSChildren } from '@/types';
 
 import './globals.scss';
@@ -28,7 +29,9 @@ const RootLayout = ({ children }: NextJSChildren) => {
       </head>
 
       <body className='bg-surface-primary'>
-        <Suspense fallback={<></>}>{children}</Suspense>
+        <Suspense fallback={<></>}>
+          <SessionProvider>{children}</SessionProvider>
+        </Suspense>
       </body>
     </html>
   );
