@@ -59,11 +59,11 @@ install-test: check-poetry
 # Development commands
 dev: check-poetry
 	@echo "Starting development server..."
-	poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 3000
+	poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 3001
 
 dev-debug: check-poetry
 	@echo "Starting development server with debug logging..."
-	poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 3000 --log-level debug
+	poetry run uvicorn app.main:app --reload --host 0.0.0.0 --port 3001 --log-level debug
 
 # Testing commands
 test: check-poetry
@@ -110,11 +110,11 @@ docker-build-dev:
 
 docker-run:
 	@echo "Running Docker container..."
-	docker run -d --name facebook-page-api -p 3000:3000 --env-file .env facebook-page-api
+	docker run -d --name facebook-page-api -p 3001:3001 --env-file .env facebook-page-api
 
 docker-run-dev:
 	@echo "Running development Docker container..."
-	docker run -d --name facebook-page-api-dev -p 8001:3000 -v $(PWD)/app:/app/app --env-file .env facebook-page-api:dev
+	docker run -d --name facebook-page-api-dev -p 8001:3001 -v $(PWD)/app:/app/app --env-file .env facebook-page-api:dev
 
 docker-stop:
 	@echo "Stopping Docker containers..."

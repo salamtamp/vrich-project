@@ -377,9 +377,9 @@ class TestWebhookHandler:
                     # Mock settings
                     mock_settings = MagicMock()
                     mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
-                    mock_settings.RABBITMQ_HOST = "localhost"
-                    mock_settings.RABBITMQ_USER = "guest"
-                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_settings.QUEUE_HOST = "localhost"
+                    mock_settings.QUEUE_USER = "guest"
+                    mock_settings.QUEUE_PASS = "guest"
                     mock_get_settings.return_value = mock_settings
 
                     # Mock queue
@@ -503,9 +503,9 @@ class TestWebhookIntegration:
                     # Mock settings
                     mock_settings = MagicMock()
                     mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
-                    mock_settings.RABBITMQ_HOST = "localhost"
-                    mock_settings.RABBITMQ_USER = "guest"
-                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_settings.QUEUE_HOST = "localhost"
+                    mock_settings.QUEUE_USER = "guest"
+                    mock_settings.QUEUE_PASS = "guest"
                     mock_get_settings.return_value = mock_settings
 
                     # Mock queue
@@ -553,9 +553,9 @@ class TestWebhookIntegration:
                     # Mock settings
                     mock_settings = MagicMock()
                     mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
-                    mock_settings.RABBITMQ_HOST = "localhost"
-                    mock_settings.RABBITMQ_USER = "guest"
-                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_settings.QUEUE_HOST = "localhost"
+                    mock_settings.QUEUE_USER = "guest"
+                    mock_settings.QUEUE_PASS = "guest"
                     mock_get_settings.return_value = mock_settings
 
                     # Mock queue
@@ -599,9 +599,9 @@ class TestWebhookIntegration:
                     # Mock settings
                     mock_settings = MagicMock()
                     mock_settings.FACEBOOK_INBOX_VERIFY_TOKEN = "test_verify_token"
-                    mock_settings.RABBITMQ_HOST = "localhost"
-                    mock_settings.RABBITMQ_USER = "guest"
-                    mock_settings.RABBITMQ_PASS = "guest"
+                    mock_settings.QUEUE_HOST = "localhost"
+                    mock_settings.QUEUE_USER = "guest"
+                    mock_settings.QUEUE_PASS = "guest"
                     mock_get_settings.return_value = mock_settings
 
                     # Mock queue

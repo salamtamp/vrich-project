@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DESCRIPTION: str = os.getenv("DESCRIPTION", "Facebook Page API")
 
     # API
-    API_PORT: int = os.getenv("API_PORT", 8000)
+    API_PORT: int = os.getenv("API_PORT", 3001)
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
 
     # Facebook
@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     FACEBOOK_PAGE_ACCESS_TOKEN: str = os.getenv("FACEBOOK_PAGE_ACCESS_TOKEN")
     FACEBOOK_INBOX_VERIFY_TOKEN: str = os.getenv("FACEBOOK_INBOX_VERIFY_TOKEN")
 
-    # RabbitMQ
-    RABBITMQ_HOST: str = os.getenv("RABBITMQ_HOST", "localhost")
-    RABBITMQ_PORT: int = os.getenv("RABBITMQ_PORT", 15672)
-    RABBITMQ_USER: str = os.getenv("RABBITMQ_USER", "guest")
-    RABBITMQ_PASS: str = os.getenv("RABBITMQ_PASS", "guest")
+    # Queue
+    QUEUE_HOST: str = os.getenv("QUEUE_HOST", "localhost")
+    QUEUE_PORT: int = os.getenv("QUEUE_PORT", 15672)
+    QUEUE_USER: str = os.getenv("QUEUE_USER", "guest")
+    QUEUE_PASS: str = os.getenv("QUEUE_PASS", "guest")
 
     # Scheduler
     SCHEDULER_ENABLED: bool = os.getenv("SCHEDULER_ENABLED", "True") == "True"
@@ -59,9 +59,9 @@ def get_settings() -> Settings:
 
 def connect_queue(settings: Settings):
     queue = Queue(
-        host=settings.RABBITMQ_HOST,
-        username=settings.RABBITMQ_USER,
-        password=settings.RABBITMQ_PASS
+        host=settings.QUEUE_HOST,
+        username=settings.QUEUE_USER,
+        password=settings.QUEUE_PASS
     )
     queue.connect()
 

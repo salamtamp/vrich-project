@@ -249,9 +249,9 @@ async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
         queue = get_queue()
         if not queue:
             queue = Queue(
-                host=settings.RABBITMQ_HOST,
-                username=settings.RABBITMQ_USER,
-                password=settings.RABBITMQ_PASS
+                host=settings.QUEUE_HOST,
+                username=settings.QUEUE_USER,
+                password=settings.QUEUE_PASS
             )
             queue.connect()
 
@@ -439,9 +439,9 @@ async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
         queue = get_queue()
         if not queue:
             queue = Queue(
-                host=settings.RABBITMQ_HOST,
-                username=settings.RABBITMQ_USER,
-                password=settings.RABBITMQ_PASS
+                host=settings.QUEUE_HOST,
+                username=settings.QUEUE_USER,
+                password=settings.QUEUE_PASS
             )
             queue.connect()
 
@@ -502,9 +502,9 @@ async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
         queue = get_queue()
         if not queue:
             queue = Queue(
-                host=settings.RABBITMQ_HOST,
-                username=settings.RABBITMQ_USER,
-                password=settings.RABBITMQ_PASS
+                host=settings.QUEUE_HOST,
+                username=settings.QUEUE_USER,
+                password=settings.QUEUE_PASS
             )
             queue.connect()
 

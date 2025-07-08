@@ -203,9 +203,9 @@ async def handle_webhook(request: Request):
 
     if not queue:
         queue = Queue(
-            host=settings.RABBITMQ_HOST,
-            username=settings.RABBITMQ_USER,
-            password=settings.RABBITMQ_PASS
+            host=settings.QUEUE_HOST,
+            username=settings.QUEUE_USER,
+            password=settings.QUEUE_PASS
         )
         queue.connect()
 
