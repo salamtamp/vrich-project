@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS facebook_profiles (
     facebook_id TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    profile_picture_url TEXT NOT NULL,
+    profile_picture_url TEXT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ,
