@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.middleware.logging import LoggingMiddleware
@@ -40,15 +39,6 @@ def create_app() -> FastAPI:
 
     app.add_middleware(SecurityMiddleware)
     app.add_middleware(LoggingMiddleware)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.allowed_hosts
-        if hasattr(settings, "ALLOWED_HOSTS")
-        else ["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
     app.include_router(api_router, prefix="/api/v1")
 
