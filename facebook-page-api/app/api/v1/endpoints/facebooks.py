@@ -5,7 +5,7 @@ from app.utils.queue import Queue
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 
 import httpx
 import json
@@ -13,6 +13,12 @@ import logging
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+queue = Queue(
+    host=get_settings().QUEUE_HOST,
+    username=get_settings().QUEUE_USER,
+    password=get_settings().QUEUE_PASS
+)
+queue.connect()
 
 class FacebookPageProfileResponse(BaseModel):
     id: str
@@ -41,14 +47,16 @@ class FacebookCommentsResponse(BaseModel):
 
 class PostsSchedulerRequest(BaseModel):
     page_id: str = Field(alias="pageId")
-    cron_schedule: str = Field(default="0 * * * *", alias="cronSchedule")
+    schedule: Union[str, int] = Field(default="0 * * * *", alias="schedule")
+    trigger_type: str = Field(default="cron", alias="triggerType")
 
     class Config:
         populate_by_name = True
 
 class CommentsSchedulerRequest(BaseModel):
     post_ids: List[str] = Field(alias="postIds")
-    cron_schedule: str = Field(default="*/5 * * * *", alias="cronSchedule")  # Default: every 5 minutes
+    schedule: Union[str, int] = Field(default=300, alias="schedule")
+    trigger_type: str = Field(default="interval", alias="triggerType")
 
     class Config:
         populate_by_name = True
@@ -251,20 +259,11 @@ async def get_facebook_post_comments(
 
 async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
     try:
-        queue = get_queue()
-        if not queue:
-            queue = Queue(
-                host=settings.QUEUE_HOST,
-                username=settings.QUEUE_USER,
-                password=settings.QUEUE_PASS
-            )
-            queue.connect()
-
         url = f"{settings.FACEBOOK_BASE_URL}/{page_id}/posts"
         params = {
             "access_token": settings.FACEBOOK_PAGE_ACCESS_TOKEN,
             "fields": "id,message,created_time,from,status_type,attachments",
-            "limit": 50
+            "limit": 20
         }
 
         print("[post] url", url)
@@ -333,7 +332,7 @@ async def start_facebook_posts_scheduler(
     request: PostsSchedulerRequest,
     settings = Depends(get_settings),
 ):
-    """Start the Facebook posts scheduler with configurable cron schedule"""
+    """Start the Facebook posts scheduler with configurable schedule"""
     try:
         if facebook_posts_scheduler.is_running():
             return SchedulerResponse(
@@ -343,7 +342,8 @@ async def start_facebook_posts_scheduler(
 
         facebook_posts_scheduler.start_scheduler(
             page_id=request.page_id,
-            cron_schedule=request.cron_schedule
+            schedule=request.schedule,
+            trigger_type=request.trigger_type
         )
 
         return SchedulerResponse(
@@ -393,7 +393,8 @@ async def restart_facebook_posts_scheduler(
     try:
         facebook_posts_scheduler.restart_scheduler(
             page_id=request.page_id,
-            cron_schedule=request.cron_schedule
+            schedule=request.schedule,
+            trigger_type=request.trigger_type
         )
 
         return SchedulerResponse(
@@ -441,7 +442,8 @@ async def update_posts_scheduler_schedule(
 
         facebook_posts_scheduler.update_schedule(
             page_id=request.page_id,
-            new_cron_schedule=request.cron_schedule
+            new_schedule=request.schedule,
+            trigger_type=request.trigger_type
         )
 
         return SchedulerResponse(
@@ -459,22 +461,12 @@ async def update_posts_scheduler_schedule(
 
 async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
     try:
-        queue = get_queue()
-        if not queue:
-            queue = Queue(
-                host=settings.QUEUE_HOST,
-                username=settings.QUEUE_USER,
-                password=settings.QUEUE_PASS
-            )
-            queue.connect()
-
         url = f"{settings.FACEBOOK_BASE_URL}/{post_id}/comments"
         params = {
             "access_token": settings.FACEBOOK_PAGE_ACCESS_TOKEN,
             "fields": "id,from,message,created_time",
             "order": "reverse_chronological",
-            "limit": 50,
-            "summary": "true"
+            "limit": 10
         }
 
         print("[comment] url", url)
@@ -538,7 +530,8 @@ async def start_facebook_comments_scheduler(
 
         facebook_comments_scheduler.start_scheduler(
             post_ids=request.post_ids,
-            cron_schedule=request.cron_schedule
+            cron_schedule=request.schedule,
+            trigger_type=request.trigger_type
         )
 
         return SchedulerResponse(
@@ -588,7 +581,8 @@ async def restart_facebook_comments_scheduler(
     try:
         facebook_comments_scheduler.restart_scheduler(
             post_ids=request.post_ids,
-            cron_schedule=request.cron_schedule
+            cron_schedule=request.schedule,
+            trigger_type=request.trigger_type
         )
 
         return SchedulerResponse(
@@ -636,7 +630,8 @@ async def update_comments_scheduler_schedule(
 
         facebook_comments_scheduler.update_schedule(
             post_ids=request.post_ids,
-            new_cron_schedule=request.cron_schedule
+            new_cron_schedule=request.schedule,
+            trigger_type=request.trigger_type
         )
 
         return SchedulerResponse(

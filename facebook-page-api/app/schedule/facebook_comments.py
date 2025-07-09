@@ -3,6 +3,7 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
@@ -26,7 +27,7 @@ class FacebookCommentsScheduler:
             }
         }
 
-    def start_scheduler(self, post_ids: List[str], cron_schedule: Optional[str] = None):
+    def start_scheduler(self, post_ids: List[str], cron_schedule: Optional[str] = None, trigger_type: str = "cron"):
         try:
             if cron_schedule is None:
                 cron_schedule = self.settings.FACEBOOK_COMMENTS_CRON_SCHEDULE
@@ -55,6 +56,7 @@ class FacebookCommentsScheduler:
 
             self.jobs_info["fetch_comments"]["post_ids"] = post_ids
             self.jobs_info["fetch_comments"]["schedule"] = cron_schedule
+            self.jobs_info["fetch_comments"]["trigger_type"] = trigger_type
             self._add_jobs()
 
             self.scheduler.start()
@@ -83,13 +85,13 @@ class FacebookCommentsScheduler:
         except Exception as e:
             logger.error(f"Error stopping comments scheduler: {e}")
 
-    def restart_scheduler(self, post_ids: List[str], cron_schedule: Optional[str] = None):
+    def restart_scheduler(self, post_ids: List[str], cron_schedule: Optional[str] = None, trigger_type: str = "cron"):
         try:
             if cron_schedule is None:
                 cron_schedule = self.settings.FACEBOOK_COMMENTS_CRON_SCHEDULE
 
             self.stop_scheduler()
-            self.start_scheduler(post_ids, cron_schedule)
+            self.start_scheduler(post_ids, cron_schedule, trigger_type)
             logger.info("Comments scheduler restarted successfully")
         except Exception as e:
             logger.error(f"Error restarting comments scheduler: {e}")
@@ -97,28 +99,51 @@ class FacebookCommentsScheduler:
 
     def _add_jobs(self):
         try:
-            cron_parts = self.jobs_info["fetch_comments"]["schedule"].split()
-            if len(cron_parts) != 5:
-                raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
+            trigger_type = self.jobs_info["fetch_comments"].get("trigger_type", "cron")
 
-            minute, hour, day, month, day_of_week = cron_parts
+            if trigger_type == "interval":
+                # Handle interval trigger (seconds)
+                if isinstance(self.jobs_info["fetch_comments"]["schedule"], int):
+                    seconds = self.jobs_info["fetch_comments"]["schedule"]
+                else:
+                    # Try to parse as integer
+                    seconds = int(self.jobs_info["fetch_comments"]["schedule"])
 
-            self.scheduler.add_job(
-                func=self._fetch_comments_job,
-                trigger=CronTrigger(
-                    minute=minute,
-                    hour=hour,
-                    day=day,
-                    month=month,
-                    day_of_week=day_of_week
-                ),
-                id=self.jobs_info["fetch_comments"]["id"],
-                name=self.jobs_info["fetch_comments"]["name"],
-                replace_existing=True,
-                misfire_grace_time=self.settings.SCHEDULER_MISFIRE_GRACE_TIME
-            )
+                self.scheduler.add_job(
+                    func=self._fetch_comments_job,
+                    trigger=IntervalTrigger(seconds=seconds),
+                    id=self.jobs_info["fetch_comments"]["id"],
+                    name=self.jobs_info["fetch_comments"]["name"],
+                    replace_existing=True,
+                    misfire_grace_time=self.settings.SCHEDULER_MISFIRE_GRACE_TIME
+                )
 
-            logger.info(f"Comments scheduled jobs added successfully with cron: {self.jobs_info['fetch_comments']['schedule']}")
+                logger.info(f"Comments scheduled jobs added successfully with interval: {seconds} seconds")
+
+            else:
+                # Handle cron trigger
+                cron_parts = self.jobs_info["fetch_comments"]["schedule"].split()
+                if len(cron_parts) != 5:
+                    raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
+
+                minute, hour, day, month, day_of_week = cron_parts
+
+                self.scheduler.add_job(
+                    func=self._fetch_comments_job,
+                    trigger=CronTrigger(
+                        minute=minute,
+                        hour=hour,
+                        day=day,
+                        month=month,
+                        day_of_week=day_of_week
+                    ),
+                    id=self.jobs_info["fetch_comments"]["id"],
+                    name=self.jobs_info["fetch_comments"]["name"],
+                    replace_existing=True,
+                    misfire_grace_time=self.settings.SCHEDULER_MISFIRE_GRACE_TIME
+                )
+
+                logger.info(f"Comments scheduled jobs added successfully with cron: {self.jobs_info['fetch_comments']['schedule']}")
 
         except Exception as e:
             logger.error(f"Error adding comments jobs to scheduler: {e}")
@@ -222,31 +247,43 @@ class FacebookCommentsScheduler:
             logger.error(f"Error resuming comments job {job_id}: {e}")
             raise
 
-    def update_schedule(self, post_ids: List[str], new_cron_schedule: Optional[str] = None):
+    def update_schedule(self, post_ids: List[str], new_cron_schedule: Optional[str] = None, trigger_type: str = "cron"):
         try:
             if new_cron_schedule is None:
                 new_cron_schedule = self.settings.FACEBOOK_COMMENTS_CRON_SCHEDULE
 
             if self.scheduler and self.scheduler.running:
-                cron_parts = new_cron_schedule.split()
-                if len(cron_parts) != 5:
-                    raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
-
-                minute, hour, day, month, day_of_week = cron_parts
-
-                self.scheduler.reschedule_job(
-                    job_id=self.jobs_info["fetch_comments"]["id"],
-                    trigger=CronTrigger(
-                        minute=minute,
-                        hour=hour,
-                        day=day,
-                        month=month,
-                        day_of_week=day_of_week
-                    )
-                )
-
                 self.jobs_info["fetch_comments"]["schedule"] = new_cron_schedule
+                self.jobs_info["fetch_comments"]["trigger_type"] = trigger_type
                 self.jobs_info["fetch_comments"]["post_ids"] = post_ids
+
+                if trigger_type == "interval":
+                    if isinstance(new_cron_schedule, int):
+                        seconds = new_cron_schedule
+                    else:
+                        seconds = int(new_cron_schedule)
+
+                    self.scheduler.reschedule_job(
+                        job_id=self.jobs_info["fetch_comments"]["id"],
+                        trigger=IntervalTrigger(seconds=seconds)
+                    )
+                else:
+                    cron_parts = new_cron_schedule.split()
+                    if len(cron_parts) != 5:
+                        raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
+
+                    minute, hour, day, month, day_of_week = cron_parts
+
+                    self.scheduler.reschedule_job(
+                        job_id=self.jobs_info["fetch_comments"]["id"],
+                        trigger=CronTrigger(
+                            minute=minute,
+                            hour=hour,
+                            day=day,
+                            month=month,
+                            day_of_week=day_of_week
+                        )
+                    )
 
                 logger.info(f"Comments schedule updated to {new_cron_schedule} for {len(post_ids)} posts")
             else:
