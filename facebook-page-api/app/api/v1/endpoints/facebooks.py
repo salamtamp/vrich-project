@@ -212,12 +212,17 @@ async def get_facebook_post_comments(
 
             comments = []
             for comment in data.get("data", []):
-                comments.append(FacebookCommentResponse(
-                    id=comment.get("id"),
-                    message=comment.get("message", ""),
-                    created_time=comment.get("created_time"),
-                    from_user=comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN"
-                ))
+                comment_data = {
+                    "id": comment.get("id"),
+                    "message": comment.get("message", ""),
+                    "created_time": comment.get("created_time"),
+                    "from_name": comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN",
+                    "from_id": comment.get("from", {}).get("id") if comment.get("from") else "0000000000000000",
+                    "post_id": post_id,
+                    "type": "text"
+                }
+
+                comments.append(comment_data)
 
             return FacebookCommentsResponse(
                 data=comments,
@@ -258,9 +263,12 @@ async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
         url = f"{settings.FACEBOOK_BASE_URL}/{page_id}/posts"
         params = {
             "access_token": settings.FACEBOOK_PAGE_ACCESS_TOKEN,
-            "fields": "id,created_time,message,from",
+            "fields": "id,message,created_time,from,status_type,attachments",
             "limit": 50
         }
+
+        print("[post] url", url)
+        print("[post] params", params)
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params)
@@ -278,11 +286,26 @@ async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
                     "id": post.get("id"),
                     "message": post.get("message", ""),
                     "created_time": post.get("created_time"),
-                    "from_user": post.get("from", {}).get("name", "UNKNOWN") if post.get("from") else "UNKNOWN",
-                    "from_user_id": post.get("from", {}).get("id") if post.get("from") else None,
+                    "from_name": post.get("from", {}).get("name", "UNKNOWN") if post.get("from") else "UNKNOWN",
+                    "from_id": post.get("from", {}).get("id") if post.get("from") else "0000000000000000",
                     "page_id": page_id,
-                    "fetched_at": datetime.now().isoformat()
                 }
+
+                if post.get("status_type") == "added_photos":
+                    attachments = post.get("attachments", {}).get("data", [])
+                    post_data["media_url"] =attachments[0]["media"]["image"]["src"]
+                    post_data["media_type"] = "photo"
+                    post_data["type"] = "photo"
+                elif post.get("status_type") == "added_video":
+                    attachments = post.get("attachments", {}).get("data", [])
+                    post_data["media_url"] =attachments[0]["media"]["source"]
+                    post_data["media_type"] = "video"
+                    post_data["type"] = "video"
+                else:
+                    post_data["media_url"] = None
+                    post_data["media_type"] = None
+                    post_data["type"] = "text"
+
                 posts.append(post_data)
 
             if posts:
@@ -454,6 +477,9 @@ async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
             "summary": "true"
         }
 
+        print("[comment] url", url)
+        print("[comment] params", params)
+
         async with httpx.AsyncClient() as client:
             response = await client.get(url, params=params)
             response.raise_for_status()
@@ -470,11 +496,12 @@ async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
                     "id": comment.get("id"),
                     "message": comment.get("message", ""),
                     "created_time": comment.get("created_time"),
-                    "from_user": comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN",
-                    "from_user_id": comment.get("from", {}).get("id") if comment.get("from") else None,
+                    "from_name": comment.get("from", {}).get("name", "UNKNOWN") if comment.get("from") else "UNKNOWN",
+                    "from_id": comment.get("from", {}).get("id") if comment.get("from") else "0000000000000999",
                     "post_id": post_id,
-                    "fetched_at": datetime.now().isoformat()
+                    "type": "text"
                 }
+
                 comments.append(comment_data)
 
             if comments:
@@ -495,67 +522,6 @@ async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
         return False
     except Exception as e:
         logger.error(f"Unexpected error fetching comments for post {post_id}: {str(e)}")
-        return False
-
-async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
-    try:
-        queue = get_queue()
-        if not queue:
-            queue = Queue(
-                host=settings.QUEUE_HOST,
-                username=settings.QUEUE_USER,
-                password=settings.QUEUE_PASS
-            )
-            queue.connect()
-
-        url = f"{settings.FACEBOOK_BASE_URL}/{page_id}/posts"
-        params = {
-            "access_token": settings.FACEBOOK_PAGE_ACCESS_TOKEN,
-            "fields": "id,created_time,message,from",
-            "limit": 50
-        }
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params)
-            response.raise_for_status()
-
-            data = response.json()
-
-            if "error" in data:
-                logger.error(f"Facebook API Error for page {page_id}: {data['error'].get('message', 'Unknown error')}")
-                return False
-
-            posts = []
-            for post in data.get("data", []):
-                post_data = {
-                    "id": post.get("id"),
-                    "message": post.get("message", ""),
-                    "created_time": post.get("created_time"),
-                    "from_user": post.get("from", {}).get("name", "UNKNOWN") if post.get("from") else "UNKNOWN",
-                    "from_user_id": post.get("from", {}).get("id") if post.get("from") else None,
-                    "page_id": page_id,
-                    "fetched_at": datetime.now().isoformat()
-                }
-                posts.append(post_data)
-
-            if posts:
-                for post in posts:
-                    queue.publish("facebook_posts", post)
-
-                logger.info(f"Successfully fetched and queued {len(posts)} posts for page {page_id}")
-                return True
-            else:
-                logger.info(f"No posts found for page {page_id}")
-                return True
-
-    except httpx.HTTPStatusError as e:
-        logger.error(f"HTTP error fetching posts for page {page_id}: {e.response.text}")
-        return False
-    except httpx.RequestError as e:
-        logger.error(f"Request error fetching posts for page {page_id}: {str(e)}")
-        return False
-    except Exception as e:
-        logger.error(f"Unexpected error fetching posts for page {page_id}: {str(e)}")
         return False
 
 @router.post("/scheduler/comments/start", response_model=SchedulerResponse)

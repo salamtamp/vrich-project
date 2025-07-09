@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pydantic import ConfigDict
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings # type: ignore
 from app.utils.queue import Queue
 
 import os
@@ -69,4 +69,3 @@ def get_queue() -> Queue:
     return queue
 
 settings = get_settings()
-queue = get_queue()
