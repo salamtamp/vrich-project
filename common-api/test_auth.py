@@ -4,12 +4,10 @@ Simple test script to verify authentication
 """
 
 import asyncio
-import sys
 from datetime import timedelta
 
 import httpx
 
-from app.core.config import settings
 from app.core.security import create_access_token, decode_access_token
 
 
@@ -49,9 +47,8 @@ async def test_auth_endpoint(token):
             if response.status_code == 200:
                 print("✅ Auth endpoint test successful")
                 return True
-            else:
-                print("❌ Auth endpoint test failed")
-                return False
+            print("❌ Auth endpoint test failed")
+            return False
         except Exception as e:
             print(f"❌ Auth endpoint error: {e}")
             return False
@@ -108,8 +105,8 @@ async def main():
     socket_ok = await test_socket_auth(token)
 
     # Summary
-    print(f"\n📊 Authentication Test Summary:")
-    print(f"Token creation/decoding: ✅")
+    print("\n📊 Authentication Test Summary:")
+    print("Token creation/decoding: ✅")
     print(f"Auth endpoint: {'✅' if auth_ok else '❌'}")
     print(f"Socket.IO auth: {'✅' if socket_ok else '❌'}")
 

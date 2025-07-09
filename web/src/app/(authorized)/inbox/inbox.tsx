@@ -13,9 +13,9 @@ import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import { getRelativeTimeInThai } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { FacebookMessengerResponse } from '@/types/api/facebook-messenger';
+import type { FacebookInboxResponse } from '@/types/api/facebook-inbox';
 
-const MessageContent: React.FC<{ message: FacebookMessengerResponse }> = ({ message }) => (
+const MessageContent: React.FC<{ message: FacebookInboxResponse }> = ({ message }) => (
   <p className='line-clamp-4 text-md-medium'>{message.message ?? 'ไม่มีข้อความ'}</p>
 );
 
@@ -23,21 +23,21 @@ const Inbox = () => {
   const { open } = useModalContext();
 
   const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
-    PaginationResponse<FacebookMessengerResponse>
+    PaginationResponse<FacebookInboxResponse>
   >({
-    url: API.MESSAGE,
+    url: API.INBOX,
   });
 
   const itemData = useMemo(
     () =>
       data?.docs?.map((message) => {
         return {
-          id: message.profile?.id ?? `message-${message.id}`,
-          title: message.profile?.name ?? 'Unknown User',
+          id: message.profile?.id ?? `inbox-${message.id}`,
+          title: message.profile?.name ?? '',
           content: <MessageContent message={message} />,
-          lastUpdate: getRelativeTimeInThai(message.created_at),
+          lastUpdate: getRelativeTimeInThai(message.published_at),
           profile_picture_url: message.profile?.profile_picture_url,
-          name: message.profile?.name ?? 'Unknown User',
+          name: message.profile?.name ?? '',
         };
       }),
     [data?.docs]

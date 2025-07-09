@@ -1,6 +1,6 @@
 import Inbox from './inbox';
 
-const MassagePage = () => {
+const InboxPage = () => {
   return (
     <div className='flex size-full flex-col'>
       <Inbox />
@@ -8,4 +8,4 @@ const MassagePage = () => {
   );
 };
 
-export default MassagePage;
+export default InboxPage;

@@ -19,12 +19,9 @@ background_tasks = set()
 def connect(sid, environ, auth):
     """Handle client connection with OAuth token"""
     logging.info(f"Connection attempt from {sid}")
-    logging.info(f"Auth data: {auth}")
-    logging.info(f"Environment: {environ.get('REMOTE_ADDR', 'unknown')}")
 
     try:
         token = auth.get("token") if auth else None
-        logging.info(f"Token received: {'Yes' if token else 'No'} | Value: {token}")
 
         if not token:
             logging.warning(f"Connection rejected: No token provided for {sid}")
@@ -32,9 +29,7 @@ def connect(sid, environ, auth):
 
         try:
             payload = security.decode_access_token(token)
-            logging.info(f"Decoded payload: {payload}")
             user_id = payload.get("sub")
-            logging.info(f"Token decoded successfully, user_id: {user_id}")
 
             if not user_id:
                 logging.warning(f"Connection rejected: No user_id in token for {sid}")
@@ -65,6 +60,13 @@ def disconnect(sid):
         logging.info(f"Client {sid} (user {user_id}) disconnected")
     else:
         logging.info(f"Client {sid} disconnected (was not authenticated)")
+
+
+@sio.event
+def connect_error(sid, data):
+    """Handle connection errors"""
+    logging.error(f"Connection error for {sid}: {data}")
+    return False
 
 
 @sio.event
@@ -102,3 +104,6 @@ async def broadcast_to_authenticated_clients(event: str, data: dict):
             # Remove disconnected client
             if sid in connected_clients:
                 connected_clients.pop(sid)
+
+# At the end of the file, export the instance as 'socketio' for external use
+socketio = sio

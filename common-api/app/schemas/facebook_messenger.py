@@ -6,24 +6,28 @@ from pydantic import BaseModel, ConfigDict
 from app.schemas.facebook_profile import FacebookProfile
 
 
-class FacebookMessengerBase(BaseModel):
+class FacebookInboxBase(BaseModel):
     profile_id: UUID
     messenger_id: str
-    message: str
-    sent_at: datetime
+    message: str | None = None
+    type: str
+    link: str | None = None
+    published_at: datetime
 
 
-class FacebookMessengerCreate(FacebookMessengerBase):
+class FacebookInboxCreate(FacebookInboxBase):
     pass
 
 
-class FacebookMessengerUpdate(BaseModel):
+class FacebookInboxUpdate(BaseModel):
     message: str | None = None
-    sent_at: datetime | None = None
+    type: str | None = None
+    link: str | None = None
+    published_at: datetime | None = None
     deleted_at: datetime | None = None
 
 
-class FacebookMessengerResponse(FacebookMessengerBase):
+class FacebookInboxResponse(FacebookInboxBase):
     id: UUID
     created_at: datetime
     updated_at: datetime | None = None
@@ -31,5 +35,5 @@ class FacebookMessengerResponse(FacebookMessengerBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class FacebookMessenger(FacebookMessengerResponse):
+class FacebookInbox(FacebookInboxResponse):
     profile: FacebookProfile | None = None

@@ -9,7 +9,7 @@ class FacebookProfileBase(BaseModel):
     facebook_id: str
     type: Literal["page", "user"]
     name: str
-    profile_picture_url: str
+    profile_picture_url: str | None = None
 
 
 class FacebookProfileCreate(FacebookProfileBase):
@@ -33,5 +33,4 @@ class FacebookProfileResponse(FacebookProfileBase):
 
 
 class FacebookProfile(FacebookProfileResponse):
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

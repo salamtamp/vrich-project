@@ -24,7 +24,7 @@ import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import { ImageWithFallback, useImageWithFallback } from '@/hooks/useImageFallback';
 import { cn, getRelativeTimeInThai } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { FacebookMessengerResponse } from '@/types/api/facebook-messenger';
+import type { FacebookInboxResponse } from '@/types/api/facebook-inbox';
 
 type CommentListProps = {
   onCheckedChange?: (checked: boolean) => void;
@@ -47,7 +47,7 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
 
   const { handleRequest } = useRequest({ request: { url: `${API.POST}/${id}`, method: 'PUT' } });
 
-  const { data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookMessengerResponse>>({
+  const { data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookInboxResponse>>({
     url: API.COMMENT,
     additionalParams: { post_id: id },
     requireFields: ['post_id'],
@@ -160,10 +160,11 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
       <div className='flex h-full flex-1 flex-col overflow-y-scroll'>
         {data?.docs?.map((m) => {
           const card: CardData = {
-            id: m.messenger_id,
-            title: m.profile?.name ?? 'Unknown',
-            lastUpdate: getRelativeTimeInThai(m.created_at),
+            id: m.profile?.id ?? '',
+            title: m.profile?.name ?? '',
+            lastUpdate: getRelativeTimeInThai(m.published_at),
           };
+
           return (
             <div
               key={`${m.messenger_id}-${crypto.randomUUID()}`}
@@ -176,7 +177,7 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
                 }}
               >
                 <div className='flex flex-col gap-2'>
-                  <p className='text-display-medium'>{m.profile?.name ?? 'Unknown'}</p>
+                  <p className='text-display-medium'>{m.profile?.name ?? ''}</p>
                   <p>{m.message}</p>
                 </div>
                 <div className='flex min-w-[100px] flex-col justify-between gap-1'>
@@ -190,7 +191,7 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
                     />
                   </div>
                   <p className='line-clamp-1 flex justify-end text-sm-medium'>
-                    {dayjs(m.created_at).format('YYYY-MM-DD HH:mm')}
+                    {dayjs(m.published_at).format('YYYY-MM-DD HH:mm')}
                   </p>
                 </div>
               </div>

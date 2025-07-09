@@ -19,11 +19,16 @@ class FacebookPostWebhookRequest(BaseModel):
     id: str
 
 
-class FacebookMessengerWebhookRequest(BaseModel):
+class FacebookInboxWebhookRequest(BaseModel):
     event: str
     id: str
 
 
 class FacebookCommentWebhookRequest(BaseModel):
+    event: str
+    id: str
+
+
+class FacebookProfileWebhookRequest(BaseModel):
     event: str
     id: str

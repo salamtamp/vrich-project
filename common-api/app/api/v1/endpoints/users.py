@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import database as deps
@@ -16,6 +16,7 @@ router = APIRouter()
 @router.get("/", response_model=list[user_schema.User])
 def read_users(
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(deps.get_current_user),
     skip: int = 0,
     limit: int = 1000000,
 ) -> list[user_schema.User]:
@@ -29,6 +30,7 @@ def read_users(
 def create_user(
     *,
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(deps.get_current_user),
     user_in: user_schema.UserCreate,
 ) -> user_schema.User:
     """
@@ -46,12 +48,12 @@ def create_user(
 
 @router.get("/me", response_model=user_schema.User)
 def read_user_me(
-    request: Request,
+    current_user: models.User = Depends(deps.get_current_user),
 ) -> user_schema.User:
     """
     Get current user.
     """
-    return deps.get_current_user_from_request(request)
+    return current_user
 
 
 @router.put("/me", response_model=user_schema.User)

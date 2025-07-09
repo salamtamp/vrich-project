@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, String, UniqueConstraint, text
+from sqlalchemy import Column, DateTime, ForeignKey, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -22,8 +22,10 @@ class FacebookComment(Base, UUIDPrimaryKeyMixin):
         ForeignKey("facebook_posts.id", ondelete="CASCADE"),
         nullable=False,
     )
-    comment_id = Column(String, nullable=False, unique=True)
-    message = Column(String, nullable=True)
+    comment_id = Column(Text, nullable=False, unique=True)
+    message = Column(Text, nullable=True)
+    type = Column(Text, nullable=False)
+    link = Column(Text, nullable=True)
     published_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(
         DateTime(timezone=True),
