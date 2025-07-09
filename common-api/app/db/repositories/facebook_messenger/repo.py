@@ -18,5 +18,8 @@ class FacebookMessengerRepo(
     def create(self, db, obj_in):
         return create_facebook_messenger(db, obj_in=obj_in)
 
+    def get_by_id(self, db, id):
+        return db.query(FacebookMessenger).filter(FacebookMessenger.id == id).first()
+
 
 facebook_messenger_repo = FacebookMessengerRepo(FacebookMessenger)

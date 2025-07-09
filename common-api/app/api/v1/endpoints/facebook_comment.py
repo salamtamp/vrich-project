@@ -32,6 +32,7 @@ def list_facebook_comments(
     db: Session = Depends(get_db),
     pagination: PaginationParams = Depends(get_pagination_params),
     post_id: str | None = None,
+    profile_id: str | None = None,
 ) -> PaginationResponse[FacebookComment]:
     builder = PaginationBuilder(FacebookCommentModel, db)
     builder.query = builder.query.options(
@@ -41,7 +42,7 @@ def list_facebook_comments(
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
         .search(pagination.search, pagination.search_by)
-        .custom_filter(post_id=post_id)
+        .custom_filter(post_id=post_id, profile_id=profile_id)
         .order_by(pagination.order_by, pagination.order)
         .paginate(pagination.limit, pagination.offset, serializer=FacebookComment)
     )

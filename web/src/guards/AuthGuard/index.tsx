@@ -13,21 +13,20 @@ const AuthGuard: React.FC<NextJSChildren> = ({ children }) => {
   const { status, data: session } = useSession();
   const router = useRouter();
 
+  const isLoading = status === 'loading';
+
   useEffect(() => {
     if (status === 'loading') {
       return;
     }
+
     if (!session || session?.error) {
       void signOut({ redirect: false });
       router.push(PATH.LOGIN);
     }
   }, [session, status, router]);
 
-  if (status === 'loading') {
-    return <></>;
-  }
-
-  if (!session || session?.error) {
+  if (isLoading || !session || session?.error) {
     return <></>;
   }
 

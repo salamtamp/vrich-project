@@ -60,11 +60,10 @@ const FilterCard: React.FC<FilterCardProps> = ({
   const { pagination } = usePaginationContext();
   const { page, limit } = pagination;
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
   const searchParams = useSearchParams();
+
   const id = searchParams.get('id');
 
-  const paginatedData = data ?? [];
   const skeletonCount = limit;
 
   const isAllSelect = selectedIds.length === limit;
@@ -130,7 +129,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
                   setSelectedIds([]);
                   return;
                 }
-                const allIds = paginatedData.map((d) => d.id);
+                const allIds = (data ?? []).map((d) => d.id);
                 setSelectedIds(allIds);
               }}
             >
@@ -173,7 +172,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
                 </div>
               );
             })
-          : paginatedData.map((item) => {
+          : (data ?? []).map((item) => {
               const isSelected = selectedIds?.includes(item.id);
 
               const isActive = item.id === id;
@@ -182,6 +181,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
                 // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                 <div
                   key={item.id}
+                  id={`card-${item.id}`}
                   className={cn(
                     styles.cardContainer,
                     isActive && '!border-blue-300',

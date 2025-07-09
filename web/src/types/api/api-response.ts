@@ -13,6 +13,7 @@ export type PaginationResponse<T> = {
   offset: number;
   has_next: boolean;
   has_prev: boolean;
+  timestamp: boolean;
 };
 
 // Generic error response

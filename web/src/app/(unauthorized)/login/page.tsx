@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLoading } from '@/contexts';
 
 type LoginFormInputs = {
   email: string;
@@ -36,19 +37,28 @@ const LoginPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  const { openLoading, closeLoading } = useLoading();
+
   const handleFormSubmit = useCallback(
     async (data: LoginFormInputs) => {
-      clearErrors('root');
-      const res = await signIn('credentials', {
-        redirect: false,
-        email: data.email,
-        password: data.password,
-      });
-      if (!res?.ok) {
-        setError('root', { type: 'manual', message: 'Invalid email or password' });
+      try {
+        openLoading();
+        clearErrors('root');
+        const res = await signIn('credentials', {
+          redirect: false,
+          email: data.email,
+          password: data.password,
+        });
+        if (!res?.ok) {
+          setError('root', { type: 'manual', message: 'Invalid email or password' });
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        closeLoading();
       }
     },
-    [setError, clearErrors]
+    [openLoading, clearErrors, setError, closeLoading]
   );
 
   return (

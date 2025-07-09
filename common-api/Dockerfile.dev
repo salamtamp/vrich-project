@@ -64,7 +64,8 @@ ENV HOST=0.0.0.0 \
     DEBUG=True \
     UPLOAD_DIR=/app/uploads \
     MAX_FILE_SIZE=10485760 \
-    ALLOWED_EXTENSIONS="jpg,jpeg,png,gif,pdf,doc,docx"
+    ALLOWED_EXTENSIONS="jpg,jpeg,png,gif,pdf,doc,docx" \
+    INTERNAL_WEBHOOK_IPS="127.0.0.1,10.0.0.1"
 
 # Expose the port
 EXPOSE ${PORT}

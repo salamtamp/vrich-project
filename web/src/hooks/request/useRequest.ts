@@ -6,7 +6,7 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponseHeaders, RawAxiosResp
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 
-import { axiosClient } from '@/lib/axios/axiosClient';
+import axiosClient from '@/lib/axios/axiosClient';
 
 export type UseRequestProps<T> = {
   request: AxiosRequestConfig;

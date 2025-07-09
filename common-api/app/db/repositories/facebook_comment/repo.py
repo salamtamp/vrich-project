@@ -20,5 +20,8 @@ class FacebookCommentRepo(
         update_data = update_facebook_comment_data(obj_in)
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
+    def get_by_id(self, db, id):
+        return db.query(FacebookComment).filter(FacebookComment.id == id).first()
+
 
 facebook_comment_repo = FacebookCommentRepo(FacebookComment)

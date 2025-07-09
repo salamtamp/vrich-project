@@ -5,6 +5,7 @@ import { useCallback } from 'react';
 
 import type { Dispatch, SetStateAction } from 'react';
 
+import { ImageWithFallback } from '@/hooks/useImageFallback';
 import { cn } from '@/lib/utils';
 
 import { Checkbox } from '../ui/checkbox';
@@ -13,6 +14,10 @@ export type TextData = {
   id: string;
   text: string;
   postUrl?: string;
+  profile_picture_url?: string;
+  name?: string;
+  timeAgo?: string; // Added for dynamic time ago
+  dateString?: string; // Added for dynamic date string
 };
 
 type ListItemProps = {
@@ -57,7 +62,15 @@ const ListItem: React.FC<ListItemProps> = ({
             <p className='mb-2 w-[300px] truncate text-display-medium'>{data.postUrl}</p>
           ) : null}
 
-          <div className='flex gap-4'>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center justify-center'>
+              <ImageWithFallback
+                alt={data.name ?? 'profile'}
+                className='size-8 object-cover'
+                size={32}
+                src={data.profile_picture_url}
+              />
+            </div>
             {selectAbleMode ? (
               <Checkbox
                 checked={isSelected}
@@ -71,8 +84,12 @@ const ListItem: React.FC<ListItemProps> = ({
           </div>
         </div>
         <div className='flex h-full min-w-[100px] flex-col justify-between gap-2'>
-          <p className='line-clamp-1 flex justify-end text-sm-medium'>2 min ago</p>
-          <p className='line-clamp-1 flex justify-end text-xs-regular'>11/06/41 11:22</p>
+          {data.timeAgo ? (
+            <p className='line-clamp-1 flex justify-end text-sm-medium'>{data.timeAgo}</p>
+          ) : null}
+          {data.dateString ? (
+            <p className='line-clamp-1 flex justify-end text-xs-regular'>{data.dateString}</p>
+          ) : null}
         </div>
       </div>
       <div className='mt-2 h-[2px] w-full rounded-xl bg-gray-300' />

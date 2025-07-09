@@ -31,6 +31,7 @@ router = APIRouter()
 def list_facebook_messengers(
     db: Session = Depends(get_db),
     pagination: PaginationParams = Depends(get_pagination_params),
+    profile_id: str | None = None,
 ) -> PaginationResponse[FacebookMessenger]:
     builder = PaginationBuilder(FacebookMessengerModel, db)
     builder.query = builder.query.options(joinedload(FacebookMessengerModel.profile))
@@ -38,6 +39,7 @@ def list_facebook_messengers(
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
         .search(pagination.search, pagination.search_by)
+        .custom_filter(profile_id=profile_id)
         .order_by(pagination.order_by, pagination.order)
         .paginate(pagination.limit, pagination.offset, serializer=FacebookMessenger)
     )

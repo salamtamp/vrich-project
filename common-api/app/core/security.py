@@ -36,3 +36,11 @@ def verify_token(token: str) -> dict:
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         ) from err
+
+
+def decode_access_token(token: str) -> dict:
+    """Decode JWT access token without raising HTTPException"""
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError as err:
+        raise ValueError(f"Invalid token: {err}") from err

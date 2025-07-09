@@ -12,3 +12,18 @@ class Token(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: str | None = None
+
+
+class FacebookPostWebhookRequest(BaseModel):
+    event: str
+    id: str
+
+
+class FacebookMessengerWebhookRequest(BaseModel):
+    event: str
+    id: str
+
+
+class FacebookCommentWebhookRequest(BaseModel):
+    event: str
+    id: str

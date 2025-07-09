@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useMemo, useState } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { FC } from 'react';
 
@@ -43,8 +43,14 @@ type PaginationProviderProps = NextJSChildren & {
 };
 
 export const PaginationProvider: FC<PaginationProviderProps> = ({ children, defaultValue }) => {
-  const initialPagination = { ...defaultPagination, ...defaultValue };
-  const [pagination, setPagination] = useState(initialPagination);
+  const initialPaginationRef = useRef({ ...defaultPagination, ...defaultValue });
+  const [pagination, setPagination] = useState(initialPaginationRef.current);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setPagination({ ...defaultPagination, ...defaultValue });
+    setReady(true);
+  }, [defaultValue]);
 
   const offset = (pagination.page - 1) * pagination.limit;
   const isDisableNext = pagination.page * pagination.limit >= pagination.total;
@@ -70,7 +76,6 @@ export const PaginationProvider: FC<PaginationProviderProps> = ({ children, defa
         isDisableNext,
         isDisablePrev,
       },
-
       set: handleSetPagination,
       update: handleUpdatePagination,
       reset: handleResetPagination,
@@ -85,6 +90,10 @@ export const PaginationProvider: FC<PaginationProviderProps> = ({ children, defa
       pagination,
     ]
   );
+
+  if (!ready) {
+    return null;
+  }
 
   return <PaginationContext.Provider value={value}>{children}</PaginationContext.Provider>;
 };

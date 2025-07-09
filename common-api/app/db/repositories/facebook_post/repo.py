@@ -18,5 +18,8 @@ class FacebookPostRepo(CRUDBase[FacebookPost, FacebookPostCreate, FacebookPostUp
         update_data = update_facebook_post_data(obj_in)
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
+    def get_by_id(self, db, id):
+        return db.query(FacebookPost).filter(FacebookPost.id == id).first()
+
 
 facebook_post_repo = FacebookPostRepo(FacebookPost)

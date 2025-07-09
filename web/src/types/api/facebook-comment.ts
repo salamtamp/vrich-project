@@ -1,3 +1,4 @@
+import type { FacebookPostResponse } from './facebook-post';
 import type { FacebookProfileResponse } from './facebook-profile';
 
 export type FacebookComment = {
@@ -7,6 +8,7 @@ export type FacebookComment = {
   message?: string;
   published_at: string;
   profile?: FacebookProfileResponse;
+  post?: FacebookPostResponse;
 };
 
 export type FacebookCommentUpdate = Partial<Pick<FacebookComment, 'message' | 'published_at'>> & {

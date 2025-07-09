@@ -1,64 +1,50 @@
-from contextlib import asynccontextmanager
-
+import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
-from app.api.middleware.logging import LoggingMiddleware
-from app.api.middleware.security import SecurityMiddleware
 from app.api.v1.router import api_router
-from app.core.config import settings
-from app.core.logging import setup_logging
+from app.core import security
+from app.services.socketio_server import sio
 
+# Initialize FastAPI app
+app = FastAPI()
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    setup_logging()
-    yield
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*", "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Include existing API routers
+app.include_router(api_router, prefix="/api/v1")
 
-def create_app() -> FastAPI:
-    app = FastAPI(
-        title=settings.PROJECT_NAME,
-        version=settings.VERSION,
-        description=settings.DESCRIPTION,
-        lifespan=lifespan,
-        docs_url="/docs" if settings.DEBUG else None,
-        redoc_url="/redoc" if settings.DEBUG else None,
-    )
-
-    app.add_middleware(SecurityMiddleware)
-    app.add_middleware(LoggingMiddleware)
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=(
-            settings.allowed_hosts if hasattr(settings, "ALLOWED_HOSTS") else ["*"]
-        ),
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    app.include_router(api_router, prefix="/api/v1")
-
-    return app
-
-
-app = create_app()
-
-
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to FastAPI Project", "version": settings.VERSION}
+# Combine FastAPI and Socket.IO
+print("Initializing Socket.IO ASGI app...")
+socket_app = socketio.ASGIApp(sio, app)
+print("Socket.IO ASGI app initialized successfully")
 
 
 @app.get("/health")
-def health_check():
-    return JSONResponse(
-        content={
-            "status": "healthy",
-            "message": "Service is running",
-            "version": settings.VERSION,
-        },
-        status_code=200,
-    )
+async def health_check():
+    from app.services.socketio_server import connected_clients
+
+    return {"status": "healthy", "connected_clients": len(connected_clients)}
+
+
+@app.get("/debug/token")
+async def debug_token(token: str):
+    """Debug endpoint to test token validation"""
+    try:
+        payload = security.decode_access_token(token)
+        return {"valid": True, "payload": payload}
+    except Exception as e:
+        return {"valid": False, "error": str(e)}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(socket_app, host="0.0.0.0", port=8000, log_level="info")

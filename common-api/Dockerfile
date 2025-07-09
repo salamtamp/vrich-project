@@ -54,12 +54,14 @@ ENV HOST=0.0.0.0 \
     WORKERS=1 \
     UPLOAD_DIR=/app/uploads \
     MAX_FILE_SIZE=10485760 \
-    ALLOWED_EXTENSIONS="jpg,jpeg,png,gif,pdf,doc,docx"
+    ALLOWED_EXTENSIONS="jpg,jpeg,png,gif,pdf,doc,docx" \
+    INTERNAL_WEBHOOK_IPS="127.0.0.1,10.0.0.1"
 
 # All other environment variables should be provided at runtime:
 # DEBUG, PROJECT_NAME, VERSION, DESCRIPTION
 # DATABASE_URL, SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES  
 # ALLOWED_HOSTS_RAW, API_V1_STR
+# INTERNAL_WEBHOOK_IPS (comma-separated, e.g. 127.0.0.1,10.0.0.1)
 
 # Install runtime dependencies
 RUN apt-get update \
@@ -105,4 +107,4 @@ LABEL maintainer="piyawat@example.com" \
       description="VRich FastAPI Application"
 
 # Use exec form for better signal handling with environment variables
-CMD ["sh", "-c", "uvicorn app.main:app --host $HOST --port $PORT --workers $WORKERS"]
+CMD ["sh", "-c", "uvicorn app.main:socket_app --host $HOST --port $PORT --workers $WORKERS"]

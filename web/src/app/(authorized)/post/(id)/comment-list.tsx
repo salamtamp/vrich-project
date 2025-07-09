@@ -4,10 +4,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
-import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 
-import { ProfileMaleIcon } from '@public/assets/icon';
 import dayjs from 'dayjs';
 import { ExternalLink, User } from 'lucide-react';
 
@@ -18,11 +16,12 @@ import TextList from '@/components/text-list';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { API } from '@/constants/api.constant';
+import { PaginationProvider, useLoading } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
-import useImageFallback from '@/hooks/useImageFallback';
+import { ImageWithFallback, useImageWithFallback } from '@/hooks/useImageFallback';
 import { cn, getRelativeTimeInThai } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { FacebookMessengerResponse } from '@/types/api/facebook-messenger';
@@ -44,10 +43,11 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
   const id = searchParams.get('id');
 
   const { reset } = usePaginationContext();
+  const { openLoading, closeLoading } = useLoading();
 
   const { handleRequest } = useRequest({ request: { url: `${API.POST}/${id}`, method: 'PUT' } });
 
-  const { data } = usePaginatedRequest<PaginationResponse<FacebookMessengerResponse>>({
+  const { data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookMessengerResponse>>({
     url: API.COMMENT,
     additionalParams: { post_id: id },
     requireFields: ['post_id'],
@@ -55,25 +55,19 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
   });
 
   const { open } = useModalContext();
-  const { showFallback, handleImgError } = useImageFallback();
-  const [imgLoading, setImgLoading] = useState(false);
+  const { imgLoading } = useImageWithFallback();
   const [postStatus, setPostStatus] = useState(status);
-
-  const handleImgLoadStart = () => {
-    setImgLoading(true);
-  };
-  const handleImgLoad = () => {
-    setImgLoading(false);
-  };
 
   const handleCardClick = useCallback(
     (id: string, data: CardData) => {
       open({
         content: (
-          <TextList
-            cardData={data}
-            id={id}
-          />
+          <PaginationProvider defaultValue={{ limit: 20 }}>
+            <TextList
+              cardData={data}
+              id={id}
+            />
+          </PaginationProvider>
         ),
       });
     },
@@ -83,14 +77,17 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
       try {
+        openLoading();
         void handleRequest({ data: { status: checked ? 'active' : 'inactive' } });
         setPostStatus(checked ? 'active' : 'inactive');
         onCheckedChange?.(checked);
       } catch (error) {
         console.error(error);
+      } finally {
+        closeLoading();
       }
     },
-    [handleRequest, onCheckedChange]
+    [closeLoading, handleRequest, onCheckedChange, openLoading]
   );
 
   useEffect(() => {
@@ -104,33 +101,31 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
     setPostStatus(status === 'active' ? 'active' : 'inactive');
   }, [status, id]);
 
+  useEffect(() => {
+    if (isLoading) {
+      openLoading();
+    } else {
+      closeLoading();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
   return (
     <>
       <div className='flex w-full justify-between'>
         <div className='flex w-full items-center gap-4 pb-2'>
           {image ? (
             <div className='size-10 rounded-full bg-gray-300'>
-              {!showFallback && isValidImageUrl(image) ? (
-                <>
-                  {imgLoading ? <SkeletonCard avatarOnly /> : null}
-                  <Image
-                    alt={title ?? 'post-image'}
-                    className={imgLoading ? 'hidden' : ''}
-                    height={40}
-                    src={image}
-                    style={{ borderRadius: '50%' }}
-                    width={40}
-                    onError={handleImgError}
-                    onLoad={handleImgLoad}
-                    onLoadStart={handleImgLoadStart}
-                    onLoadingComplete={handleImgLoad}
-                  />
-                </>
-              ) : (
-                <div className='flex size-10 items-center justify-center rounded-full'>
-                  <User size={25} />
-                </div>
-              )}
+              <ImageWithFallback
+                alt={title ?? 'post-image'}
+                className={imgLoading ? 'hidden' : ''}
+                fallbackIcon={<User size={25} />}
+                isValidImageUrl={isValidImageUrl}
+                size={40}
+                src={image}
+                style={{ borderRadius: '50%' }}
+              />
+              {imgLoading ? <SkeletonCard avatarOnly /> : null}
             </div>
           ) : null}
           <div className='flex max-w-[260px]'>
@@ -186,7 +181,13 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
                 </div>
                 <div className='flex min-w-[100px] flex-col justify-between gap-1'>
                   <div className='flex w-full justify-end'>
-                    <ProfileMaleIcon />
+                    <ImageWithFallback
+                      alt={m.profile?.name ?? 'profile'}
+                      className='size-8'
+                      fallbackIcon={<User size={25} />}
+                      size={32}
+                      src={m.profile?.profile_picture_url}
+                    />
                   </div>
                   <p className='line-clamp-1 flex justify-end text-sm-medium'>
                     {dayjs(m.created_at).format('YYYY-MM-DD HH:mm')}

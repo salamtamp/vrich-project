@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     facebook_post,
     facebook_profile,
     users,
+    webhooks,
 )
 
 api_router = APIRouter()
@@ -36,7 +37,7 @@ api_router.include_router(
 
 api_router.include_router(
     facebook_messenger.router,
-    prefix="/facebook_messengers",
+    prefix="/facebook-messengers",
     tags=["facebook_messengers"],
     dependencies=[Depends(deps.store_current_user)],
 )
@@ -47,3 +48,5 @@ api_router.include_router(
     tags=["facebook_comment"],
     dependencies=[Depends(deps.store_current_user)],
 )
+
+api_router.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])

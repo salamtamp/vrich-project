@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { PublicEnvScript } from 'next-runtime-env';
 
+import { LoadingProvider } from '@/contexts';
 import { SessionProvider } from '@/contexts/SessionContext';
 import type { NextJSChildren } from '@/types';
 
@@ -30,7 +31,9 @@ const RootLayout = ({ children }: NextJSChildren) => {
 
       <body className='bg-surface-primary'>
         <Suspense fallback={<></>}>
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <LoadingProvider>{children}</LoadingProvider>
+          </SessionProvider>
         </Suspense>
       </body>
     </html>

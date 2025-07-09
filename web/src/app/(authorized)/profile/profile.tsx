@@ -6,6 +6,7 @@ import type { CardData } from '@/components/card';
 import FilterCard from '@/components/filter-card';
 import TextList from '@/components/text-list';
 import { API } from '@/constants/api.constant';
+import { PaginationProvider } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
@@ -32,7 +33,7 @@ const Profile = () => {
   const itemData = useMemo(
     () =>
       data?.docs?.map((profile) => ({
-        id: profile.facebook_id,
+        id: profile.id,
         title: profile.name,
         content: <ProfileContent profile={profile} />,
         lastUpdate: getRelativeTimeInThai(profile.created_at),
@@ -46,10 +47,12 @@ const Profile = () => {
     (id: string, data: CardData) => {
       open({
         content: (
-          <TextList
-            cardData={data}
-            id={id}
-          />
+          <PaginationProvider defaultValue={{ limit: 20 }}>
+            <TextList
+              cardData={data}
+              id={id}
+            />
+          </PaginationProvider>
         ),
       });
     },

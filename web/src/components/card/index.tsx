@@ -1,13 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
-import Image from 'next/image';
-
-import { User } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import useImageFallback from '@/hooks/useImageFallback';
+import { ImageWithFallback } from '@/hooks/useImageFallback';
 import { cn } from '@/lib/utils';
 
 import { Badge } from '../ui/badge';
@@ -36,10 +33,6 @@ export type CardData = {
   name?: string;
 };
 
-function isValidImageUrl(url?: string): url is string {
-  return !!url && /^https?:\/\//.test(url) && !url.includes('example.com');
-}
-
 const Card: React.FC<CardProps> = ({
   isSelected = false,
   isSelectMode = false,
@@ -48,16 +41,6 @@ const Card: React.FC<CardProps> = ({
   isLoading = false,
   skeletonSize = 'medium',
 }) => {
-  const { showFallback, handleImgError } = useImageFallback();
-  const [imgLoading, setImgLoading] = useState(false);
-
-  const handleImgLoadStart = () => {
-    setImgLoading(true);
-  };
-  const handleImgLoad = () => {
-    setImgLoading(false);
-  };
-
   if (isLoading) {
     return (
       <SkeletonCard
@@ -88,35 +71,15 @@ const Card: React.FC<CardProps> = ({
         <div className={styles.cardText}>{cardData.content}</div>
       </div>
       <div className={cn(styles.cardRight, !cardData?.profile_picture_url && '!h-full !justify-end')}>
-        {cardData?.profile_picture_url ? (
-          <div className={styles.cardAvatar}>
-            {!showFallback && isValidImageUrl(cardData?.profile_picture_url) ? (
-              <>
-                {imgLoading ? <SkeletonCard avatarOnly /> : null}
-                <Image
-                  alt={cardData.name ?? 'profile'}
-                  className={imgLoading ? 'hidden' : ''}
-                  height={40}
-                  src={cardData?.profile_picture_url}
-                  style={{ borderRadius: '50%' }}
-                  width={40}
-                  onError={handleImgError}
-                  onLoad={handleImgLoad}
-                  onLoadStart={handleImgLoadStart}
-                  onLoadingComplete={handleImgLoad}
-                />
-              </>
-            ) : (
-              (fallbackAvatar ?? (
-                <div className='flex size-10 items-center justify-center rounded-full'>
-                  <User size={25} />
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          <></>
-        )}
+        <div className={styles.cardAvatar}>
+          <ImageWithFallback
+            alt={cardData?.name ?? 'profile'}
+            className='size-10'
+            fallbackIcon={fallbackAvatar}
+            size={40}
+            src={cardData?.profile_picture_url}
+          />
+        </div>
         <p className={styles.cardTime}>{cardData.lastUpdate}</p>
       </div>
     </div>

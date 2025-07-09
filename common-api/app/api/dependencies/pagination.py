@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Generic, TypeVar
 
@@ -35,6 +35,7 @@ class PaginationResponse(GenericModel, Generic[T]):
     offset: int
     has_next: bool
     has_prev: bool
+    timestamp: datetime
 
 
 class PaginationBuilder:
@@ -125,6 +126,7 @@ class PaginationBuilder:
             offset=offset,
             has_next=has_next,
             has_prev=has_prev,
+            timestamp=datetime.now(UTC),
         )
 
 

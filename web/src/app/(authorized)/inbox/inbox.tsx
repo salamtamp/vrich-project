@@ -2,10 +2,13 @@
 
 import React, { useCallback, useMemo } from 'react';
 
+import dayjs from 'dayjs';
+
 import type { CardData } from '@/components/card';
 import FilterCard from '@/components/filter-card';
 import TextList from '@/components/text-list';
 import { API } from '@/constants/api.constant';
+import { PaginationProvider } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import { getRelativeTimeInThai } from '@/lib/utils';
@@ -29,10 +32,12 @@ const Inbox = () => {
     () =>
       data?.docs?.map((message) => {
         return {
-          id: message.messenger_id,
+          id: message.profile?.id ?? `message-${message.id}`,
+          title: message.profile?.name ?? 'Unknown User',
           content: <MessageContent message={message} />,
           lastUpdate: getRelativeTimeInThai(message.created_at),
           profile_picture_url: message.profile?.profile_picture_url,
+          name: message.profile?.name ?? 'Unknown User',
         };
       }),
     [data?.docs]
@@ -42,11 +47,13 @@ const Inbox = () => {
     (id: string, data: CardData) => {
       open({
         content: (
-          <TextList
-            cardData={data}
-            defaultTab='inbox'
-            id={id}
-          />
+          <PaginationProvider defaultValue={{ limit: 20 }}>
+            <TextList
+              cardData={data}
+              defaultTab='inbox'
+              id={id}
+            />
+          </PaginationProvider>
         ),
       });
     },
@@ -56,6 +63,8 @@ const Inbox = () => {
   return (
     <FilterCard
       data={itemData}
+      defaultEndDate={dayjs()}
+      defaultStartDate={dayjs().subtract(6, 'day')}
       isLoading={isLoading}
       skeletonSize='medium'
       title='Inbox'
