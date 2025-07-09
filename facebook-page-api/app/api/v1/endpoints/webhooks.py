@@ -253,7 +253,7 @@ async def handle_webhook(request: Request):
         if msg.messaging[0].message.attachments:
             processed_data["media_url"] = msg.messaging[0].message.attachments[0].payload.url
             processed_data["media_type"] = msg.messaging[0].message.attachments[0].type
-            processed_data["type"] = "photo"
+            processed_data["type"] = "image"
         else:
             processed_data["media_url"] = None
             processed_data["media_type"] = None
