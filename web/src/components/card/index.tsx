@@ -71,15 +71,18 @@ const Card: React.FC<CardProps> = ({
         <div className={styles.cardText}>{cardData.content}</div>
       </div>
       <div className={cn(styles.cardRight, !cardData?.profile_picture_url && '!h-full !justify-end')}>
-        <div className={cn(styles.cardAvatar, !cardData.lastUpdate && '!h-full !items-start !bg-white')}>
-          <ImageWithFallback
-            alt={cardData?.name ?? 'profile'}
-            className='size-10'
-            fallbackIcon={fallbackAvatar}
-            size={40}
-            src={cardData?.profile_picture_url}
-          />
+        <div className='flex h-full justify-start'>
+          <div className={cn(styles.cardAvatar)}>
+            <ImageWithFallback
+              alt={cardData?.name ?? 'profile'}
+              className='size-10'
+              fallbackIcon={fallbackAvatar}
+              size={40}
+              src={cardData?.profile_picture_url}
+            />
+          </div>
         </div>
+
         <p className={styles.cardTime}>{cardData.lastUpdate}</p>
       </div>
     </div>
