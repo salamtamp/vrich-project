@@ -71,6 +71,9 @@ async def facebook_posts_webhook(
     post_data = serialize_model_with_relationships(post)
     try:
         await broadcast_to_authenticated_clients("facebook_post.created", post_data)
+        await broadcast_to_authenticated_clients(
+            f"facebook_post.{data.id}.created", post_data
+        )
         return {"status": "success", "message": WEBHOOK_PROCESSED_MESSAGE}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -93,6 +96,9 @@ async def facebook_messengers_webhook(
         await broadcast_to_authenticated_clients(
             "facebook_messenger.created", messenger_data
         )
+        await broadcast_to_authenticated_clients(
+            f"facebook_messenger.{data.id}.created", messenger_data
+        )
         return {"status": "success", "message": WEBHOOK_PROCESSED_MESSAGE}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -114,6 +120,9 @@ async def facebook_comments_webhook(
     try:
         await broadcast_to_authenticated_clients(
             "facebook_comment.created", comment_data
+        )
+        await broadcast_to_authenticated_clients(
+            f"facebook_comment.{data.id}.created", comment_data
         )
         return {"status": "success", "message": WEBHOOK_PROCESSED_MESSAGE}
     except Exception as e:

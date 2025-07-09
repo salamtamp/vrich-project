@@ -9,6 +9,7 @@ import type { ReactNode } from 'react';
 
 import ContentPagination from '@/components/content/pagination';
 import DatePicker from '@/components/date-picker';
+import NotificationBell from '@/components/notification-bell';
 import { Button } from '@/components/ui/button';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import { useScrollable } from '@/hooks/useScrollable';
@@ -93,17 +94,21 @@ const FilterCard: React.FC<FilterCardProps> = ({
     <div className={cn(styles.container, className)}>
       <div className={cn(styles.filterContainer, 'text-gray-800')}>
         <div className='ml-1 text-xl-semibold'>{title}</div>
-        {!disableDatePicker ? (
-          <div className='flex'>
-            <DatePicker
-              defaultEndDate={defaultEndDate}
-              defaultStartDate={defaultStartDate}
-              maxDate={dayjs()}
-              minDate={dayjs().subtract(3, 'month')}
-              onConfirm={onConfirmPeriod}
-            />
-          </div>
-        ) : null}
+        <div className='mr-4 flex flex-row items-center gap-6'>
+          {!disableDatePicker ? (
+            <div className='flex'>
+              <DatePicker
+                defaultEndDate={defaultEndDate}
+                defaultStartDate={defaultStartDate}
+                maxDate={dayjs()}
+                minDate={dayjs().subtract(3, 'month')}
+                onConfirm={onConfirmPeriod}
+              />
+            </div>
+          ) : null}
+
+          <NotificationBell />
+        </div>
       </div>
       <div className='mb-4 mt-5 flex justify-between text-gray-800'>
         <div className='flex h-full items-center'>{`Showing ${start}–${end} of ${total} items`}</div>
