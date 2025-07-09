@@ -88,13 +88,9 @@ class FacebookInboxProcessor:
                 'deleted_at': None
             }
 
-            if inbox_data["type"] == "photo":
-                inbox_data["media_type"] = "image"
+            if inbox_data["type"] in ["image", "video"]:
+                inbox_data["media_type"] = message["type"]
                 inbox_data["media_url"] = message["media_url"]
-            elif inbox_data["type"] == "video":
-                inbox_data["media_type"] = "video"
-                inbox_data["media_url"] = message["media_url"]
-
 
             return inbox_data
 
