@@ -44,17 +44,14 @@ const PostDetail = () => {
   }, []);
 
   const { data, isLoading, handleRequest } = useRequest<PaginationResponse<FacebookPostResponse>>({
-    request: { url: API.POST },
+    request: { url: API.POST, params: { order_by: 'published_at' } },
   });
 
   const { pagination } = usePaginationContext();
 
   const router = useRouter();
 
-  const breadcrumbItems: BreadcrumbItem[] = useMemo(
-    () => [{ label: 'Post', push: PATH.POST }, { label: selected?.customId ? `${selected?.customId}` : '' }],
-    [selected?.customId]
-  );
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => [{ label: 'Post', push: PATH.POST }], []);
 
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
