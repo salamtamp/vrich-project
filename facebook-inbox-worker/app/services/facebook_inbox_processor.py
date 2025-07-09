@@ -78,7 +78,7 @@ class FacebookInboxProcessor:
             inbox_data = {
                 'profile_id': profile_id,
                 'messenger_id': message["id"],
-                'message': message["message"],
+                'message': message["message"] if "message" in message else "",
                 'type': message["type"],
                 'link': "https://m.me",
                 'published_at': published_at.isoformat(),
