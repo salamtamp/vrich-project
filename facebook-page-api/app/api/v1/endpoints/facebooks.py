@@ -294,8 +294,8 @@ async def fetch_and_queue_posts_service(page_id: str, settings) -> bool:
                 if post.get("status_type") == "added_photos":
                     attachments = post.get("attachments", {}).get("data", [])
                     post_data["media_url"] =attachments[0]["media"]["image"]["src"]
-                    post_data["media_type"] = "photo"
-                    post_data["type"] = "photo"
+                    post_data["media_type"] = "image"
+                    post_data["type"] = "image"
                 elif post.get("status_type") == "added_video":
                     attachments = post.get("attachments", {}).get("data", [])
                     post_data["media_url"] =attachments[0]["media"]["source"]

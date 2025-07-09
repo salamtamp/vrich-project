@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS facebook_inboxes (
     message TEXT,
     "type" TEXT NOT NULL,
     link TEXT,
+    media_url TEXT NULL,
+    media_type TEXT NULL,
     published_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

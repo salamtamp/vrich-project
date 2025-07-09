@@ -77,7 +77,7 @@ class FacebookPostProcessor:
                 'post_id': message["id"],
                 'message': message["message"],
                 'type': message["type"],
-                'link': f"https://www.facebook.com/posts/{message['id']}",
+                'link': f"https://www.facebook.com/{message['id']}",
                 'media_url': message["media_url"],
                 'media_type': message["media_type"],
                 'status': "inactive",
