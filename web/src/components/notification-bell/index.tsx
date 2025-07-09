@@ -6,9 +6,12 @@ import { Bell, FileText, MessageSquare, User, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
+import { API } from '@/constants/api.constant';
+import useRequest from '@/hooks/request/useRequest';
 import { useSocket } from '@/hooks/useSocket';
+import type { NotificationsApiResponse } from '@/types/api/api-response';
 import type { FacebookComment } from '@/types/api/facebook-comment';
-import type { FacebookMessenger } from '@/types/api/facebook-messenger';
+import type { FacebookInbox } from '@/types/api/facebook-inbox';
 import type { FacebookPost } from '@/types/api/facebook-post';
 
 type NotificationItem = {
@@ -17,7 +20,7 @@ type NotificationItem = {
   title: string;
   content: string;
   timestamp: Date;
-  data: FacebookPost | FacebookMessenger | FacebookComment;
+  data: FacebookPost | FacebookInbox | FacebookComment;
   isNew?: boolean;
 };
 
@@ -36,6 +39,13 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [animatingBell, setAnimatingBell] = useState(false);
+
+  const notificationsRequest = useRequest<NotificationsApiResponse>({
+    request: {
+      url: API.NOTIFICATIONS,
+      method: 'GET',
+    },
+  });
 
   // Animate bell when new notification arrives
   const animateBell = () => {
@@ -66,12 +76,12 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
       animateBell();
     });
 
-    socket.on('facebook_messenger.created', (data: FacebookMessenger) => {
+    socket.on('facebook_inbox.created', (data: FacebookInbox) => {
       const newNotification: NotificationItem = {
         id: `message-${Date.now()}`,
         type: 'message',
         title: 'New Facebook Message',
-        content: data.message.substring(0, 100),
+        content: data.message?.substring(0, 100) ?? 'New message received',
         timestamp: new Date(),
         data,
         isNew: true,
@@ -98,7 +108,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
 
     return () => {
       socket.off('facebook_post.created');
-      socket.off('facebook_messenger.created');
+      socket.off('facebook_inbox.created');
       socket.off('facebook_comment.created');
     };
   }, [socket]);
@@ -108,6 +118,48 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
       joinRoom('facebook-updates');
     }
   }, [isConnected, isAuthenticated, joinRoom]);
+
+  const handleGetNoti = async () => {
+    await notificationsRequest.handleRequest().then((data) => {
+      if (!data) {
+        return;
+      }
+      const merged: NotificationItem[] = [
+        ...data.posts.map((p) => ({
+          id: p.id,
+          type: 'post' as const,
+          title: 'New Facebook Post',
+          content: p.message?.substring(0, 100) ?? 'New post created',
+          timestamp: new Date(p.published_at),
+          data: p,
+        })),
+        ...data.messages.map((m) => ({
+          id: m.id,
+          type: 'message' as const,
+          title: 'New Facebook Message',
+          content: m.message?.substring(0, 100) ?? 'New message received',
+          timestamp: new Date(m.published_at),
+          data: m,
+        })),
+        ...data.comments.map((c) => ({
+          id: c.id,
+          type: 'comment' as const,
+          title: 'New Facebook Comment',
+          content: c.message?.substring(0, 100) ?? 'New comment added',
+          timestamp: new Date(c.published_at),
+          data: c,
+        })),
+      ];
+      merged.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      setNotifications(merged);
+    });
+  };
+
+  useEffect(() => {
+    // Fetch default notifications on mount
+    void handleGetNoti();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {

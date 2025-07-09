@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, String, UniqueConstraint, text
+from sqlalchemy import Column, DateTime, ForeignKey, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -17,19 +17,14 @@ class FacebookPost(Base, UUIDPrimaryKeyMixin):
         ForeignKey("facebook_profiles.id", ondelete="CASCADE"),
         nullable=False,
     )
-    post_id = Column(String, nullable=False)
-    message = Column(String, nullable=True)
-    link = Column(String, nullable=True)
-    media_url = Column(String, nullable=True)
-    media_type = Column(
-        String,
-        nullable=True,
-    )  # Should be validated at the schema/service level
-    status = Column(
-        String,
-        nullable=False,
-    )  # Should be validated at the schema/service level
-    published_at = Column(DateTime(timezone=True), nullable=False)
+    post_id = Column(Text, nullable=False)
+    message = Column(Text, nullable=True)
+    type = Column(Text, nullable=True)
+    link = Column(Text, nullable=True)
+    media_url = Column(Text, nullable=True)
+    media_type = Column(Text, nullable=True)
+    status = Column(Text, nullable=True)
+    published_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,

@@ -50,6 +50,8 @@ def facebook_comment_data(profile, post):
         "post_id": post.id,
         "comment_id": "comment-123",
         "message": "Test comment message",
+        "type": "comment",
+        "link": None,
         "published_at": datetime.now(UTC),
     }
 
@@ -96,6 +98,8 @@ def test_foreign_key_profile_id(db, post):
         "post_id": post.id,
         "comment_id": "comment-fk-profile",
         "message": "Should fail",
+        "type": "comment",
+        "link": None,
         "published_at": datetime.now(UTC),
     }
     with pytest.raises(ValueError):
@@ -108,6 +112,8 @@ def test_foreign_key_post_id(db, profile):
         "post_id": uuid4(),  # Non-existent post
         "comment_id": "comment-fk-post",
         "message": "Should fail",
+        "type": "comment",
+        "link": None,
         "published_at": datetime.now(UTC),
     }
     with pytest.raises(ValueError):
@@ -122,6 +128,8 @@ def seed_comments(db, profile, post, count=5):
             post_id=post.id,
             comment_id=f"comment-{i}",
             message=f"Message {i}",
+            type="comment",
+            link=None,
             published_at=datetime.now(UTC) - timedelta(minutes=i),
         )
         comment = facebook_comment_repo.create(db, obj_in=comment_in)
@@ -173,6 +181,8 @@ def test_pagination_search(db, profile, post):
         post_id=post.id,
         comment_id="comment-special",
         message=unique_message,
+        type="comment",
+        link=None,
         published_at=datetime.now(UTC),
     )
     facebook_comment_repo.create(db, obj_in=comment_in)

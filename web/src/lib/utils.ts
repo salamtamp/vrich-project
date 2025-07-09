@@ -7,7 +7,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getRelativeTimeInThai(date: string | Date): string {
+export function getRelativeTimeInThai(date: string | Date | null | undefined): string {
+  if (!date) {
+    return '';
+  }
+
   const now = dayjs();
   const input = dayjs(date);
   const diffSeconds = now.diff(input, 'second');
@@ -23,9 +27,9 @@ export function getRelativeTimeInThai(date: string | Date): string {
     return `${diffMinutes} นาทีที่แล้ว`;
   } else if (diffHours < 24) {
     return `${diffHours} ชั่วโมงที่แล้ว`;
-  } else if (diffDays < 30) {
+  } else if (diffMonths === 0) {
     return `${diffDays} วันที่แล้ว`;
-  } else if (diffMonths < 12) {
+  } else if (diffMonths < 13) {
     return `${diffMonths} เดือนที่แล้ว`;
   }
   return `${diffYears} ปีที่แล้ว`;

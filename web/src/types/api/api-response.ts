@@ -1,8 +1,8 @@
 // API response types for each endpoint in API constant
 
-import type { FacebookComment } from './facebook-comment';
-import type { FacebookMessenger } from './facebook-messenger';
-import type { FacebookPost } from './facebook-post';
+import type { FacebookComment, FacebookCommentResponse } from './facebook-comment';
+import type { FacebookInbox, FacebookInboxResponse } from './facebook-inbox';
+import type { FacebookPost, FacebookPostResponse } from './facebook-post';
 import type { FacebookProfile } from './facebook-profile';
 
 // Generic pagination response type (should match backend)
@@ -40,9 +40,9 @@ export type FacebookProfilePaginationApiResponse = {
   404: ErrorResponse;
 };
 
-// MESSAGE.PAGINATION
-export type FacebookMessengerPaginationApiResponse = {
-  200: PaginationResponse<FacebookMessenger>;
+// INBOX.PAGINATION
+export type FacebookInboxPaginationApiResponse = {
+  200: PaginationResponse<FacebookInbox>;
   400: ErrorResponse;
   404: ErrorResponse;
 };
@@ -52,4 +52,11 @@ export type FacebookCommentPaginationApiResponse = {
   200: PaginationResponse<FacebookComment>;
   400: ErrorResponse;
   404: ErrorResponse;
+};
+
+// NOTIFICATIONS.LATEST
+export type NotificationsApiResponse = {
+  posts: FacebookPostResponse[];
+  messages: FacebookInboxResponse[];
+  comments: FacebookCommentResponse[];
 };

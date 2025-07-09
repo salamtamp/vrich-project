@@ -9,7 +9,7 @@ import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import { ImageWithFallback } from '@/hooks/useImageFallback';
 import dayjs from '@/lib/dayjs';
 import { cn, getRelativeTimeInThai } from '@/lib/utils';
-import type { FacebookCommentResponse, FacebookMessengerResponse } from '@/types/api';
+import type { FacebookCommentResponse, FacebookInboxResponse } from '@/types/api';
 import type { PaginationResponse } from '@/types/api/api-response';
 
 import type { CardData } from '../card';
@@ -42,10 +42,10 @@ const TextList: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment' })
     requireFields: ['profile_id'],
   });
 
-  const { data: massagerData, isLoading: massagerLoading } = usePaginatedRequest<
-    PaginationResponse<FacebookMessengerResponse>
+  const { data: inboxData, isLoading: inboxLoading } = usePaginatedRequest<
+    PaginationResponse<FacebookInboxResponse>
   >({
-    url: API.MESSAGE,
+    url: API.INBOX,
     waiting: tab !== 'inbox' && !!cardData?.id,
     defaultStartDate: dayjs().subtract(100, 'year'),
     additionalParams: { profile_id: cardData?.id },
@@ -54,14 +54,14 @@ const TextList: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment' })
 
   const { openLoading, closeLoading } = useLoading();
 
-  const data = tab === 'comment' ? commentData : massagerData;
+  const data = tab === 'comment' ? commentData : inboxData;
 
   const allItemIds = data?.docs.map((i) => i.id) ?? [];
   const isSelectAll = allItemIds.length && selectedItems.length && allItemIds.length === selectedItems.length;
 
   const { title, profile_picture_url, name } = cardData ?? {};
 
-  const isLoading = commentLoading || massagerLoading;
+  const isLoading = commentLoading || inboxLoading;
 
   useEffect(() => {
     return () => {
@@ -71,17 +71,17 @@ const TextList: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment' })
 
   const textData: TextData[] = useMemo(
     () =>
-      (data?.docs ?? []).map((comment) => {
-        const createdAt = comment.created_at;
-        const postUrl = 'post' in comment && comment.post ? (comment.post.link ?? '') : '';
+      (data?.docs ?? []).map((item) => {
+        const publishedAt = item.published_at;
+        const postUrl = 'post' in item && item.post ? (item.post.link ?? '') : '';
         return {
-          id: comment?.id,
-          text: comment.message ?? '',
+          id: item?.id,
+          text: item.message ?? '',
           postUrl,
-          profile_picture_url: comment.profile?.profile_picture_url ?? '',
-          name: comment.profile?.name ?? '',
-          timeAgo: createdAt ? getRelativeTimeInThai(createdAt) : '',
-          dateString: createdAt ? dayjs(createdAt).format('DD/MM/BB HH:mm') : '',
+          profile_picture_url: item.profile?.profile_picture_url ?? '',
+          name: item.profile?.name ?? '',
+          timeAgo: publishedAt ? getRelativeTimeInThai(publishedAt) : '',
+          dateString: publishedAt ? dayjs(publishedAt).format('DD/MM/BB HH:mm') : '',
         };
       }),
     [data?.docs]

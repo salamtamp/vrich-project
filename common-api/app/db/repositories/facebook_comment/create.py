@@ -18,6 +18,8 @@ def create_facebook_comment(
         post_id=obj_in.post_id,
         comment_id=obj_in.comment_id,
         message=obj_in.message,
+        type=obj_in.type,
+        link=obj_in.link,
         published_at=obj_in.published_at,
     )
     db.add(db_obj)

@@ -37,7 +37,7 @@ const Post = () => {
             <p className='line-clamp-4'>{post.message ?? 'ไม่มีข้อความ'}</p>
           </div>
         ),
-        lastUpdate: getRelativeTimeInThai(post.created_at),
+        lastUpdate: getRelativeTimeInThai(post.published_at),
         profile_picture_url: post.profile?.profile_picture_url,
         status: post.status,
         link: post.link,

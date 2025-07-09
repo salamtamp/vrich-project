@@ -27,8 +27,8 @@ webhook-facebook-post-%:
 	  -H "Content-Type: application/json" \
 	  -d '{"event": "seeded_event", "id": "$*"}'
 
-webhook-facebook-messenger-%:
-	docker compose exec app curl -X POST http://localhost:8000/api/v1/webhooks/facebook-messengers \
+webhook-facebook-inbox-%:
+	docker compose exec app curl -X POST http://localhost:8000/api/v1/webhooks/facebook-inboxes \
 	  -H "Content-Type: application/json" \
 	  -d '{"event": "seeded_event", "id": "$*"}'
 	  
@@ -49,10 +49,10 @@ seed-facebook-profiles:
 seed-facebook-posts:
 	docker compose exec app python app/seeds/seed_facebook_posts.py
 
-seed-facebook-messengers:
-	docker compose exec app python app/seeds/seed_facebook_messengers.py
+seed-facebook-inboxes:
+	docker compose exec app python app/seeds/seed_facebook_inboxes.py
 
 seed-facebook-comments:
 	docker compose exec app python app/seeds/seed_facebook_comments.py
 
-seed-all: seed-users seed-facebook-profiles seed-facebook-posts seed-facebook-messengers seed-facebook-comments 
+seed-all: seed-users seed-facebook-profiles seed-facebook-posts seed-facebook-inboxes seed-facebook-comments 

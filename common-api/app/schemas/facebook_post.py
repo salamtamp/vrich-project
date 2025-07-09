@@ -11,11 +11,12 @@ class FacebookPostBase(BaseModel):
     profile_id: UUID
     post_id: str
     message: str | None = None
+    type: str | None = None
     link: str | None = None
     media_url: str | None = None
     media_type: Literal["image", "video"] | None = None
-    status: Literal["active", "inactive"]
-    published_at: datetime
+    status: str | None = None
+    published_at: datetime | None = None
 
 
 class FacebookPostCreate(FacebookPostBase):
@@ -25,10 +26,11 @@ class FacebookPostCreate(FacebookPostBase):
 class FacebookPostUpdate(BaseModel):
     profile_id: UUID | None = None
     message: str | None = None
+    type: str | None = None
     link: str | None = None
     media_url: str | None = None
     media_type: Literal["image", "video"] | None = None
-    status: Literal["active", "inactive"] | None = None
+    status: str | None = None
     published_at: datetime | None = None
     deleted_at: datetime | None = None
 

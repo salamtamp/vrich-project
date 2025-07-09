@@ -185,7 +185,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
               return (
                 // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                 <div
-                  key={item.id}
+                  key={`${item.id}-${crypto.randomUUID()}`}
                   id={`card-${item.id}`}
                   className={cn(
                     styles.cardContainer,

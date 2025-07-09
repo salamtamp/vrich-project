@@ -71,7 +71,7 @@ const Card: React.FC<CardProps> = ({
         <div className={styles.cardText}>{cardData.content}</div>
       </div>
       <div className={cn(styles.cardRight, !cardData?.profile_picture_url && '!h-full !justify-end')}>
-        <div className={styles.cardAvatar}>
+        <div className={cn(styles.cardAvatar, !cardData.lastUpdate && '!h-full !items-start !bg-white')}>
           <ImageWithFallback
             alt={cardData?.name ?? 'profile'}
             className='size-10'

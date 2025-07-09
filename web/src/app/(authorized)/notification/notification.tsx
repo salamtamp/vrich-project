@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 
 import { useSocket } from '@/hooks/useSocket';
 import type { FacebookComment } from '@/types/api/facebook-comment';
-import type { FacebookMessenger } from '@/types/api/facebook-messenger';
+import type { FacebookInbox } from '@/types/api/facebook-inbox';
 import type { FacebookPost } from '@/types/api/facebook-post';
 
 type NotificationItem = {
@@ -16,7 +16,7 @@ type NotificationItem = {
   title: string;
   content: string;
   timestamp: Date;
-  data: FacebookPost | FacebookMessenger | FacebookComment;
+  data: FacebookPost | FacebookInbox | FacebookComment;
 };
 
 const Notification = () => {
@@ -46,12 +46,12 @@ const Notification = () => {
       setNotifications((prev) => [newNotification, ...prev]);
     });
 
-    socket.on('facebook_messenger.created', (data: FacebookMessenger) => {
+    socket.on('facebook_inbox.created', (data: FacebookInbox) => {
       const newNotification: NotificationItem = {
         id: `message-${Date.now()}`,
         type: 'message',
         title: 'New Facebook Message',
-        content: data.message.substring(0, 100),
+        content: data.message?.substring(0, 100) ?? 'New message received',
         timestamp: new Date(),
         data,
       };
@@ -72,7 +72,7 @@ const Notification = () => {
 
     return () => {
       socket.off('facebook_post.created');
-      socket.off('facebook_messenger.created');
+      socket.off('facebook_inbox.created');
       socket.off('facebook_comment.created');
     };
   }, [socket]);

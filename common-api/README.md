@@ -112,7 +112,7 @@ Run each script in this order to satisfy foreign key dependencies:
 python app/seeds/seed_users.py
 python app/seeds/seed_facebook_profiles.py
 python app/seeds/seed_facebook_posts.py
-python app/seeds/seed_facebook_messengers.py
+python app/seeds/seed_facebook_inboxes.py
 python app/seeds/seed_facebook_comments.py
 ```
 

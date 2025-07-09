@@ -4,6 +4,7 @@ export const API = {
   },
   POST: '/api/v1/facebook-posts',
   PROFILE: '/api/v1/facebook-profiles',
-  MESSAGE: '/api/v1/facebook-messengers',
+  INBOX: '/api/v1/facebook-inboxes',
   COMMENT: '/api/v1/facebook-comments',
+  NOTIFICATIONS: '/api/v1/notifications/latest',
 };

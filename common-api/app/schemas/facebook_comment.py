@@ -12,6 +12,8 @@ class FacebookCommentBase(BaseModel):
     post_id: UUID
     comment_id: str
     message: str | None = None
+    type: str
+    link: str | None = None
     published_at: datetime
 
 
@@ -21,6 +23,8 @@ class FacebookCommentCreate(FacebookCommentBase):
 
 class FacebookCommentUpdate(BaseModel):
     message: str | None = None
+    type: str | None = None
+    link: str | None = None
     published_at: datetime | None = None
     deleted_at: datetime | None = None
 

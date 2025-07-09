@@ -23,7 +23,7 @@ type UsePaginatedRequestProps = {
 function usePaginatedRequest<T, D = object>({
   url,
   order = 'desc',
-  orderBy = 'created_at',
+  orderBy = 'published_at',
   defaultStartDate = dayjs().subtract(6, 'day'),
   defaultEndDate = dayjs(),
   additionalParams = {},
