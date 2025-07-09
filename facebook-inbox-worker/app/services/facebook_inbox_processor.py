@@ -70,7 +70,6 @@ class FacebookInboxProcessor:
                     log_message("FacebookInboxProcessor", "error", f"Missing required field: {field}")
                     return None
 
-            # Convert Unix timestamp (milliseconds) to datetime
             timestamp_ms = int(message["created_time"])
             published_at = datetime.fromtimestamp(timestamp_ms / 1000.0)
             now = datetime.now()
@@ -82,10 +81,20 @@ class FacebookInboxProcessor:
                 'type': message["type"],
                 'link': "https://m.me",
                 'published_at': published_at.isoformat(),
+                'media_type': None,
+                'media_url': None,
                 'created_at': now.isoformat(),
                 'updated_at': now.isoformat(),
                 'deleted_at': None
             }
+
+            if inbox_data["type"] == "photo":
+                inbox_data["media_type"] = "image"
+                inbox_data["media_url"] = message["media_url"]
+            elif inbox_data["type"] == "video":
+                inbox_data["media_type"] = "video"
+                inbox_data["media_url"] = message["media_url"]
+
 
             return inbox_data
 
@@ -97,10 +106,10 @@ class FacebookInboxProcessor:
 
         query = """
             INSERT INTO facebook_inboxes (
-                id, profile_id, messenger_id, message, type,
-                link, published_at, created_at, updated_at, deleted_at
+                id, profile_id, messenger_id, message, type, link,
+                published_at, media_type, media_url, created_at, updated_at, deleted_at
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             ON CONFLICT (messenger_id) DO NOTHING
         """
@@ -113,6 +122,8 @@ class FacebookInboxProcessor:
             inbox_data['type'],
             inbox_data['link'],
             inbox_data['published_at'],
+            inbox_data['media_type'],
+            inbox_data['media_url'],
             inbox_data['created_at'],
             inbox_data['updated_at'],
             inbox_data['deleted_at'],
