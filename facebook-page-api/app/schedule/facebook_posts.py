@@ -1,8 +1,9 @@
 import logging
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor
 
@@ -22,16 +23,18 @@ class FacebookPostsScheduler:
                 "last_run": None,
                 "next_run": None,
                 "status": "stopped",
-                "page_id": None
+                "page_id": None,
+                "trigger_type": "cron"  # Add trigger type
             }
         }
 
-    def start_scheduler(self, page_id: str, cron_schedule: Optional[str] = None):
-        """Initialize and start the scheduler with configurable cron schedule"""
+    def start_scheduler(self, page_id: str, schedule: Optional[Union[str, int]] = None, trigger_type: str = "cron"):
+        """Initialize and start the scheduler with configurable schedule"""
         try:
-            # Use provided cron_schedule or fall back to settings
-            if cron_schedule is None:
-                cron_schedule = self.settings.FACEBOOK_POSTS_CRON_SCHEDULE
+            # Use provided schedule or fall back to settings
+            if schedule is None:
+                schedule = self.settings.FACEBOOK_POSTS_CRON_SCHEDULE
+                trigger_type = "cron"
 
             # Check if scheduler is enabled
             if not self.settings.SCHEDULER_ENABLED:
@@ -60,14 +63,15 @@ class FacebookPostsScheduler:
 
             # Update job info with provided parameters
             self.jobs_info["fetch_posts"]["page_id"] = page_id
-            self.jobs_info["fetch_posts"]["schedule"] = cron_schedule
+            self.jobs_info["fetch_posts"]["schedule"] = schedule
+            self.jobs_info["fetch_posts"]["trigger_type"] = trigger_type
 
             # Add jobs
             self._add_jobs()
 
             # Start scheduler
             self.scheduler.start()
-            logger.info(f"Scheduler started successfully for page {page_id} with schedule {cron_schedule}")
+            logger.info(f"Scheduler started successfully for page {page_id} with {trigger_type} schedule: {schedule}")
 
             # Update job status
             for job_info in self.jobs_info.values():
@@ -111,30 +115,44 @@ class FacebookPostsScheduler:
     def _add_jobs(self):
         """Add scheduled jobs to the scheduler"""
         try:
-            # Parse cron schedule
-            cron_parts = self.jobs_info["fetch_posts"]["schedule"].split()
-            if len(cron_parts) != 5:
-                raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
+            trigger_type = self.jobs_info["fetch_posts"]["trigger_type"]
+            schedule = self.jobs_info["fetch_posts"]["schedule"]
 
-            minute, hour, day, month, day_of_week = cron_parts
+            if trigger_type == "cron":
+                # Parse cron schedule
+                cron_parts = schedule.split()
+                if len(cron_parts) != 5:
+                    raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
 
-            # Job: Fetch posts based on cron schedule
-            self.scheduler.add_job(
-                func=self._fetch_posts_job,
-                trigger=CronTrigger(
+                minute, hour, day, month, day_of_week = cron_parts
+                trigger = CronTrigger(
                     minute=minute,
                     hour=hour,
                     day=day,
                     month=month,
                     day_of_week=day_of_week
-                ),
+                )
+            elif trigger_type == "interval":
+                # Parse interval schedule (seconds)
+                if isinstance(schedule, str):
+                    seconds = int(schedule)
+                else:
+                    seconds = schedule
+                trigger = IntervalTrigger(seconds=seconds)
+            else:
+                raise ValueError(f"Unsupported trigger type: {trigger_type}")
+
+            # Job: Fetch posts based on schedule
+            self.scheduler.add_job(
+                func=self._fetch_posts_job,
+                trigger=trigger,
                 id=self.jobs_info["fetch_posts"]["id"],
                 name=self.jobs_info["fetch_posts"]["name"],
                 replace_existing=True,
                 misfire_grace_time=self.settings.SCHEDULER_MISFIRE_GRACE_TIME
             )
 
-            logger.info(f"Scheduled jobs added successfully with cron: {self.jobs_info['fetch_posts']['schedule']}")
+            logger.info(f"Scheduled jobs added successfully with {trigger_type}: {schedule}")
 
         except Exception as e:
             logger.error(f"Error adding jobs to scheduler: {e}")
@@ -246,38 +264,51 @@ class FacebookPostsScheduler:
             logger.error(f"Error resuming job {job_id}: {e}")
             raise
 
-    def update_schedule(self, page_id: str, new_cron_schedule: Optional[str] = None):
-        """Update the cron schedule for the job"""
+    def update_schedule(self, page_id: str, new_schedule: Optional[Union[str, int]] = None, trigger_type: str = "cron"):
+        """Update the schedule for the job"""
         try:
             if self.scheduler and self.scheduler.running:
                 # Use provided schedule or fall back to settings
-                if new_cron_schedule is None:
-                    new_cron_schedule = self.settings.FACEBOOK_POSTS_CRON_SCHEDULE
+                if new_schedule is None:
+                    new_schedule = self.settings.FACEBOOK_POSTS_CRON_SCHEDULE
+                    trigger_type = "cron"
 
-                # Parse new cron schedule
-                cron_parts = new_cron_schedule.split()
-                if len(cron_parts) != 5:
-                    raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
+                if trigger_type == "cron":
+                    # Parse new cron schedule
+                    cron_parts = new_schedule.split()
+                    if len(cron_parts) != 5:
+                        raise ValueError("Invalid cron format. Expected 5 parts: minute hour day month day_of_week")
 
-                minute, hour, day, month, day_of_week = cron_parts
-
-                # Update the job with new trigger
-                self.scheduler.reschedule_job(
-                    job_id=self.jobs_info["fetch_posts"]["id"],
-                    trigger=CronTrigger(
+                    minute, hour, day, month, day_of_week = cron_parts
+                    trigger = CronTrigger(
                         minute=minute,
                         hour=hour,
                         day=day,
                         month=month,
                         day_of_week=day_of_week
                     )
+                elif trigger_type == "interval":
+                    # Parse interval schedule (seconds)
+                    if isinstance(new_schedule, str):
+                        seconds = int(new_schedule)
+                    else:
+                        seconds = new_schedule
+                    trigger = IntervalTrigger(seconds=seconds)
+                else:
+                    raise ValueError(f"Unsupported trigger type: {trigger_type}")
+
+                # Update the job with new trigger
+                self.scheduler.reschedule_job(
+                    job_id=self.jobs_info["fetch_posts"]["id"],
+                    trigger=trigger
                 )
 
                 # Update job info
-                self.jobs_info["fetch_posts"]["schedule"] = new_cron_schedule
+                self.jobs_info["fetch_posts"]["schedule"] = new_schedule
                 self.jobs_info["fetch_posts"]["page_id"] = page_id
+                self.jobs_info["fetch_posts"]["trigger_type"] = trigger_type
 
-                logger.info(f"Schedule updated to {new_cron_schedule} for page {page_id}")
+                logger.info(f"Schedule updated to {trigger_type}: {new_schedule} for page {page_id}")
             else:
                 raise RuntimeError("Scheduler is not running")
 
