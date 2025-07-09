@@ -4,7 +4,7 @@ import { createContext, useMemo } from 'react';
 
 import { SessionProvider as NextAuthProvider } from 'next-auth/react';
 
-import { publicEnv } from '@/constants/env/public-env';
+import { publicEnv } from '@/constants/environment/public-environment';
 import type { NextJSChildren } from '@/types';
 
 const SessionContext = createContext({});

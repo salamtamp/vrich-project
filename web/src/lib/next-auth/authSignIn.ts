@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { User } from 'next-auth';
 
 import { API } from '@/constants/api.constant';
-import { serverEnv } from '@/constants/env/server-env';
+import { serverEnv } from '@/constants/environment/server-environment';
 import dayjs from '@/lib/dayjs';
 import type { AuthUserResponse } from '@/types/next-auth';
 

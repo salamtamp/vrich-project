@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import { io } from 'socket.io-client';
 
-import { publicEnv } from '@/constants/env/public-env';
+import { publicEnv } from '@/constants/environment/public-environment';
 
 type UseSocketOptions = {
   token: string;

@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-import { serverEnv } from '@/constants/env/server-env';
+import { serverEnv } from '@/constants/environment/server-environment';
 import dayjs from '@/lib/dayjs';
 
 import { handleSignIn } from './authSignIn';
