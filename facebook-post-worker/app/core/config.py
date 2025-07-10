@@ -10,13 +10,13 @@ queue: Queue = None
 database: Database = None
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Facebook Post Worker"
-    VERSION: str = "1.0.0"
-    DESCRIPTION: str = "Facebook Post Worker"
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "Facebook Post Worker")
+    VERSION: str = os.getenv("VERSION", "1.0.0")
+    DESCRIPTION: str = os.getenv("DESCRIPTION", "Facebook Post Worker")
 
     # API
-    API_PORT: int = 8000
-    API_HOST: str = "0.0.0.0"
+    API_PORT: int = os.getenv("API_PORT", 3003)
+    API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
 
     # Database
     DATABASE_HOST: str = os.getenv("DATABASE_HOST", "localhost")

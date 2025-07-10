@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DESCRIPTION: str = os.getenv("DESCRIPTION", "Facebook Page API")
 
     # API
-    API_PORT: int = os.getenv("API_PORT", 3001)
+    API_PORT: int = os.getenv("API_PORT", 3002)
     API_HOST: str = os.getenv("API_HOST", "0.0.0.0")
 
     # Facebook
