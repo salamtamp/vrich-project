@@ -9,12 +9,6 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://web:3000/healthcheck"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 5s
     networks:
       - local-network
     depends_on:
