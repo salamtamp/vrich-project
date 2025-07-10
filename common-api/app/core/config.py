@@ -33,10 +33,10 @@ class Settings(BaseSettings):
     ADMIN_FULL_NAME: str = os.getenv("ADMIN_FULL_NAME", "Admin")
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/postgres")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@database:5432/postgres")
 
     # Redis
-    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "cache")
     REDIS_PORT: int = os.getenv("REDIS_PORT", 6379)
     REDIS_DB: int = os.getenv("REDIS_DB", 0)
 
