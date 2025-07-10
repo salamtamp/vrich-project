@@ -43,13 +43,6 @@ dmypy.json
 ehthumbs.db
 Thumbs.db
 
-# Local development
-.env
-.env.local
-.env.*.local
-*.db
-*.sqlite3
-
 # Testing
 htmlcov/
 .pytest_cache/
@@ -78,9 +71,3 @@ temp/
 Dockerfile
 docker-compose.yml
 .dockerignore
-
-# Scripts
-scripts/
-
-# Makefile
-Makefile

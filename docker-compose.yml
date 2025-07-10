@@ -1,40 +1,40 @@
 services:
-  web:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
-    env_file:
-      - ./web/.env
-    container_name: web
-    ports:
-      - "3000:3000"
-    networks:
-      - local-network
-    depends_on:
-      - common-api
-      - database
+  # web:
+  #   build:
+  #     context: ./web
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./web/.env
+  #   container_name: web
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - local-network
+  #   depends_on:
+  #     - common-api
+  #     - database
 
-  common-api:
-    build:
-      context: ./common-api
-      dockerfile: Dockerfile
-    env_file:
-      - ./common-api/.env
-    container_name: common-api
-    ports:
-      - "3001:3001"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    networks:
-      - local-network
-    depends_on:
-      - database
-      - cache
+  # common-api:
+  #   build:
+  #     context: ./common-api
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./common-api/.env
+  #   container_name: common-api
+  #   ports:
+  #     - "3001:3001"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3001/healthcheck"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 5s
+  #   networks:
+  #     - local-network
+  #   depends_on:
+  #     - database
+  #     - cache
 
 
   facebook-page-api:
@@ -48,7 +48,7 @@ services:
       - "3002:3002"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/healthcheck"]
+      test: ["CMD", "curl", "-f", "http://facebook-page-api:3002/healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -69,7 +69,7 @@ services:
       - "3003:3003"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3003/healthcheck"]
+      test: ["CMD", "curl", "-f", "http://facebook-post-worker:3003/healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -91,7 +91,7 @@ services:
       - "3004:3004"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3004/healthcheck"]
+      test: ["CMD", "curl", "-f", "http://facebook-comment-worker:3004/healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -113,7 +113,7 @@ services:
       - "3005:3005"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3005/healthcheck"]
+      test: ["CMD", "curl", "-f", "http://facebook-inbox-worker:3005/healthcheck"]
       interval: 30s
       timeout: 10s
       retries: 3
