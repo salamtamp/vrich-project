@@ -1,13 +1,19 @@
-# build file
+# build files
 .next/
 tsconfig.tsbuildinfo
 /out/
+/build
+/dist
+/compiled
 
 # dependencies
 /node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+.pnpm-debug.log*
+.pnpm-store/
+.pnpm/
 
 # production
 /build
@@ -21,13 +27,17 @@ tsconfig.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# Ignore package-lock.json and yarn.lock
+# Ignore package-lock.json and yarn.lock (using pnpm)
 package-lock.json
 yarn.lock
 
 # local env files
 .env*.local
+.env
+.env*
+!.env.example
 
 # vercel
 .vercel
@@ -38,13 +48,83 @@ yarn.lock
 # vscode
 .vscode
 
-.env
-.env*
-!.env.example
-
+# server/dist
 server/dist
 
+# dist
 dist
 
-#msw
+# msw
 public/mockServiceWorker.js
+
+# Cache and temporary files
+.cache/
+.parcel-cache/
+.eslintcache
+.turbo/
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Logs
+logs/
+*.log
+pids/
+*.pid
+*.pid.lock
+*.seed
+
+# Runtime data
+.node_repl_history
+.yarn-integrity
+
+# IDE files
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Storybook
+.storybook/
+storybook-static/
+
+# Testing
+.nyc_output/
+.coverage/
+
+# Bundle analyzer
+.next/analyze/
+
+# Turbopack
+.turbo/
+
+# SWC
+.swc/
+
+# Next.js telemetry
+.next/telemetry/
+
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map

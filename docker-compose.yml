@@ -1,6 +1,36 @@
 version: '3.8'
 
 services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    env_file:
+      - ./web/.env
+    container_name: web
+    ports:
+      - "3000:3000"
+    networks:
+      - local-network
+    depends_on:
+      - common-api
+      - database
+
+  common-api:
+    build:
+      context: ./common-api
+      dockerfile: Dockerfile
+    env_file:
+      - ./common-api/.env
+    container_name: common-api
+    ports:
+      - "3001:3001"
+    networks:
+      - local-network
+    depends_on:
+      - database
+      - cache
+
   facebook-page-api:
     build:
       context: ./facebook-page-api
@@ -12,6 +42,8 @@ services:
       - "3002:3002"
     networks:
       - local-network
+    depends_on:
+      - queue
 
   facebook-post-worker:
     build:
@@ -24,6 +56,9 @@ services:
       - "3003:3003"
     networks:
       - local-network
+    depends_on:
+      - database
+      - queue
 
   facebook-comment-worker:
     build:
@@ -36,6 +71,9 @@ services:
       - "3004:3004"
     networks:
       - local-network
+    depends_on:
+      - database
+      - queue
 
   facebook-inbox-worker:
     build:
@@ -48,8 +86,11 @@ services:
       - "3005:3005"
     networks:
       - local-network
+    depends_on:
+      - database
+      - queue
 
-  postgres:
+  database:
     image: postgres:15.8
     container_name: facebook-database
     environment:
@@ -59,13 +100,13 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - database_data:/var/lib/postgresql/data
       - ./database/postgres/docker-entrypoint-initdb:/docker-entrypoint-initdb.d/
     restart: unless-stopped
     networks:
       - local-network
 
-  rabbitmq:
+  queue:
     image: rabbitmq:3.12-management
     container_name: facebook-queue
     ports:
@@ -79,7 +120,7 @@ services:
     networks:
       - local-network
 
-  redis:
+  cache:
     image: redis:alpine
     container_name: facebook-cache
     ports:
@@ -94,6 +135,6 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data:
-  rabbitmq_data:
-  redis_data:
+  database_data:
+  queue_data:
+  cache_data:
