@@ -1,40 +1,47 @@
 services:
-  # web:
-  #   build:
-  #     context: ./web
-  #     dockerfile: Dockerfile
-  #   env_file:
-  #     - ./web/.env
-  #   container_name: web
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - local-network
-  #   depends_on:
-  #     - common-api
-  #     - database
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    env_file:
+      - ./web/.env.docker
+    container_name: web
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://web:3000/healthcheck"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 5s
+    networks:
+      - local-network
+    depends_on:
+      - common-api
+      - database
 
-  # common-api:
-  #   build:
-  #     context: ./common-api
-  #     dockerfile: Dockerfile
-  #   env_file:
-  #     - ./common-api/.env
-  #   container_name: common-api
-  #   ports:
-  #     - "3001:3001"
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:3001/healthcheck"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 5s
-  #   networks:
-  #     - local-network
-  #   depends_on:
-  #     - database
-  #     - cache
+  common-api:
+    build:
+      context: ./common-api
+      dockerfile: Dockerfile
+    env_file:
+      - ./common-api/.env.docker
+    container_name: common-api
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://common-api:3001/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - local-network
+    depends_on:
+      - database
+      - cache
 
 
   facebook-page-api:
@@ -42,7 +49,7 @@ services:
       context: ./facebook-page-api
       dockerfile: Dockerfile
     env_file:
-      - ./facebook-page-api/.env
+      - ./facebook-page-api/.env.docker
     container_name: facebook-page-api
     ports:
       - "3002:3002"
@@ -63,7 +70,7 @@ services:
       context: ./facebook-post-worker
       dockerfile: Dockerfile
     env_file:
-      - ./facebook-post-worker/.env
+      - ./facebook-post-worker/.env.docker
     container_name: facebook-post-worker
     ports:
       - "3003:3003"
@@ -85,7 +92,7 @@ services:
       context: ./facebook-comment-worker
       dockerfile: Dockerfile
     env_file:
-      - ./facebook-comment-worker/.env
+      - ./facebook-comment-worker/.env.docker
     container_name: facebook-comment-worker
     ports:
       - "3004:3004"
@@ -107,7 +114,7 @@ services:
       context: ./facebook-inbox-worker
       dockerfile: Dockerfile
     env_file:
-      - ./facebook-inbox-worker/.env
+      - ./facebook-inbox-worker/.env.docker
     container_name: facebook-inbox-worker
     ports:
       - "3005:3005"
@@ -135,7 +142,7 @@ services:
       - "5432:5432"
     volumes:
       - database_data:/var/lib/postgresql/data
-      - ./database/postgres/docker-entrypoint-initdb:/docker-entrypoint-initdb.d/
+      - ./deployments/database/init-db:/docker-entrypoint-initdb.d
     restart: unless-stopped
     networks:
       - local-network
@@ -149,8 +156,11 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+      RABBITMQ_LOAD_DEFINITIONS: /etc/rabbitmq/definitions.json
     volumes:
       - queue_data:/var/lib/rabbitmq
+      - ./deployments/queue/init-queue/rabbitmq_definitions.json:/etc/rabbitmq/definitions.json
     restart: unless-stopped
     networks:
       - local-network

@@ -1,0 +1,24 @@
+{
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "queues": [
+    {
+      "name": "facebook_posts",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "facebook_comments",
+      "vhost": "/",
+      "durable": true
+    },
+    {
+      "name": "facebook_inboxes",
+      "vhost": "/",
+      "durable": true
+    }
+  ]
+}

@@ -27,11 +27,6 @@ class Settings(BaseSettings):
     MAX_FILE_SIZE: int = os.getenv("MAX_FILE_SIZE", 10485760)
     ALLOWED_EXTENSIONS: str = os.getenv("ALLOWED_EXTENSIONS", "jpg,jpeg,png,gif,pdf,doc,docx")
 
-    # Admin
-    ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@example.com")
-    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "adminpass123")
-    ADMIN_FULL_NAME: str = os.getenv("ADMIN_FULL_NAME", "Admin")
-
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@database:5432/postgres")
 

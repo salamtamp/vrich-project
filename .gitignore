@@ -94,3 +94,5 @@ web/server/dist
 web/dist
 
 web/public/mockServiceWorker.js
+
+node_modules/
