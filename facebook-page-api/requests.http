@@ -1,0 +1,160 @@
+### ===== Facebook Health Check =====
+
+### Health check
+GET http://localhost:3002/healthcheck
+
+
+### ===== Facebook Posts Scheduler =====
+
+### Start posts scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/posts/start
+Content-Type: application/json
+
+{
+    "pageId": "221760221538013",
+    "schedule": "0 0 * * *",
+    "triggerType": "cron"
+}
+
+### Stop posts scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/posts/stop
+Content-Type: application/json
+
+{
+}
+
+### Restart posts scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/posts/restart
+Content-Type: application/json
+
+{
+    "pageId": "221760221538013",
+    "schedule": "0 0 * * *",
+    "triggerType": "cron"
+}
+
+### Get posts scheduler status
+GET http://localhost:3002/api/v1/facebooks/scheduler/posts/status
+
+### Update posts scheduler schedule
+POST http://localhost:3002/api/v1/facebooks/scheduler/posts/update
+Content-Type: application/json
+
+{
+    "pageId": "221760221538013",
+    "schedule": "0 12 * * *",
+    "triggerType": "cron"
+}
+
+### ===== Facebook Comments Scheduler =====
+
+### Start comments scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/comments/start
+Content-Type: application/json
+
+{
+    "postIds": ["221760221538013_1023344559595544"],
+    "schedule": 10,
+    "triggerType": "interval"
+}
+
+### Stop comments scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/comments/stop
+Content-Type: application/json
+
+{
+}
+
+### Restart comments scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/comments/restart
+Content-Type: application/json
+
+{
+    "postIds": ["221760221538013_1023344559595544"],
+    "schedule": 300,
+    "triggerType": "interval"
+}
+
+### Get comments scheduler status
+GET http://localhost:3002/api/v1/facebooks/scheduler/comments/status
+
+### Update comments scheduler schedule
+POST http://localhost:3002/api/v1/facebooks/scheduler/comments/update
+Content-Type: application/json
+
+{
+    "postIds": [],
+    "schedule": 15,
+    "triggerType": "interval"
+}
+
+### Add posts to comments scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/comments/add-posts
+Content-Type: application/json
+
+{
+    "postIds": ["221760221538013_1023344559595544"]
+}
+
+### Remove posts from comments scheduler
+POST http://localhost:3002/api/v1/facebooks/scheduler/comments/remove-posts
+Content-Type: application/json
+
+{
+    "postIds": ["221760221538013_1023344559595544"]
+}
+
+### ===== Facebook Page Profile =====
+
+### Get Facebook page profile
+GET http://localhost:3002/api/v1/facebooks/profile?page_id=221760221538013
+
+### Get Facebook page posts
+GET http://localhost:3002/api/v1/facebooks/posts?page_id=221760221538013&limit=10
+
+### Get Facebook page posts with date filters
+GET http://localhost:3002/api/v1/facebooks/posts?page_id=221760221538013&since=2024-01-01&until=2024-12-31&limit=20
+
+### Get Facebook post comments
+GET http://localhost:3002/api/v1/facebooks/comments?post_id=221760221538013_1023344559595544
+
+### Get Facebook post comments with pagination
+GET http://localhost:3002/api/v1/facebooks/comments?post_id=221760221538013_1023344559595544&next_token=your_pagination_token
+
+
+### ===== Facebook Webhook =====
+
+### Webhook verification (GET)
+GET http://localhost:3002/api/v1/webhook/?hub.mode=subscribe&hub.verify_token=your_verify_token&hub.challenge=challenge_string
+
+### Webhook message handling (POST)
+POST http://localhost:3002/api/v1/webhook/
+Content-Type: application/json
+
+{
+  "object": "page",
+  "entry": [
+    {
+      "id": "221760221538013",
+      "time": 1752030985229,
+      "messaging": [
+        {
+          "sender": {
+            "id": "9913831188727714",
+            "name": null
+          },
+          "recipient": {
+            "id": "221760221538013",
+            "name": null
+          },
+          "timestamp": 1752030984527,
+          "message": {
+            "mid": "m_qyPjT-tVNiJ9WYWYZUw6KcLcFIQ1Z-P42I2rkgygh_4BEJVjrXkdlfjULjiZzPtDQqh_qHARrGSizuYXcUmGJA",
+            "text": "ทดสอบ ส่งรูปภาพ",
+            "attachments": null
+          }
+        }
+      ]
+    }
+  ]
+}
