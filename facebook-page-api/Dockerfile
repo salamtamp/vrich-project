@@ -20,13 +20,15 @@ RUN apt-get update \
         git \
     && rm -rf /var/lib/apt/lists/* \
     && curl -sSL https://install.python-poetry.org | python3 - \
+    && export PATH="/root/.local/bin:$PATH" \
     && poetry config virtualenvs.create false
 
 # Copy Poetry configuration files
 COPY pyproject.toml poetry.lock* ./
 
 # Install dependencies (production only for smaller image)
-RUN poetry install --only main
+RUN export PATH="/root/.local/bin:$PATH" \
+    && poetry install --only main --no-root
 
 # Copy application code
 COPY . .
@@ -40,10 +42,6 @@ USER appuser
 
 # Expose port (matching the config default)
 EXPOSE 3002
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3002/healthcheck || exit 1
 
 # Run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "3002"]

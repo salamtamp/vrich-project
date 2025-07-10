@@ -24,16 +24,6 @@ coverage.xml
 .pytest_cache
 .mypy_cache
 
-# Virtual Environment
-.venv
-venv/
-ENV/
-env/
-.env.local
-.env.development
-.env.test
-.env.production
-
 # IDE
 .idea
 .vscode
@@ -90,10 +80,6 @@ htmlcov/
 .coverage
 coverage.xml
 *.cover
-
-# Poetry
-poetry.lock
-# Note: We actually want pyproject.toml in the image
 
 # Environment files
 .env*

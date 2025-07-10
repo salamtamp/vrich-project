@@ -24,7 +24,7 @@ class FacebookInboxProcessor:
         try:
             profile_id = self._get_profile_id(message["from_id"], message["from_name"])
             if not profile_id:
-                log_message("FacebookInboxProcessor", "error", f"Profile not found: {message["from_id"]}")
+                log_message("FacebookInboxProcessor", "error", f"Profile not found: {message['from_id']}")
                 return False
 
             inbox_data = self._extract_inbox_data(profile_id, message)

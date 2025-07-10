@@ -27,9 +27,6 @@ coverage.xml
 .dmypy.json
 dmypy.json
 
-# Poetry
-poetry.lock
-
 # IDE
 .vscode/
 .idea/

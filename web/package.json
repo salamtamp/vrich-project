@@ -1,5 +1,5 @@
 {
-  "name": "vrich-web",
+  "name": "web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,9 +15,9 @@
     "tsc": "tsc -p tsconfig.json",
     "predev": "npx msw init public --save",
     "commit": "git-cz",
-    "docker:build": "docker build -t vrich-web .",
-    "docker:run": "docker run -p 3000:3000 vrich-web",
-    "docker:dev": "docker build -t vrich-web . && docker run -p 3000:3000 vrich-web"
+    "docker:build": "docker build -t web .",
+    "docker:run": "docker run -p 3000:3000 web",
+    "docker:dev": "docker build -t web . && docker run -p 3000:3000 web"
   },
   "dependencies": {
     "@emotion/cache": "11.14.0",
