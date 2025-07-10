@@ -27,7 +27,7 @@ socket_app = socketio.ASGIApp(sio, app)
 print("Socket.IO ASGI app initialized successfully")
 
 
-@app.get("/health")
+@app.get("/healthcheck")
 async def health_check():
     from app.services.socketio_server import connected_clients
 

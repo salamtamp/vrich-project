@@ -10,8 +10,8 @@ import type { NextJSChildren } from '@/types';
 import './globals.scss';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://vrich.cariva.co.th'),
-  title: 'Vrich',
+  metadataBase: new URL('https://aircommerce.co.th'),
+  title: 'AIRCommerce',
 };
 
 const RootLayout = ({ children }: NextJSChildren) => {

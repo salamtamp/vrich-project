@@ -66,9 +66,9 @@ const LoginPage = () => {
       <div className='w-full max-w-md'>
         <Card className='rounded-2xl border-0 shadow-lg'>
           <CardHeader className='space-y-1 pb-6'>
-            <CardTitle className='text-center text-2xl font-semibold'>Sign In</CardTitle>
+            <CardTitle className='text-center text-2xl font-semibold'>Login</CardTitle>
             <CardDescription className='text-center'>
-              Enter your credentials to access your account
+              Enter your email and password to access your system
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -134,7 +134,7 @@ const LoginPage = () => {
                   className='h-11 w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 font-medium text-white shadow-lg transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl'
                   type='submit'
                 >
-                  Sign In
+                  Login
                 </Button>
               </div>
             </form>
@@ -142,7 +142,7 @@ const LoginPage = () => {
         </Card>
 
         <div className='mt-8 text-center text-xs text-gray-500'>
-          <p>© 2024 VRICH. All rights reserved.</p>
+          <p>© 2025 AIRCommerce. All rights reserved.</p>
         </div>
       </div>
     </div>

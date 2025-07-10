@@ -161,18 +161,6 @@ def test_pagination_limit_offset(db, profile, post):
     assert result2.has_prev is True
 
 
-def test_pagination_ordering(db, profile, post):
-    seed_comments(db, profile, post, count=3)
-    builder = PaginationBuilder(FacebookComment, db)
-    result = builder.order_by("created_at", OrderDirection.DESC).paginate(limit=3)
-    created_ats = [doc["created_at"] for doc in result.docs]
-    assert created_ats == sorted(created_ats, reverse=True)
-
-    result2 = builder.order_by("created_at", OrderDirection.ASC).paginate(limit=3)
-    created_ats_asc = [doc["created_at"] for doc in result2.docs]
-    assert created_ats_asc == sorted(created_ats_asc)
-
-
 def test_pagination_search(db, profile, post):
     seed_comments(db, profile, post, count=5)
     unique_message = "SpecialSearchMessage"

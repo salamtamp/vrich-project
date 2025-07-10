@@ -1,6 +1,54 @@
 version: '3.8'
 
 services:
+  facebook-page-api:
+    build:
+      context: ./facebook-page-api
+      dockerfile: Dockerfile
+    env_file:
+      - ./facebook-page-api/.env
+    container_name: facebook-page-api
+    ports:
+      - "3002:3002"
+    networks:
+      - local-network
+
+  facebook-post-worker:
+    build:
+      context: ./facebook-post-worker
+      dockerfile: Dockerfile
+    env_file:
+      - ./facebook-post-worker/.env
+    container_name: facebook-post-worker
+    ports:
+      - "3003:3003"
+    networks:
+      - local-network
+
+  facebook-comment-worker:
+    build:
+      context: ./facebook-comment-worker
+      dockerfile: Dockerfile
+    env_file:
+      - ./facebook-comment-worker/.env
+    container_name: facebook-comment-worker
+    ports:
+      - "3004:3004"
+    networks:
+      - local-network
+
+  facebook-inbox-worker:
+    build:
+      context: ./facebook-inbox-worker
+      dockerfile: Dockerfile
+    env_file:
+      - ./facebook-inbox-worker/.env
+    container_name: facebook-inbox-worker
+    ports:
+      - "3005:3005"
+    networks:
+      - local-network
+
   postgres:
     image: postgres:15.8
     container_name: facebook-database
@@ -14,6 +62,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./database/postgres/docker-entrypoint-initdb:/docker-entrypoint-initdb.d/
     restart: unless-stopped
+    networks:
+      - local-network
 
   rabbitmq:
     image: rabbitmq:3.12-management
@@ -26,6 +76,8 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - local-network
 
   redis:
     image: redis:alpine
@@ -34,6 +86,12 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - local-network
+
+networks:
+  local-network:
+    driver: bridge
 
 volumes:
   postgres-data:

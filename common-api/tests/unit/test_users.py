@@ -158,7 +158,7 @@ def test_login_invalid_credentials(db_session: Session):
 
 def test_health_check():
     """Test health check endpoint (should be public)"""
-    response = client.get("/health")
+    response = client.get("/healthcheck")
     assert response.status_code == 200
     assert response.json()["status"] == "healthy"
 

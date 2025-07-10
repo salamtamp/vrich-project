@@ -99,44 +99,6 @@ type-check: check-poetry
 	@echo "Running type checking..."
 	poetry run mypy app
 
-# Docker commands
-docker-build:
-	@echo "Building Docker image..."
-	docker build -t facebook-page-api .
-
-docker-build-dev:
-	@echo "Building development Docker image..."
-	docker build -f Dockerfile.dev -t facebook-page-api:dev .
-
-docker-run:
-	@echo "Running Docker container..."
-	docker run -d --name facebook-page-api -p 3001:3001 --env-file .env facebook-page-api
-
-docker-run-dev:
-	@echo "Running development Docker container..."
-	docker run -d --name facebook-page-api-dev -p 8001:3001 -v $(PWD)/app:/app/app --env-file .env facebook-page-api:dev
-
-docker-stop:
-	@echo "Stopping Docker containers..."
-	docker stop facebook-page-api facebook-page-api-dev || true
-	docker rm facebook-page-api facebook-page-api-dev || true
-
-docker-compose-up:
-	@echo "Starting services with Docker Compose..."
-	docker-compose up -d
-
-docker-compose-up-dev:
-	@echo "Starting development services with Docker Compose..."
-	docker-compose --profile dev up -d
-
-docker-compose-down:
-	@echo "Stopping Docker Compose services..."
-	docker-compose down
-
-docker-logs:
-	@echo "Showing logs..."
-	docker-compose logs -f
-
 # Maintenance commands
 clean:
 	@echo "Cleaning Python cache files..."

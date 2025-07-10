@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from unittest.mock import Mock
 
 import app.db.models
 from app.core.config import settings  # noqa: F401
@@ -46,3 +47,21 @@ def db():
     finally:
         db.close()
         Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture
+def mock_redis():
+    return Mock()
+
+@pytest.fixture
+def mock_external_api():
+    return Mock()
+
+@pytest.fixture
+def authenticated_client(client, db):
+    # Create test user and get token
+    user_data = {"email": "test@example.com", "password": "testpass123"}
+    response = client.post("/api/v1/auth/login", data=user_data)
+    token = response.json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+    return client
