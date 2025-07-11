@@ -4,11 +4,13 @@ import React, { useCallback, useMemo } from 'react';
 
 import type { CardData } from '@/components/card';
 import FilterCard from '@/components/filter-card';
-import TextList from '@/components/text-list';
+import ProfileBox from '@/components/profile-box';
 import { API } from '@/constants/api.constant';
 import { PaginationProvider } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
+import type { ProfileLike } from '@/hooks/useLocalDocsWithProfileUpdate';
+import { useLocalDocsWithProfileUpdate } from '@/hooks/useLocalDocsWithProfileUpdate';
 import dayjs from '@/lib/dayjs';
 import { getRelativeTimeInThai } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
@@ -22,7 +24,7 @@ const ProfileContent: React.FC<{ profile: FacebookProfileResponse }> = ({ profil
 );
 
 const Profile = () => {
-  const { open } = useModalContext();
+  const { open, close } = useModalContext();
 
   const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
     PaginationResponse<FacebookProfileResponse>
@@ -30,17 +32,32 @@ const Profile = () => {
     url: API.PROFILE,
   });
 
+  const {
+    updated: updatedProfiles,
+    markProfileUpdated,
+    handleProfileUpdateIfNeeded,
+  } = useLocalDocsWithProfileUpdate<FacebookProfileResponse>(
+    data?.docs,
+    (item: FacebookProfileResponse) => item.id,
+    (item: FacebookProfileResponse, profile: ProfileLike): FacebookProfileResponse => {
+      return {
+        ...item,
+        name: profile.name,
+        profile_picture_url: profile.profile_picture_url ?? item.profile_picture_url,
+      };
+    }
+  );
+
   const itemData = useMemo(
     () =>
-      data?.docs?.map((profile) => ({
+      updatedProfiles.map((profile) => ({
         id: profile.id,
-        title: profile.name,
         content: <ProfileContent profile={profile} />,
         lastUpdate: getRelativeTimeInThai(profile.created_at),
         profile_picture_url: profile.profile_picture_url,
         name: profile.name,
       })),
-    [data?.docs]
+    [updatedProfiles]
   );
 
   const handleCardClick = useCallback(
@@ -48,15 +65,20 @@ const Profile = () => {
       open({
         content: (
           <PaginationProvider defaultValue={{ limit: 20 }}>
-            <TextList
+            <ProfileBox
               cardData={data}
               id={id}
+              onUpdate={markProfileUpdated}
             />
           </PaginationProvider>
         ),
+        onClose: () => {
+          handleProfileUpdateIfNeeded();
+          close();
+        },
       });
     },
-    [open]
+    [open, close, markProfileUpdated, handleProfileUpdateIfNeeded]
   );
 
   return (

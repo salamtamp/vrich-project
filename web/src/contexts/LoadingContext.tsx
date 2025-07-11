@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import Spinner from '@/components/ui/spinner';
 
@@ -57,5 +57,30 @@ export const useLoading = () => {
   if (!context) {
     throw new Error('useLoading must be used within a LoadingProvider');
   }
+  return context;
+};
+
+type UseLoadingProps = {
+  isLoading?: boolean;
+};
+
+export const useLoadingEffect = ({ isLoading }: UseLoadingProps) => {
+  const context = useContext(LoadingContext);
+
+  if (!context) {
+    throw new Error('useLoading must be used within a LoadingProvider');
+  }
+
+  const { openLoading, closeLoading } = context;
+
+  useEffect(() => {
+    if (isLoading) {
+      openLoading();
+    } else {
+      closeLoading();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
   return context;
 };

@@ -53,7 +53,11 @@ const LoginPage = () => {
           setError('root', { type: 'manual', message: 'Invalid email or password' });
         }
       } catch (error) {
-        console.error(error);
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error(error);
+        }
       } finally {
         closeLoading();
       }

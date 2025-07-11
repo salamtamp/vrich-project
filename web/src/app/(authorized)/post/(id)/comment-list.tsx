@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -11,25 +11,23 @@ import { ExternalLink, User } from 'lucide-react';
 
 import type { CardData } from '@/components/card';
 import SkeletonCard from '@/components/card/SkeletonCard';
-import ContentPagination from '@/components/content/pagination';
-import TextList from '@/components/text-list';
+import ProfileBox from '@/components/profile-box';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { API } from '@/constants/api.constant';
-import { PaginationProvider, useLoading } from '@/contexts';
-import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
+import { PaginationProvider, useLoadingEffect } from '@/contexts';
 import useRequest from '@/hooks/request/useRequest';
+import { useSocketList } from '@/hooks/request/useSocketList';
 import useModalContext from '@/hooks/useContext/useModalContext';
-import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import { ImageWithFallback, useImageWithFallback } from '@/hooks/useImageFallback';
+import { useLocalDocsWithProfileUpdate } from '@/hooks/useLocalDocsWithProfileUpdate';
 import { cn, getRelativeTimeInThai } from '@/lib/utils';
-import type { PaginationResponse } from '@/types/api/api-response';
 import type { FacebookInboxResponse } from '@/types/api/facebook-inbox';
 
 type CommentListProps = {
   onCheckedChange?: (checked: boolean) => void;
   image?: string;
-  title?: string;
+  name?: string;
   link?: string;
   status?: 'active' | 'inactive';
 };
@@ -38,47 +36,134 @@ const isValidImageUrl = (url?: string): url is string => {
   return !!url && /^https?:\/\//.test(url) && !url.includes('example.com');
 };
 
-const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title, link, status }) => {
+const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, name, link, status }) => {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
 
-  const { reset } = usePaginationContext();
-  const { openLoading, closeLoading } = useLoading();
-
-  const { handleRequest } = useRequest({ request: { url: `${API.POST}/${id}`, method: 'PUT' } });
-
-  const { data, isLoading } = usePaginatedRequest<PaginationResponse<FacebookInboxResponse>>({
-    url: API.COMMENT,
-    additionalParams: { post_id: id },
-    requireFields: ['post_id'],
-    defaultStartDate: dayjs().subtract(100, 'year'),
+  const {
+    items: comments,
+    isLoading,
+    loadMore,
+    hasNext,
+    reset,
+  } = useSocketList<FacebookInboxResponse>({
+    requestConfig: { url: API.COMMENT, method: 'GET', params: { post_id: id } },
+    socketEventName: id ? `facebook_post.${id}.new_comment` : undefined,
   });
 
-  const { open } = useModalContext();
+  const { openLoading, closeLoading } = useLoadingEffect({ isLoading });
+
+  const { handleRequest: handlePostRequest } = useRequest({
+    request: { url: `${API.POST}/${id}`, method: 'PUT' },
+  });
+
+  const { open, close } = useModalContext();
   const { imgLoading } = useImageWithFallback();
   const [postStatus, setPostStatus] = useState(status);
+  const [showNewItemButton, setShowNewItemButton] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const newCommentRef = useRef<HTMLDivElement>(null);
+  const prevCommentsLength = useRef<number>(0);
+
+  const {
+    updated: updatedComments,
+    markProfileUpdated,
+    handleProfileUpdateIfNeeded,
+  } = useLocalDocsWithProfileUpdate<FacebookInboxResponse>(
+    comments,
+    (item) => item.profile?.id,
+    (item, profile) =>
+      item.profile
+        ? {
+            ...item,
+            profile: {
+              ...item.profile,
+              name: profile.name,
+              profile_picture_url: profile.profile_picture_url ?? item.profile.profile_picture_url,
+            },
+          }
+        : item
+  );
+
+  const isAtTop = () => {
+    const container = containerRef.current;
+    if (!container) {
+      return true;
+    }
+    return container.scrollTop <= 10;
+  };
+
+  // Handle scroll event to hide button when new comment comes into view
+  const handleScroll = useCallback(() => {
+    if (showNewItemButton && newCommentRef.current && containerRef.current) {
+      const container = containerRef.current;
+      const newComment = newCommentRef.current;
+
+      const containerRect = container.getBoundingClientRect();
+      const newCommentRect = newComment.getBoundingClientRect();
+
+      // Check if the new comment is visible in the container
+      const isVisible = newCommentRect.top >= containerRect.top && newCommentRect.top <= containerRect.bottom;
+
+      if (isVisible) {
+        setShowNewItemButton(false);
+      }
+    }
+  }, [showNewItemButton]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => {
+        container.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [handleScroll]);
+
+  useEffect(() => {
+    if (comments.length === prevCommentsLength.current + 1) {
+      if (!isAtTop()) {
+        setShowNewItemButton(true);
+      } else {
+        containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+    prevCommentsLength.current = comments.length;
+  }, [comments.length]);
+
+  const handleScrollToNew = () => {
+    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    setShowNewItemButton(false);
+  };
 
   const handleCardClick = useCallback(
     (id: string, data: CardData) => {
       open({
         content: (
           <PaginationProvider defaultValue={{ limit: 20 }}>
-            <TextList
+            <ProfileBox
               cardData={data}
               id={id}
+              onUpdate={markProfileUpdated}
             />
           </PaginationProvider>
         ),
+        onClose: () => {
+          handleProfileUpdateIfNeeded();
+          close();
+        },
       });
     },
-    [open]
+    [open, close, markProfileUpdated, handleProfileUpdateIfNeeded]
   );
 
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
       try {
         openLoading();
-        void handleRequest({ data: { status: checked ? 'active' : 'inactive' } });
+        void handlePostRequest({ data: { status: checked ? 'active' : 'inactive' } });
         setPostStatus(checked ? 'active' : 'inactive');
         onCheckedChange?.(checked);
       } catch (error) {
@@ -87,7 +172,7 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
         closeLoading();
       }
     },
-    [closeLoading, handleRequest, onCheckedChange, openLoading]
+    [closeLoading, handlePostRequest, onCheckedChange, openLoading]
   );
 
   useEffect(() => {
@@ -101,15 +186,6 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
     setPostStatus(status === 'active' ? 'active' : 'inactive');
   }, [status, id]);
 
-  useEffect(() => {
-    if (isLoading) {
-      openLoading();
-    } else {
-      closeLoading();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
-
   return (
     <>
       <div className='flex w-full justify-between'>
@@ -117,7 +193,7 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
           {image ? (
             <div className='size-10 rounded-full bg-gray-300'>
               <ImageWithFallback
-                alt={title ?? 'post-image'}
+                alt={name ?? 'post-image'}
                 className={imgLoading ? 'hidden' : ''}
                 fallbackIcon={<User size={25} />}
                 isValidImageUrl={isValidImageUrl}
@@ -129,7 +205,7 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
             </div>
           ) : null}
           <div className='flex max-w-[260px]'>
-            <p className='truncate text-display-medium'>{title ?? ''}</p>
+            <p className='truncate text-display-medium'>{name ?? ''}</p>
           </div>
           {link ? (
             <Button
@@ -157,17 +233,33 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
       </div>
       <div className='mt-2 h-[2px] w-full rounded-xl bg-gray-100' />
 
-      <div className='flex h-full flex-1 flex-col overflow-y-scroll'>
-        {data?.docs?.map((m) => {
+      <div
+        ref={containerRef}
+        className='flex h-full flex-1 flex-col overflow-y-scroll'
+      >
+        {showNewItemButton ? (
+          <div className='sticky top-0 z-10 flex justify-center'>
+            <button
+              className='animate-fade-in my-2 rounded-full bg-green-500 px-4 py-2 text-white shadow transition-all hover:bg-green-600'
+              onClick={handleScrollToNew}
+            >
+              New comment! Click to view
+            </button>
+          </div>
+        ) : null}
+
+        {updatedComments.map((m: FacebookInboxResponse, index: number) => {
           const card: CardData = {
             id: m.profile?.id ?? '',
-            title: m.profile?.name ?? '',
+            name: m.profile?.name ?? '',
             lastUpdate: getRelativeTimeInThai(m.published_at),
+            profile_picture_url: m.profile?.profile_picture_url,
           };
 
           return (
             <div
-              key={`${m.messenger_id}-${crypto.randomUUID()}`}
+              key={`${m.id}-${crypto.randomUUID()}`}
+              ref={index === 0 ? newCommentRef : null}
               className='mx-2 my-4'
             >
               <div
@@ -199,13 +291,18 @@ const CommentList: React.FC<CommentListProps> = ({ onCheckedChange, image, title
             </div>
           );
         })}
+        {isLoading ? <div className='flex justify-center py-4'>Loading...</div> : null}
+        {hasNext && !isLoading ? (
+          <button
+            className='mx-auto my-4 rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300'
+            onClick={() => {
+              void loadMore();
+            }}
+          >
+            Load More
+          </button>
+        ) : null}
       </div>
-
-      <ContentPagination
-        shotMode
-        className='mt-5'
-        total={data?.total ?? 0}
-      />
     </>
   );
 };

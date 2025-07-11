@@ -5,11 +5,16 @@ from app.api.dependencies.database import get_db
 from app.db.repositories.facebook_comment import facebook_comment_repo
 from app.db.repositories.facebook_inbox import facebook_inbox_repo
 from app.db.repositories.facebook_post import facebook_post_repo
+from app.db.repositories.facebook_profile import facebook_profile_repo
 from app.schemas.common import (
     FacebookCommentWebhookRequest,
     FacebookInboxWebhookRequest,
     FacebookPostWebhookRequest,
 )
+from app.schemas.facebook_comment import FacebookComment
+from app.schemas.facebook_messenger import FacebookInbox
+from app.schemas.facebook_post import FacebookPost
+from app.schemas.facebook_profile import FacebookProfile
 from app.services.socketio_server import socketio
 
 router = APIRouter()
@@ -26,25 +31,22 @@ async def facebook_posts_webhook(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    post_data = {
-        "id": str(post.id),
-        "profile_id": str(post.profile_id),
-        "post_id": post.post_id,
-        "message": post.message,
-        "type": post.type,
-        "link": post.link,
-        "media_url": post.media_url,
-        "media_type": post.media_type,
-        "status": post.status,
-        "published_at": post.published_at.isoformat() if post.published_at else None,
-    }
+    # Load related profile
+    profile = facebook_profile_repo.get_by_id(db, id=post.profile_id)
+    post_profile = FacebookProfile.model_validate(profile) if profile else None
+    post_response = FacebookPost.model_validate(post)
+    post_response.profile = post_profile
 
     # Emit to all clients
-    await socketio.emit("facebook_post.created", post_data)
+    await socketio.emit(
+        "facebook_post.created", post_response.model_dump(mode='json')
+    )
     # Emit to specific post
-    await socketio.emit(f"facebook_post.{data.id}.created", post_data)
+    await socketio.emit(
+        f"facebook_post.{data.id}.created", post_response.model_dump(mode='json')
+    )
 
-    return {"status": "success"}
+    return post_response
 
 
 @router.post("/facebook-comments")
@@ -58,25 +60,37 @@ async def facebook_comments_webhook(
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
 
-    comment_data = {
-        "id": str(comment.id),
-        "profile_id": str(comment.profile_id),
-        "post_id": str(comment.post_id),
-        "comment_id": comment.comment_id,
-        "message": comment.message,
-        "type": comment.type,
-        "link": comment.link,
-        "published_at": (
-            comment.published_at.isoformat() if comment.published_at else None
-        ),
-    }
+    # Load related post
+    post = facebook_post_repo.get_by_id(db, id=comment.post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found for comment")
+
+    # Load related profile
+    profile = facebook_profile_repo.get_by_id(db, id=comment.profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found for comment")
+
+    comment_post = FacebookPost.model_validate(post) if post else None
+    comment_profile = FacebookProfile.model_validate(profile) if profile else None
+    comment_response = FacebookComment.model_validate(comment)
+    comment_response.post = comment_post
+    comment_response.profile = comment_profile
 
     # Emit to all clients
-    await socketio.emit("facebook_comment.created", comment_data)
-    # Emit to specific comment
-    await socketio.emit(f"facebook_comment.{data.id}.created", comment_data)
+    await socketio.emit(
+        "facebook_comment.created", comment_response.model_dump(mode='json')
+    )
+    # Emit to post and profile channels
+    await socketio.emit(
+        f"facebook_post.{post.id}.new_comment",
+        comment_response.model_dump(mode='json'),
+    )
+    await socketio.emit(
+        f"facebook_profile.{profile.id}.new_comment",
+        comment_response.model_dump(mode='json'),
+    )
 
-    return {"status": "success"}
+    return comment_response
 
 
 @router.post("/facebook-inboxes")
@@ -90,19 +104,23 @@ async def facebook_inboxes_webhook(
     if not inbox:
         raise HTTPException(status_code=404, detail="Inbox not found")
 
-    inbox_data = {
-        "id": str(inbox.id),
-        "profile_id": str(inbox.profile_id),
-        "messenger_id": inbox.messenger_id,
-        "message": inbox.message,
-        "type": inbox.type,
-        "link": inbox.link,
-        "published_at": inbox.published_at.isoformat() if inbox.published_at else None,
-    }
+    # Load related profile
+    profile = facebook_profile_repo.get_by_id(db, id=inbox.profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found for inbox")
+
+    inbox_profile = FacebookProfile.model_validate(profile) if profile else None
+    inbox_response = FacebookInbox.model_validate(inbox)
+    inbox_response.profile = inbox_profile
 
     # Emit to all clients
-    await socketio.emit("facebook_inbox.created", inbox_data)
-    # Emit to specific inbox
-    await socketio.emit(f"facebook_inbox.{data.id}.created", inbox_data)
+    await socketio.emit(
+        "facebook_inbox.created", inbox_response.model_dump(mode='json')
+    )
+    # Emit to profile channel
+    await socketio.emit(
+        f"facebook_profile.{profile.id}.new_inbox",
+        inbox_response.model_dump(mode='json'),
+    )
 
-    return {"status": "success"}
+    return inbox_response

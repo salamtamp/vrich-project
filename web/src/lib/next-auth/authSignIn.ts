@@ -1,3 +1,4 @@
+import type { AxiosError } from 'axios';
 import axios from 'axios';
 import type { User } from 'next-auth';
 
@@ -43,11 +44,14 @@ export const handleSignIn = async (email: string, password: string): Promise<Use
       throw new Error('Failed to sign in with email and password.');
     }
 
-    if (error.response?.status === 401) {
-      throw new Error('Invalid email or password.');
-    }
-    if (error.response?.status === 403) {
-      throw new Error('Access denied. Please contact your administrator.');
+    if (error && typeof error === 'object' && error !== null && 'response' in error) {
+      const err = error as AxiosError;
+      if (err.response?.status === 401) {
+        throw new Error('Invalid email or password.');
+      }
+      if (err.response?.status === 403) {
+        throw new Error('Access denied. Please contact your administrator.');
+      }
     }
 
     throw new Error('Server error. Please try again later.');

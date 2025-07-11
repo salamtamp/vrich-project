@@ -13,6 +13,9 @@ class FacebookProfileRepo(
     def get_by_facebook_id(self, db, facebook_id):
         return get_by_facebook_id(db, facebook_id=facebook_id)
 
+    def get_by_id(self, db, id):
+        return db.query(FacebookProfile).filter(FacebookProfile.id == id).first()
+
     def create(self, db, obj_in):
         return create_facebook_profile(db, obj_in=obj_in)
 

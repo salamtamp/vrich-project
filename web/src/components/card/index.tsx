@@ -25,7 +25,6 @@ export type CardProps = {
 
 export type CardData = {
   id: string;
-  title?: string;
   content?: ReactNode;
   status?: 'active' | 'inactive';
   lastUpdate: string;
@@ -44,7 +43,7 @@ const Card: React.FC<CardProps> = ({
   if (isLoading) {
     return (
       <SkeletonCard
-        disableTitle={!cardData?.title}
+        disableTitle={!cardData?.name}
         skeletonSize={skeletonSize}
       />
     );
@@ -61,7 +60,7 @@ const Card: React.FC<CardProps> = ({
               className='-mt-[1px]'
             />
           ) : null}
-          {cardData?.title ? <p className={styles.cardName}>{cardData.title} </p> : ''}{' '}
+          {cardData?.name ? <p className={styles.cardName}>{cardData.name} </p> : ''}{' '}
           <div className='flex h-full items-start pt-[2px]'>
             {cardData?.status === 'active' ? (
               <Badge className='mb-2 bg-green-200 text-green-800'>Live</Badge>

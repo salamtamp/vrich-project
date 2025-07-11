@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { PublicEnvScript } from 'next-runtime-env';
 
+import { ToastProvider } from '@/components/ui/toast';
 import { LoadingProvider } from '@/contexts';
 import { SessionProvider } from '@/contexts/SessionContext';
 import type { NextJSChildren } from '@/types';
@@ -32,7 +33,9 @@ const RootLayout = ({ children }: NextJSChildren) => {
       <body className='bg-surface-primary'>
         <Suspense fallback={<></>}>
           <SessionProvider>
-            <LoadingProvider>{children}</LoadingProvider>
+            <ToastProvider>
+              <LoadingProvider>{children}</LoadingProvider>
+            </ToastProvider>
           </SessionProvider>
         </Suspense>
       </body>

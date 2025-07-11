@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { Bell, FileText, MessageSquare, User, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -9,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
 import { useSocket } from '@/hooks/useSocket';
+import { getRelativeTimeInThai } from '@/lib/utils';
 import type { NotificationsApiResponse } from '@/types/api/api-response';
 import type { FacebookComment } from '@/types/api/facebook-comment';
 import type { FacebookInbox } from '@/types/api/facebook-inbox';
@@ -46,6 +49,8 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
       method: 'GET',
     },
   });
+
+  const router = useRouter();
 
   // Animate bell when new notification arrives
   const animateBell = () => {
@@ -208,30 +213,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) {
-      return 'Just now';
-    }
-    if (minutes < 60) {
-      return `${minutes}m ago`;
-    }
-    if (hours < 24) {
-      return `${hours}h ago`;
-    }
-    return `${days}d ago`;
-  };
-
   const handleBellClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
     if (!isDropdownOpen) {
-      setUnreadCount(0); // Mark as read when opening
-      // Mark all notifications as read
+      setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, isNew: false })));
     }
   };
@@ -239,6 +224,22 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   const clearAllNotifications = () => {
     setNotifications([]);
     setUnreadCount(0);
+  };
+
+  const handleNotificationClick = (notification: NotificationItem) => {
+    if (notification.type === 'message') {
+      router.push('/inbox');
+    } else if (notification.type === 'post') {
+      const post = notification.data as FacebookPost | { link?: string };
+      if ('link' in post && post.link) {
+        window.open(post.link, '_blank');
+      }
+    } else if (notification.type === 'comment') {
+      const comment = notification.data as FacebookComment | { post?: { link?: string } };
+      if (comment.post && comment.post.link) {
+        window.open(comment.post.link, '_blank');
+      }
+    }
   };
 
   return (
@@ -315,37 +316,91 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
                 </div>
               ) : (
                 <div className='divide-y divide-slate-100'>
-                  {notifications.slice(0, 8).map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`group cursor-pointer px-4 py-3 transition-colors duration-150 hover:bg-slate-50 ${
-                        notification.isNew ? 'bg-blue-50/50' : ''
-                      }`}
-                    >
-                      <div className='flex items-start gap-3'>
-                        <div className='flex-shrink-0'>{getNotificationIcon(notification.type)}</div>
-                        <div className='min-w-0 flex-1'>
-                          <div className='flex items-center justify-between'>
-                            <h4 className='text-sm font-medium text-slate-900'>{notification.title}</h4>
-                            <span className='text-xs text-slate-400'>
-                              {formatTimestamp(notification.timestamp)}
-                            </span>
-                          </div>
-                          <p className='mt-1 line-clamp-2 text-sm text-slate-600'>{notification.content}</p>
-                          {notification.data.profile ? (
-                            <p className='mt-1 text-xs text-slate-400'>
-                              From {notification.data.profile.name}
-                            </p>
-                          ) : null}
-                          {notification.isNew ? (
-                            <div className='mt-2 inline-flex items-center gap-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs font-medium text-white'>
-                              New
+                  {notifications.slice(0, 8).map((notification) => {
+                    const isClickable =
+                      notification.type === 'message' ||
+                      (notification.type === 'post' &&
+                        ((notification.data as FacebookPost | { link?: string }).link ?? false)) ||
+                      (notification.type === 'comment' &&
+                        ((notification.data as FacebookComment | { post?: { link?: string } }).post?.link ??
+                          false));
+                    if (isClickable) {
+                      return (
+                        <div
+                          key={notification.id}
+                          role='button'
+                          tabIndex={0}
+                          className={`group px-4 py-3 transition-colors duration-150 hover:bg-slate-50 ${
+                            notification.isNew ? 'bg-blue-50/50' : ''
+                          } cursor-pointer`}
+                          onClick={() => {
+                            handleNotificationClick(notification);
+                          }}
+                          onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              handleNotificationClick(notification);
+                            }
+                          }}
+                        >
+                          <div className='flex items-start gap-3'>
+                            <div className='flex-shrink-0'>{getNotificationIcon(notification.type)}</div>
+                            <div className='min-w-0 flex-1'>
+                              <div className='flex items-center justify-between'>
+                                <h4 className='text-sm font-medium text-slate-900'>{notification.title}</h4>
+                                <span className='text-xs text-slate-400'>
+                                  {getRelativeTimeInThai(notification.timestamp)}
+                                </span>
+                              </div>
+                              <p className='mt-1 line-clamp-2 text-sm text-slate-600'>
+                                {notification.content}
+                              </p>
+                              {notification.data.profile ? (
+                                <p className='mt-1 text-xs text-slate-400'>
+                                  From {notification.data.profile.name}
+                                </p>
+                              ) : null}
+                              {notification.isNew ? (
+                                <div className='mt-2 inline-flex items-center gap-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs font-medium text-white'>
+                                  New
+                                </div>
+                              ) : null}
                             </div>
-                          ) : null}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div
+                        key={notification.id}
+                        className={`group px-4 py-3 transition-colors duration-150 hover:bg-slate-50 ${
+                          notification.isNew ? 'bg-blue-50/50' : ''
+                        } cursor-default opacity-70`}
+                      >
+                        <div className='flex items-start gap-3'>
+                          <div className='flex-shrink-0'>{getNotificationIcon(notification.type)}</div>
+                          <div className='min-w-0 flex-1'>
+                            <div className='flex items-center justify-between'>
+                              <h4 className='text-sm font-medium text-slate-900'>{notification.title}</h4>
+                              <span className='text-xs text-slate-400'>
+                                {getRelativeTimeInThai(notification.timestamp)}
+                              </span>
+                            </div>
+                            <p className='mt-1 line-clamp-2 text-sm text-slate-600'>{notification.content}</p>
+                            {notification.data.profile ? (
+                              <p className='mt-1 text-xs text-slate-400'>
+                                From {notification.data.profile.name}
+                              </p>
+                            ) : null}
+                            {notification.isNew ? (
+                              <div className='mt-2 inline-flex items-center gap-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs font-medium text-white'>
+                                New
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {notifications.length > 8 && (
                     <div className='bg-slate-50 px-4 py-3 text-center'>
                       <p className='text-sm text-slate-600'>

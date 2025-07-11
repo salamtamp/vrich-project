@@ -92,7 +92,7 @@ const PostDetail = () => {
       profile_picture_url: post.profile?.profile_picture_url,
       status: post.status,
       link: post.link,
-      title: post.profile?.name,
+      name: post.profile?.name,
       customId: post.post_id,
     }));
 
@@ -157,12 +157,12 @@ const PostDetail = () => {
           />
         </div>
         <div className={styles.detailContainer}>
-          <PaginationProvider defaultValue={{ limit: 50 }}>
+          <PaginationProvider defaultValue={{ limit: 5 }}>
             <CommentList
               image={selected?.profile_picture_url}
               link={selected?.link}
+              name={selected?.name}
               status={selected?.status}
-              title={selected?.title}
               onCheckedChange={handleCheckedChange}
             />
           </PaginationProvider>
