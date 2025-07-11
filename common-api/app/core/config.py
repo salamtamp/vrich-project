@@ -1,7 +1,8 @@
-from functools import lru_cache
-from pydantic_settings import BaseSettings # type: ignore
-
 import os
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings  # type: ignore
+
 
 class Settings(BaseSettings):
     # Project
@@ -14,8 +15,12 @@ class Settings(BaseSettings):
     PORT: int = os.getenv("PORT", 3001)
     WORKERS: int = os.getenv("API_WORKERS", 1)
     API_V1_STR: str = os.getenv("API_V1_STR", "/api/v1")
-    INTERNAL_WEBHOOK_IPS: str = os.getenv("API_INTERNAL_WEBHOOK_IPS", "127.0.0.1,localhost")
-    ALLOWED_HOSTS_RAW: str = os.getenv("API_ALLOWED_HOSTS_RAW", "localhost,127.0.0.1,0.0.0.0")
+    INTERNAL_WEBHOOK_IPS: str = os.getenv(
+        "API_INTERNAL_WEBHOOK_IPS", "127.0.0.1,localhost"
+    )
+    ALLOWED_HOSTS_RAW: str = os.getenv(
+        "API_ALLOWED_HOSTS_RAW", "localhost,127.0.0.1,0.0.0.0"
+    )
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "REPLACE_ME")
@@ -25,15 +30,28 @@ class Settings(BaseSettings):
     # File Upload
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/app/uploads")
     MAX_FILE_SIZE: int = os.getenv("MAX_FILE_SIZE", 10485760)
-    ALLOWED_EXTENSIONS: str = os.getenv("ALLOWED_EXTENSIONS", "jpg,jpeg,png,gif,pdf,doc,docx")
+    ALLOWED_EXTENSIONS: str = os.getenv(
+        "ALLOWED_EXTENSIONS", "jpg,jpeg,png,gif,pdf,doc,docx"
+    )
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@database:5432/postgres")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", "postgresql://user:password@database:5432/postgres"
+    )
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "postgres")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "user")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "password")
 
     # Redis
     REDIS_HOST: str = os.getenv("REDIS_HOST", "cache")
     REDIS_PORT: int = os.getenv("REDIS_PORT", 6379)
     REDIS_DB: int = os.getenv("REDIS_DB", 0)
+    REDIS_PASSWORD: str = os.getenv("REDIS_PASSWORD", "")
+
+    # Admin Configuration
+    ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@example.com")
+    ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "adminpass123")
+    ADMIN_FULL_NAME: str = os.getenv("ADMIN_FULL_NAME", "System Administrator")
 
     # Environment
     DEBUG: bool = os.getenv("DEBUG", "False") == "True"
