@@ -332,6 +332,7 @@ async def start_facebook_posts_scheduler(
     request: PostsSchedulerRequest,
     settings = Depends(get_settings),
 ):
+    logger.info("[DEBUG] start_facebook_posts_scheduler called")
     """Start the Facebook posts scheduler with configurable schedule"""
     try:
         if facebook_posts_scheduler.is_running():
@@ -361,6 +362,7 @@ async def start_facebook_posts_scheduler(
 
 @router.post("/scheduler/posts/stop", response_model=SchedulerResponse)
 async def stop_facebook_posts_scheduler():
+    logger.info("[DEBUG] stop_facebook_posts_scheduler called")
     """Stop the Facebook posts scheduler"""
     try:
         if not facebook_posts_scheduler.is_running():

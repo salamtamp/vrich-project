@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     DEBUG: bool = os.getenv("DEBUG", "False") == "True"
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
 
+    # Facebook Scheduler
+    FACEBOOK_SCHEDULER_BASE_URL: str = os.getenv(
+        "FACEBOOK_SCHEDULER_BASE_URL", "http://localhost:3002"
+    )
+
     @property
     def allowed_hosts(self) -> list[str]:
         return [host.strip() for host in self.ALLOWED_HOSTS_RAW.split(",")]

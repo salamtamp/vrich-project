@@ -38,12 +38,10 @@ async def facebook_posts_webhook(
     post_response.profile = post_profile
 
     # Emit to all clients
-    await socketio.emit(
-        "facebook_post.created", post_response.model_dump(mode='json')
-    )
+    await socketio.emit("facebook_post.created", post_response.model_dump(mode="json"))
     # Emit to specific post
     await socketio.emit(
-        f"facebook_post.{data.id}.created", post_response.model_dump(mode='json')
+        f"facebook_post.{data.id}.created", post_response.model_dump(mode="json")
     )
 
     return post_response
@@ -78,16 +76,16 @@ async def facebook_comments_webhook(
 
     # Emit to all clients
     await socketio.emit(
-        "facebook_comment.created", comment_response.model_dump(mode='json')
+        "facebook_comment.created", comment_response.model_dump(mode="json")
     )
     # Emit to post and profile channels
     await socketio.emit(
         f"facebook_post.{post.id}.new_comment",
-        comment_response.model_dump(mode='json'),
+        comment_response.model_dump(mode="json"),
     )
     await socketio.emit(
         f"facebook_profile.{profile.id}.new_comment",
-        comment_response.model_dump(mode='json'),
+        comment_response.model_dump(mode="json"),
     )
 
     return comment_response
@@ -115,12 +113,12 @@ async def facebook_inboxes_webhook(
 
     # Emit to all clients
     await socketio.emit(
-        "facebook_inbox.created", inbox_response.model_dump(mode='json')
+        "facebook_inbox.created", inbox_response.model_dump(mode="json")
     )
     # Emit to profile channel
     await socketio.emit(
         f"facebook_profile.{profile.id}.new_inbox",
-        inbox_response.model_dump(mode='json'),
+        inbox_response.model_dump(mode="json"),
     )
 
     return inbox_response

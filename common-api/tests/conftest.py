@@ -1,8 +1,9 @@
+from unittest.mock import Mock
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from unittest.mock import Mock
 
 import app.db.models
 from app.core.config import settings  # noqa: F401
@@ -53,9 +54,11 @@ def db():
 def mock_redis():
     return Mock()
 
+
 @pytest.fixture
 def mock_external_api():
     return Mock()
+
 
 @pytest.fixture
 def authenticated_client(client, db):

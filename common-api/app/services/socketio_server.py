@@ -105,5 +105,6 @@ async def broadcast_to_authenticated_clients(event: str, data: dict):
             if sid in connected_clients:
                 connected_clients.pop(sid)
 
+
 # At the end of the file, export the instance as 'socketio' for external use
 socketio = sio

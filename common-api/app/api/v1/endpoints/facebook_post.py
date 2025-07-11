@@ -23,6 +23,7 @@ from app.schemas.facebook_post import (
     FacebookPostCreate,
     FacebookPostUpdate,
 )
+from app.services import facebook_scheduler  # <-- Add this import
 
 router = APIRouter()
 logger = logging.getLogger("app.api.v1.endpoints.facebook_post")
@@ -89,6 +90,10 @@ def create_facebook_post(
 def update_facebook_post(
     *, db: Session = Depends(get_db), post_id: UUID, post_in: FacebookPostUpdate
 ) -> FacebookPost:
+    logger.info(
+        f"[DEBUG] PUT /api/v1/facebook-posts/{post_id}/ called with payload: "
+        f"{post_in.model_dump(exclude_unset=True)}"
+    )
     db_obj = db.query(FacebookPostModel).filter(FacebookPostModel.id == post_id).first()
     if not db_obj:
         raise HTTPException(status_code=404, detail=ERR_FACEBOOK_POST_NOT_FOUND)
@@ -119,18 +124,38 @@ def update_facebook_post(
                 detail=ERR_FACEBOOK_POST_DUPLICATE_ID,
             )
 
-    if post_in.status == "active":
-        other_active_posts = (
-            db.query(FacebookPostModel)
-            .filter(
-                FacebookPostModel.status == "active",
-                FacebookPostModel.id != post_id,
+    post_facebook_id = db_obj.post_id
+    old_status = db_obj.status
+    try:
+        if post_in.status == "active":
+            other_active_posts = (
+                db.query(FacebookPostModel)
+                .filter(
+                    FacebookPostModel.status == "active",
+                    FacebookPostModel.id != post_id,
+                )
+                .all()
             )
-            .all()
-        )
-        for other_post in other_active_posts:
-            other_post.status = "inactive"
-        db.flush()
+            other_post_ids = [p.post_id for p in other_active_posts]
+            if other_post_ids:
+                logger.info(
+                    f"[DEBUG] Calling stop_comments_scheduler for "
+                    f"postIds={other_post_ids}"
+                )
+                facebook_scheduler.stop_comments_scheduler(other_post_ids)
+            for other_post in other_active_posts:
+                other_post.status = "inactive"
+            db.flush()
+            facebook_scheduler.start_comments_scheduler([post_facebook_id])
+        elif post_in.status == "inactive" and old_status == "active":
+            logger.info(
+                f"[DEBUG] Calling stop_comments_scheduler for postId={post_facebook_id}"
+            )
+            facebook_scheduler.stop_comments_scheduler([post_facebook_id])
+    except Exception as e:
+        logger.error(f"Unexpected error in scheduler integration: {e}")
+
+    # Apply updates to the post
     for field, value in post_in.model_dump(exclude_unset=True).items():
         setattr(db_obj, field, value)
     db.add(db_obj)
