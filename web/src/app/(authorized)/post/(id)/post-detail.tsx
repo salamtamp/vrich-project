@@ -27,16 +27,23 @@ import styles from './post-detail.module.scss';
 
 const PostDetail = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const id = searchParams.get('id');
   const paramSince = searchParams.get('since');
   const paramUntil = searchParams.get('until');
+  const paramPage = searchParams.get('page');
+  const paramLimit = searchParams.get('limit');
 
   const [postData, setPostData] = useState<PostCard[]>([]);
   const [selected, setSelected] = useState<PostCard>();
 
-  const [since, setSince] = useState<string | null>(dayjs(paramSince).startOf('day').toISOString());
-  const [until, setUntil] = useState<string | null>(dayjs(paramUntil).endOf('day').toISOString());
+  const [since, setSince] = useState<string | null>(
+    paramSince ? dayjs(paramSince).startOf('day').toISOString() : null
+  );
+  const [until, setUntil] = useState<string | null>(
+    paramUntil ? dayjs(paramUntil).endOf('day').toISOString() : null
+  );
 
   const handleConfirmPeriod = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
     setSince(startDate ? startDate.startOf('day').toISOString() : null);
@@ -48,8 +55,6 @@ const PostDetail = () => {
   });
 
   const { pagination } = usePaginationContext();
-
-  const router = useRouter();
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => [{ label: 'Post', push: PATH.POST }], []);
 
@@ -105,6 +110,36 @@ const PostDetail = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.timestamp]);
+
+  useEffect(() => {
+    const currentParams = new URLSearchParams(searchParams.toString());
+    let hasChanges = false;
+
+    if (!paramPage) {
+      currentParams.set('page', `${pagination.page}`);
+      hasChanges = true;
+    }
+
+    if (!paramLimit) {
+      currentParams.set('limit', `${pagination.limit}`);
+      hasChanges = true;
+    }
+
+    if (!paramSince) {
+      currentParams.set('since', dayjs().subtract(6, 'day').format('YYYY-MM-DD'));
+      hasChanges = true;
+    }
+
+    if (!paramUntil) {
+      currentParams.set('until', dayjs().format('YYYY-MM-DD'));
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      router.replace(`${PATH.POST}?${currentParams.toString()}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramPage, paramLimit, paramSince, paramUntil]);
 
   useEffect(() => {
     if (!id) {

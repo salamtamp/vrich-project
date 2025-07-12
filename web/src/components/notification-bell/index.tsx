@@ -29,6 +29,7 @@ type NotificationClickHandler = {
   content: string;
   timestamp: Date;
   data: NotificationData;
+  postId?: string;
   isNew?: boolean;
 };
 
@@ -76,6 +77,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
         content: post.message?.substring(0, 100) ?? 'New post created',
         timestamp: new Date(post.published_at),
         data: post,
+        postId: post.id,
         isNew: false,
       });
     });
@@ -100,6 +102,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
         content: comment.message?.substring(0, 100) ?? 'New comment added',
         timestamp: new Date(comment.created_at),
         data: comment,
+        postId: comment.post?.id,
         isNew: false,
       });
     });
@@ -227,8 +230,14 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
       if (notification.type === 'message') {
         return '/inbox';
       } else if (notification.type === 'post') {
+        if (notification.postId) {
+          return `/post?id=${notification.postId}`;
+        }
         return '/post';
       } else if (notification.type === 'comment') {
+        if (notification.postId) {
+          return `/post?id=${notification.postId}`;
+        }
         return '/post';
       }
       return null;
@@ -236,6 +245,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
 
     if (targetPath && pathname !== targetPath) {
       router.push(targetPath);
+      setIsDropdownOpen(false);
     } else if (targetPath && pathname === targetPath) {
       setIsDropdownOpen(false);
     }
