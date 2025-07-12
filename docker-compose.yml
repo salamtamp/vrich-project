@@ -21,6 +21,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./common-api/.env.docker
+    environment:
+      - REDIS_HOST=cache
     container_name: common-api
     ports:
       - "3001:3001"

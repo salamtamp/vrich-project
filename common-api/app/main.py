@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import api_router
 from app.core import security
 from app.services.socketio_server import sio
+from app.utils.redis import redis_client
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,6 +36,25 @@ app.include_router(api_router, prefix="/api/v1")
 print("Initializing Socket.IO ASGI app...")
 socket_app = socketio.ASGIApp(sio, app)
 print("Socket.IO ASGI app initialized successfully")
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize Redis connection on startup."""
+    try:
+        await redis_client.connect()
+        print("Redis connection established")
+    except Exception as e:
+        print(f"Failed to connect to Redis: {e}")
+        print("Application will continue without Redis caching")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close Redis connection on shutdown."""
+    try:
+        await redis_client.disconnect()
+        print("Redis connection closed")
+    except Exception as e:
+        print(f"Error closing Redis connection: {e}")
 
 
 @app.get("/healthcheck")

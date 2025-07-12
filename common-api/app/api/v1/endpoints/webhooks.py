@@ -16,6 +16,7 @@ from app.schemas.facebook_messenger import FacebookInbox
 from app.schemas.facebook_post import FacebookPost
 from app.schemas.facebook_profile import FacebookProfile
 from app.services.socketio_server import socketio
+from app.services.webhook_cache_service import webhook_cache_service
 
 router = APIRouter()
 
@@ -36,6 +37,11 @@ async def facebook_posts_webhook(
     post_profile = FacebookProfile.model_validate(profile) if profile else None
     post_response = FacebookPost.model_validate(post)
     post_response.profile = post_profile
+
+    # Store in Redis cache
+    await webhook_cache_service.save_webhook(
+        "posts", str(data.id), post_response.model_dump(mode="json")
+    )
 
     # Emit to all clients
     await socketio.emit("facebook_post.created", post_response.model_dump(mode="json"))
@@ -74,6 +80,11 @@ async def facebook_comments_webhook(
     comment_response.post = comment_post
     comment_response.profile = comment_profile
 
+    # Store in Redis cache
+    await webhook_cache_service.save_webhook(
+        "comments", str(data.id), comment_response.model_dump(mode="json")
+    )
+
     # Emit to all clients
     await socketio.emit(
         "facebook_comment.created", comment_response.model_dump(mode="json")
@@ -110,6 +121,11 @@ async def facebook_inboxes_webhook(
     inbox_profile = FacebookProfile.model_validate(profile) if profile else None
     inbox_response = FacebookInbox.model_validate(inbox)
     inbox_response.profile = inbox_profile
+
+    # Store in Redis cache
+    await webhook_cache_service.save_webhook(
+        "inboxes", str(data.id), inbox_response.model_dump(mode="json")
+    )
 
     # Emit to all clients
     await socketio.emit(
