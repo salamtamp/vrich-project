@@ -33,22 +33,33 @@ type NotificationClickHandler = {
 };
 
 const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
-  const { notifications, unreadCount, clearAllNotifications, markAllAsRead, isAnimating } =
+  const { notifications, unreadCount, markAllAsRead, isAnimating, clearAllNotifications } =
     useNotificationContext();
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [displayNotifications, setDisplayNotifications] = useState<NotificationClickHandler[]>([]);
+  const [isClearing, setIsClearing] = useState(false);
 
-  const { handleRequest, data } = useRequest<NotificationsApiResponse>({
+  const {
+    handleRequest,
+    data,
+    isLoading: getLoading,
+  } = useRequest<NotificationsApiResponse>({
     request: {
-      url: API.NOTIFICATIONS,
+      url: API.NOTIFICATIONS.GET_LAST,
       method: 'GET',
     },
   });
 
+  const { handleRequest: handleClearRequest, isLoading: clearLoading } = useRequest({
+    request: {
+      url: API.NOTIFICATIONS.CLEAR,
+      method: 'DELETE',
+    },
+  });
+
+  const isLoading = getLoading || clearLoading;
   const router = useRouter();
 
-  // Transform API data to match NotificationItem format
   const apiNotifications = useMemo(() => {
     if (!data) {
       return [];
@@ -56,7 +67,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
 
     const transformed: NotificationClickHandler[] = [];
 
-    // Transform posts
     data.posts?.forEach((post) => {
       transformed.push({
         id: `post-${post.id}`,
@@ -69,7 +79,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
       });
     });
 
-    // Transform messages
     data.messages?.forEach((message) => {
       transformed.push({
         id: `message-${message.id}`,
@@ -82,7 +91,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
       });
     });
 
-    // Transform comments
     data.comments?.forEach((comment) => {
       transformed.push({
         id: `comment-${comment.id}`,
@@ -98,41 +106,67 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
     return transformed.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }, [data]);
 
-  // Initialize with API data and add new context notifications
+  const combinedNotifications = useMemo(() => {
+    const contextIds = new Set(apiNotifications.map((n) => n.id));
+    const newContextNotifications = notifications.filter((n) => !contextIds.has(n.id));
+    return [...newContextNotifications, ...apiNotifications].sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+    );
+  }, [apiNotifications, notifications]);
+
   useEffect(() => {
-    if (apiNotifications.length > 0 && displayNotifications.length === 0) {
-      // Initialize with API data
-      setDisplayNotifications(apiNotifications);
+    if (!isClearing) {
+      setDisplayNotifications(combinedNotifications);
     }
-  }, [apiNotifications, displayNotifications.length]);
-
-  // Add new context notifications to the beginning
-  useEffect(() => {
-    if (notifications.length > 0) {
-      setDisplayNotifications((prev) => {
-        const contextIds = new Set(prev.map((n) => n.id));
-        const newContextNotifications = notifications.filter((n) => !contextIds.has(n.id));
-
-        if (newContextNotifications.length > 0) {
-          return [...newContextNotifications, ...prev];
-        }
-
-        return prev;
-      });
-    }
-  }, [notifications]);
+  }, [combinedNotifications, isClearing]);
 
   const handleGetNoti = useCallback(async () => {
-    await handleRequest();
+    try {
+      await handleRequest();
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
   }, [handleRequest]);
 
+  const handleClearAll = useCallback(async () => {
+    if (isClearing || clearLoading) {
+      return;
+    }
+
+    setIsClearing(true);
+    try {
+      await handleClearRequest();
+      clearAllNotifications();
+      setIsDropdownOpen(false);
+      await handleRequest();
+    } catch (error) {
+      console.error('Failed to clear notifications:', error);
+      setDisplayNotifications(combinedNotifications);
+    } finally {
+      setIsClearing(false);
+    }
+  }, [
+    isClearing,
+    clearLoading,
+    handleClearRequest,
+    clearAllNotifications,
+    handleRequest,
+    combinedNotifications,
+  ]);
+
+  const handleClearAllClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      void handleClearAll();
+    },
+    [handleClearAll]
+  );
+
   useEffect(() => {
-    // Fetch default notifications on mount
     void handleGetNoti();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
@@ -151,28 +185,29 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   }, [isDropdownOpen]);
 
   const getNotificationIcon = (type: string) => {
+    const baseStyle = 'flex size-8 items-center justify-center rounded-full shadow-sm';
     switch (type) {
       case 'post':
         return (
-          <div className='flex size-8 items-center justify-center rounded-full bg-blue-400 shadow-sm'>
+          <div className={`${baseStyle} bg-blue-400`}>
             <FileText className='size-4 text-white' />
           </div>
         );
       case 'message':
         return (
-          <div className='flex size-8 items-center justify-center rounded-full bg-green-400 shadow-sm'>
+          <div className={`${baseStyle} bg-green-400`}>
             <MessageSquare className='size-4 text-white' />
           </div>
         );
       case 'comment':
         return (
-          <div className='flex size-8 items-center justify-center rounded-full bg-purple-400 shadow-sm'>
+          <div className={`${baseStyle} bg-purple-400`}>
             <User className='size-4 text-white' />
           </div>
         );
       default:
         return (
-          <div className='flex size-8 items-center justify-center rounded-full bg-slate-400 shadow-sm'>
+          <div className={`${baseStyle} bg-slate-400`}>
             <Bell className='size-4 text-white' />
           </div>
         );
@@ -202,6 +237,100 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
     }
   };
 
+  const renderNotifications = () => {
+    if (isLoading) {
+      return (
+        <div className='flex items-center justify-center py-8'>
+          <div className='size-8 animate-spin rounded-full border-2 border-slate-200 border-t-blue-400' />
+        </div>
+      );
+    }
+
+    if (displayNotifications.length === 0) {
+      return (
+        <div className='flex flex-col items-center justify-center py-8'>
+          <div className='mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100'>
+            <Bell className='size-6 text-slate-400' />
+          </div>
+          <h3 className='mb-1 text-sm font-medium text-slate-900'>No notifications yet</h3>
+          <p className='text-xs text-slate-400'>New Facebook updates will appear here</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className='divide-y divide-slate-100'>
+        {displayNotifications.slice(0, 8).map((notification) => {
+          const isClickable =
+            notification.type === 'message' ||
+            (notification.type === 'post' && 'link' in notification.data && !!notification.data.link) ||
+            (notification.type === 'comment' &&
+              'post' in notification.data &&
+              !!notification.data.post?.link);
+
+          const NotificationContent = (
+            <div className='flex items-start gap-3'>
+              <div className='flex-shrink-0'>{getNotificationIcon(notification.type)}</div>
+              <div className='min-w-0 flex-1'>
+                <div className='flex items-center justify-between'>
+                  <h4 className='text-sm font-medium text-slate-900'>{notification.title}</h4>
+                  <span className='text-xs text-slate-400'>
+                    {getRelativeTimeInThai(notification.timestamp)}
+                  </span>
+                </div>
+                <p className='mt-1 line-clamp-2 text-sm text-slate-600'>{notification.content}</p>
+                {notification.data.profile ? (
+                  <p className='mt-1 text-xs text-slate-400'>From {notification.data.profile.name}</p>
+                ) : null}
+                {notification.isNew ? (
+                  <div className='mt-2 inline-flex items-center gap-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs font-medium text-white'>
+                    New
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          );
+
+          let itemClassName = 'group px-4 py-3 transition-colors duration-150';
+          itemClassName += isClickable ? ' cursor-pointer hover:bg-slate-50' : ' cursor-default opacity-70';
+          if (notification.isNew) {
+            itemClassName += ' bg-blue-50/50';
+          }
+
+          return (
+            // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+            <div
+              key={`${notification.id}-${crypto.randomUUID()}`}
+              className={itemClassName}
+              role={isClickable ? 'button' : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onClick={
+                isClickable
+                  ? () => {
+                      handleNotificationClick(notification);
+                    }
+                  : undefined
+              }
+              onKeyDown={
+                isClickable
+                  ? (e: React.KeyboardEvent<HTMLDivElement>) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleNotificationClick(notification);
+                      }
+                    }
+                  : undefined
+              }
+            >
+              {NotificationContent}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const effectiveUnreadCount = isClearing ? 0 : unreadCount;
+
   return (
     <div className='notification-dropdown relative'>
       <Button
@@ -216,18 +345,16 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
             isAnimating ? 'animate-bounce' : ''
           }`}
         />
-        {unreadCount > 0 && (
+        {effectiveUnreadCount > 0 && (
           <span className='absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-rose-500 text-xs font-medium text-white shadow-sm ring-2 ring-white'>
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {effectiveUnreadCount > 99 ? '99+' : effectiveUnreadCount}
           </span>
         )}
       </Button>
 
-      {/* Dropdown */}
       {isDropdownOpen ? (
         <div className='absolute right-0 top-full z-50 mt-2 w-80 transform duration-200 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2'>
           <div className='overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg'>
-            {/* Header */}
             <div className='border-b border-slate-200 bg-slate-50 px-4 py-3'>
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
@@ -236,18 +363,21 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
                   </div>
                   <div>
                     <h3 className='font-medium text-slate-900'>Notifications</h3>
-                    {unreadCount > 0 && <p className='text-xs text-slate-400'>{unreadCount} new updates</p>}
+                    {effectiveUnreadCount > 0 && (
+                      <p className='text-xs text-slate-400'>{effectiveUnreadCount} new updates</p>
+                    )}
                   </div>
                 </div>
                 <div className='flex items-center gap-1'>
                   {displayNotifications.length > 0 && (
                     <Button
                       className='h-7 px-2 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                      disabled={isClearing || clearLoading}
                       size='sm'
                       variant='ghost'
-                      onClick={clearAllNotifications}
+                      onClick={handleClearAllClick}
                     >
-                      Clear all
+                      {isClearing || clearLoading ? 'Clearing...' : 'Clear all'}
                     </Button>
                   )}
                   <Button
@@ -264,108 +394,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
               </div>
             </div>
 
-            {/* Notifications List */}
-            <div className='max-h-80 overflow-y-auto'>
-              {displayNotifications.length === 0 ? (
-                <div className='flex flex-col items-center justify-center py-8'>
-                  <div className='mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100'>
-                    <Bell className='size-6 text-slate-400' />
-                  </div>
-                  <h3 className='mb-1 text-sm font-medium text-slate-900'>No notifications yet</h3>
-                  <p className='text-xs text-slate-400'>New Facebook updates will appear here</p>
-                </div>
-              ) : (
-                <div className='divide-y divide-slate-100'>
-                  {displayNotifications.slice(0, 8).map((notification) => {
-                    const isClickable =
-                      notification.type === 'message' ||
-                      (notification.type === 'post' &&
-                        'link' in notification.data &&
-                        !!notification.data.link) ||
-                      (notification.type === 'comment' &&
-                        'post' in notification.data &&
-                        !!notification.data.post?.link);
-
-                    if (isClickable) {
-                      return (
-                        <div
-                          key={`${notification.id}-${crypto.randomUUID()}`}
-                          role='button'
-                          tabIndex={0}
-                          className={`group px-4 py-3 transition-colors duration-150 hover:bg-slate-50 ${
-                            notification.isNew ? 'bg-blue-50/50' : ''
-                          } cursor-pointer`}
-                          onClick={() => {
-                            handleNotificationClick(notification);
-                          }}
-                          onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              handleNotificationClick(notification);
-                            }
-                          }}
-                        >
-                          <div className='flex items-start gap-3'>
-                            <div className='flex-shrink-0'>{getNotificationIcon(notification.type)}</div>
-                            <div className='min-w-0 flex-1'>
-                              <div className='flex items-center justify-between'>
-                                <h4 className='text-sm font-medium text-slate-900'>{notification.title}</h4>
-                                <span className='text-xs text-slate-400'>
-                                  {getRelativeTimeInThai(notification.timestamp)}
-                                </span>
-                              </div>
-                              <p className='mt-1 line-clamp-2 text-sm text-slate-600'>
-                                {notification.content}
-                              </p>
-                              {notification.data.profile ? (
-                                <p className='mt-1 text-xs text-slate-400'>
-                                  From {notification.data.profile.name}
-                                </p>
-                              ) : null}
-                              {notification.isNew ? (
-                                <div className='mt-2 inline-flex items-center gap-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs font-medium text-white'>
-                                  New
-                                </div>
-                              ) : null}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div
-                        key={notification.id}
-                        className={`group px-4 py-3 transition-colors duration-150 hover:bg-slate-50 ${
-                          notification.isNew ? 'bg-blue-50/50' : ''
-                        } cursor-default opacity-70`}
-                      >
-                        <div className='flex items-start gap-3'>
-                          <div className='flex-shrink-0'>{getNotificationIcon(notification.type)}</div>
-                          <div className='min-w-0 flex-1'>
-                            <div className='flex items-center justify-between'>
-                              <h4 className='text-sm font-medium text-slate-900'>{notification.title}</h4>
-                              <span className='text-xs text-slate-400'>
-                                {getRelativeTimeInThai(notification.timestamp)}
-                              </span>
-                            </div>
-                            <p className='mt-1 line-clamp-2 text-sm text-slate-600'>{notification.content}</p>
-                            {notification.data.profile ? (
-                              <p className='mt-1 text-xs text-slate-400'>
-                                From {notification.data.profile.name}
-                              </p>
-                            ) : null}
-                            {notification.isNew ? (
-                              <div className='mt-2 inline-flex items-center gap-1 rounded-full bg-blue-400 px-2 py-0.5 text-xs font-medium text-white'>
-                                New
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <div className='max-h-80 overflow-y-auto'>{renderNotifications()}</div>
           </div>
         </div>
       ) : null}
