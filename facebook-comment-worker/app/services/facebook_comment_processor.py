@@ -3,7 +3,7 @@ from app.utils.database import Database
 from app.utils.logging import log_message
 from datetime import datetime
 from typing import Dict, Any, Optional
-
+import httpx
 import uuid
 
 
@@ -19,6 +19,33 @@ class FacebookCommentProcessor:
 
         self.database.connect()
 
+    def _noti_facebook_comment(self, host: str, comment_id: str) -> bool:
+        """Send notification about Facebook comment to webhook endpoint."""
+        try:
+            webhook_url = f"http://{host}/api/v1/webhooks/facebook-comments"
+            payload = {
+                "event": "seeded_event",
+                "id": comment_id
+            }
+
+            with httpx.Client() as client:
+                response = client.post(
+                    webhook_url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=30.0
+                )
+
+                if response.status_code == 200:
+                    log_message("FacebookCommentProcessor", "debug", f"Webhook notification sent successfully for comment: {comment_id}")
+                    return True
+                else:
+                    log_message("FacebookCommentProcessor", "error", f"Webhook notification failed with status {response.status_code}: {response.text}")
+                    return False
+
+        except Exception as e:
+            log_message("FacebookCommentProcessor", "error", f"Error sending webhook notification for comment {comment_id}: {e}")
+            return False
 
     def process_facebook_comment(self, message: Dict[str, Any]) -> bool:
         """Process and save a Facebook comment from a message."""
@@ -138,6 +165,7 @@ class FacebookCommentProcessor:
             affected_rows = self.database.execute_command(query, params)
             if affected_rows > 0:
                 log_message("FacebookCommentProcessor", "debug", f"Facebook comment saved successfully: {comment_data['post_id']}")
+                self._noti_facebook_comment(f"{settings.WEBHOOK_HOST}:{settings.WEBHOOK_PORT}", comment_data['comment_id'])
             else:
                 log_message("FacebookCommentProcessor", "info", f"Comment already exists, skipped: {comment_data['post_id']}")
 

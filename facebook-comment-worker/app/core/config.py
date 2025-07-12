@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     QUEUE_PASS: str = os.getenv("QUEUE_PASS", "guest")
     QUEUE_NAME: str = os.getenv("QUEUE_NAME", "facebook_comments")
 
+    # Webhook
+    WEBHOOK_HOST: str = os.getenv("WEBHOOK_HOST", "localhost")
+    WEBHOOK_PORT: int = os.getenv("WEBHOOK_PORT", 3000)
+
     # Env
     DEBUG: bool = os.getenv("DEBUG", "False") == "True"
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
