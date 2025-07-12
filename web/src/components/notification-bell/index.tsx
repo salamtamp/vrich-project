@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { usePathname, useRouter } from 'next/navigation';
 
+import dayjs from 'dayjs';
 import { Bell, FileText, MessageSquare, User, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -226,17 +227,20 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   };
 
   const handleNotificationClick = (notification: NotificationClickHandler) => {
+    const since = dayjs().subtract(6, 'day').format('YYYY-MM-DD');
+    const until = dayjs().format('YYYY-MM-DD');
+
     const targetPath = (() => {
       if (notification.type === 'message') {
         return '/inbox';
       } else if (notification.type === 'post') {
         if (notification.postId) {
-          return `/post?id=${notification.postId}`;
+          return `/post?id=${notification.postId}&page=1&limit=15&since=${since}&until=${until}`;
         }
         return '/post';
       } else if (notification.type === 'comment') {
         if (notification.postId) {
-          return `/post?id=${notification.postId}`;
+          return `/post?id=${notification.postId}&page=1&limit=15&since=${since}&until=${until}`;
         }
         return '/post';
       }
