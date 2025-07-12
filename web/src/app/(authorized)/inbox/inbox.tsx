@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 
 import dayjs from 'dayjs';
 
@@ -9,6 +9,7 @@ import FilterCard from '@/components/filter-card';
 import ProfileBox from '@/components/profile-box';
 import { API } from '@/constants/api.constant';
 import { PaginationProvider } from '@/contexts';
+import { useNotificationContext } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import { useLocalDocsWithProfileUpdate } from '@/hooks/useLocalDocsWithProfileUpdate';
@@ -22,8 +23,9 @@ const MessageContent: React.FC<{ message: FacebookInboxResponse }> = ({ message 
 
 const Inbox = () => {
   const { open, close } = useModalContext();
+  const { lastInboxEvent } = useNotificationContext();
 
-  const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
+  const { handleResetToDefault, data, isLoading, handleConfirmPeriod } = usePaginatedRequest<
     PaginationResponse<FacebookInboxResponse>
   >({
     url: API.INBOX,
@@ -84,6 +86,11 @@ const Inbox = () => {
     },
     [open, close, markProfileUpdated, handleProfileUpdateIfNeeded]
   );
+
+  useEffect(() => {
+    handleResetToDefault();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastInboxEvent]);
 
   return (
     <FilterCard

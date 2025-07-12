@@ -16,5 +16,14 @@ class FacebookInboxRepo(
     def create(self, db: Session, obj_in: FacebookInboxCreate) -> FacebookInbox:
         return create_facebook_messenger(db, obj_in=obj_in)
 
+    def get_by_messenger_id(
+        self, db: Session, *, messenger_id: str
+    ) -> FacebookInbox | None:
+        return (
+            db.query(FacebookInbox)
+            .filter(FacebookInbox.messenger_id == messenger_id)
+            .first()
+        )
+
 
 facebook_inbox_repo = FacebookInboxRepo(FacebookInbox)

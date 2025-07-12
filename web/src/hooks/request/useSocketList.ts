@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { useSession } from 'next-auth/react';
-
-import { useSocket } from '../useSocket';
+import { useSocketContext } from '@/contexts';
 
 import useRequest from './useRequest';
 
@@ -13,8 +11,7 @@ export type UseSocketListOptions<_T> = {
 };
 
 export function useSocketList<_T>({ requestConfig, socketEventName, limit = 20 }: UseSocketListOptions<_T>) {
-  const { data: session } = useSession();
-  const { socket } = useSocket({ token: session?.accessToken ?? '' });
+  const { socket } = useSocketContext();
 
   const [items, setItems] = useState<_T[]>([]);
   const [hasNext, setHasNext] = useState(false);

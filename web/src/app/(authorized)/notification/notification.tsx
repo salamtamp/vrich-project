@@ -1,89 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import { Bell, FileText, MessageSquare, User } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 
-import { useSocket } from '@/hooks/useSocket';
-import type { FacebookComment } from '@/types/api/facebook-comment';
-import type { FacebookInbox } from '@/types/api/facebook-inbox';
-import type { FacebookPost } from '@/types/api/facebook-post';
-
-type NotificationItem = {
-  id: string;
-  type: 'post' | 'message' | 'comment';
-  title: string;
-  content: string;
-  timestamp: Date;
-  data: FacebookPost | FacebookInbox | FacebookComment;
-};
+import { useNotificationContext } from '@/contexts';
 
 const Notification = () => {
-  const { data: session, status } = useSession();
-  const { socket, isConnected, joinRoom } = useSocket({
-    token: session?.accessToken ?? '',
-  });
+  const { notifications } = useNotificationContext();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [isAuthenticated] = useState(status === 'authenticated' && session?.accessToken);
-
-  useEffect(() => {
-    if (!socket) {
-      return;
-    }
-
-    // Listen for Facebook data events from server
-    socket.on('facebook_post.created', (data: FacebookPost) => {
-      const newNotification: NotificationItem = {
-        id: `post-${Date.now()}`,
-        type: 'post',
-        title: 'New Facebook Post',
-        content: data.message?.substring(0, 100) ?? 'New post created',
-        timestamp: new Date(),
-        data,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-    });
-
-    socket.on('facebook_inbox.created', (data: FacebookInbox) => {
-      const newNotification: NotificationItem = {
-        id: `message-${Date.now()}`,
-        type: 'message',
-        title: 'New Facebook Message',
-        content: data.message?.substring(0, 100) ?? 'New message received',
-        timestamp: new Date(),
-        data,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-    });
-
-    socket.on('facebook_comment.created', (data: FacebookComment) => {
-      const newNotification: NotificationItem = {
-        id: `comment-${Date.now()}`,
-        type: 'comment',
-        title: 'New Facebook Comment',
-        content: data.message?.substring(0, 100) ?? 'New comment added',
-        timestamp: new Date(),
-        data,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-    });
-
-    return () => {
-      socket.off('facebook_post.created');
-      socket.off('facebook_inbox.created');
-      socket.off('facebook_comment.created');
-    };
-  }, [socket]);
-
-  useEffect(() => {
-    if (isConnected && isAuthenticated) {
-      joinRoom('facebook-updates');
-    }
-  }, [isConnected, isAuthenticated, joinRoom]);
-
-  const getNotificationIcon = (type: NotificationItem['type']) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'post':
         return <FileText className='size-4 text-blue-500' />;
@@ -119,7 +43,7 @@ const Notification = () => {
     <div className='p-6'>
       <div className='mb-6'>
         <h1 className='text-2xl font-bold text-gray-900'>Notifications</h1>
-        <p className='text-gray-600'>Socket Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
+        <p className='text-gray-600'>Total Notifications: {notifications.length}</p>
       </div>
 
       {notifications.length === 0 ? (

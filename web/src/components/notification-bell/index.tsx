@@ -1,49 +1,45 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import { Bell, FileText, MessageSquare, User, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
 import { API } from '@/constants/api.constant';
+import { useNotificationContext } from '@/contexts';
 import useRequest from '@/hooks/request/useRequest';
-import { useSocket } from '@/hooks/useSocket';
 import { getRelativeTimeInThai } from '@/lib/utils';
 import type { NotificationsApiResponse } from '@/types/api/api-response';
 import type { FacebookComment } from '@/types/api/facebook-comment';
 import type { FacebookInbox } from '@/types/api/facebook-inbox';
 import type { FacebookPost } from '@/types/api/facebook-post';
 
-type NotificationItem = {
-  id: string;
-  type: 'post' | 'message' | 'comment';
-  title: string;
-  content: string;
-  timestamp: Date;
-  data: FacebookPost | FacebookInbox | FacebookComment;
-  isNew?: boolean;
-};
-
 type NotificationBellProps = {
   className?: string;
 };
 
+type NotificationData = FacebookPost | FacebookInbox | FacebookComment;
+
+type NotificationClickHandler = {
+  id: string;
+  type: string;
+  title: string;
+  content: string;
+  timestamp: Date;
+  data: NotificationData;
+  isNew?: boolean;
+};
+
 const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
-  const { data: session, status } = useSession();
-  const { socket, isConnected, joinRoom } = useSocket({
-    token: session?.accessToken ?? '',
-  });
+  const { notifications, unreadCount, clearAllNotifications, markAllAsRead, isAnimating } =
+    useNotificationContext();
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [isAuthenticated] = useState(status === 'authenticated' && session?.accessToken);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [animatingBell, setAnimatingBell] = useState(false);
+  const [displayNotifications, setDisplayNotifications] = useState<NotificationClickHandler[]>([]);
 
-  const notificationsRequest = useRequest<NotificationsApiResponse>({
+  const { handleRequest, data } = useRequest<NotificationsApiResponse>({
     request: {
       url: API.NOTIFICATIONS,
       method: 'GET',
@@ -52,113 +48,83 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
 
   const router = useRouter();
 
-  // Animate bell when new notification arrives
-  const animateBell = () => {
-    setAnimatingBell(true);
-    setTimeout(() => {
-      setAnimatingBell(false);
-    }, 600);
-  };
-
-  useEffect(() => {
-    if (!socket) {
-      return;
+  // Transform API data to match NotificationItem format
+  const apiNotifications = useMemo(() => {
+    if (!data) {
+      return [];
     }
 
-    // Listen for Facebook data events from server
-    socket.on('facebook_post.created', (data: FacebookPost) => {
-      const newNotification: NotificationItem = {
-        id: `post-${Date.now()}`,
+    const transformed: NotificationClickHandler[] = [];
+
+    // Transform posts
+    data.posts?.forEach((post) => {
+      transformed.push({
+        id: `post-${post.id}`,
         type: 'post',
-        title: 'New Facebook Post',
-        content: data.message?.substring(0, 100) ?? 'New post created',
-        timestamp: new Date(),
-        data,
-        isNew: true,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-      animateBell();
+        title: 'Facebook Post',
+        content: post.message?.substring(0, 100) ?? 'New post created',
+        timestamp: new Date(post.published_at),
+        data: post,
+        isNew: false,
+      });
     });
 
-    socket.on('facebook_inbox.created', (data: FacebookInbox) => {
-      const newNotification: NotificationItem = {
-        id: `message-${Date.now()}`,
+    // Transform messages
+    data.messages?.forEach((message) => {
+      transformed.push({
+        id: `message-${message.id}`,
         type: 'message',
-        title: 'New Facebook Message',
-        content: data.message?.substring(0, 100) ?? 'New message received',
-        timestamp: new Date(),
-        data,
-        isNew: true,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-      animateBell();
+        title: 'Facebook Message',
+        content: message.message?.substring(0, 100) ?? 'New message received',
+        timestamp: new Date(message.created_at),
+        data: message,
+        isNew: false,
+      });
     });
 
-    socket.on('facebook_comment.created', (data: FacebookComment) => {
-      const newNotification: NotificationItem = {
-        id: `comment-${Date.now()}`,
+    // Transform comments
+    data.comments?.forEach((comment) => {
+      transformed.push({
+        id: `comment-${comment.id}`,
         type: 'comment',
-        title: 'New Facebook Comment',
-        content: data.message?.substring(0, 100) ?? 'New comment added',
-        timestamp: new Date(),
-        data,
-        isNew: true,
-      };
-      setNotifications((prev) => [newNotification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-      animateBell();
+        title: 'Facebook Comment',
+        content: comment.message?.substring(0, 100) ?? 'New comment added',
+        timestamp: new Date(comment.created_at),
+        data: comment,
+        isNew: false,
+      });
     });
 
-    return () => {
-      socket.off('facebook_post.created');
-      socket.off('facebook_inbox.created');
-      socket.off('facebook_comment.created');
-    };
-  }, [socket]);
+    return transformed.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }, [data]);
 
+  // Initialize with API data and add new context notifications
   useEffect(() => {
-    if (isConnected && isAuthenticated) {
-      joinRoom('facebook-updates');
+    if (apiNotifications.length > 0 && displayNotifications.length === 0) {
+      // Initialize with API data
+      setDisplayNotifications(apiNotifications);
     }
-  }, [isConnected, isAuthenticated, joinRoom]);
+  }, [apiNotifications, displayNotifications.length]);
 
-  const handleGetNoti = async () => {
-    await notificationsRequest.handleRequest().then((data) => {
-      if (!data) {
-        return;
-      }
-      const merged: NotificationItem[] = [
-        ...data.posts.map((p) => ({
-          id: p.id,
-          type: 'post' as const,
-          title: 'New Facebook Post',
-          content: p.message?.substring(0, 100) ?? 'New post created',
-          timestamp: new Date(p.published_at),
-          data: p,
-        })),
-        ...data.messages.map((m) => ({
-          id: m.id,
-          type: 'message' as const,
-          title: 'New Facebook Message',
-          content: m.message?.substring(0, 100) ?? 'New message received',
-          timestamp: new Date(m.published_at),
-          data: m,
-        })),
-        ...data.comments.map((c) => ({
-          id: c.id,
-          type: 'comment' as const,
-          title: 'New Facebook Comment',
-          content: c.message?.substring(0, 100) ?? 'New comment added',
-          timestamp: new Date(c.published_at),
-          data: c,
-        })),
-      ];
-      merged.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      setNotifications(merged);
-    });
-  };
+  // Add new context notifications to the beginning
+  useEffect(() => {
+    if (notifications.length > 0) {
+      setDisplayNotifications((prev) => {
+        const contextIds = new Set(prev.map((n) => n.id));
+        const newContextNotifications = notifications.filter((n) => !contextIds.has(n.id));
+
+        if (newContextNotifications.length > 0) {
+          return [...newContextNotifications, ...prev];
+        }
+
+        return prev;
+      });
+    }
+  }, [notifications]);
+
+  const handleGetNoti = useCallback(async () => {
+    await handleRequest();
+  }, [handleRequest]);
 
   useEffect(() => {
     // Fetch default notifications on mount
@@ -184,7 +150,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
     };
   }, [isDropdownOpen]);
 
-  const getNotificationIcon = (type: NotificationItem['type']) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'post':
         return (
@@ -216,27 +182,21 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   const handleBellClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
     if (!isDropdownOpen) {
-      setUnreadCount(0);
-      setNotifications((prev) => prev.map((n) => ({ ...n, isNew: false })));
+      markAllAsRead();
     }
   };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
-    setUnreadCount(0);
-  };
-
-  const handleNotificationClick = (notification: NotificationItem) => {
+  const handleNotificationClick = (notification: NotificationClickHandler) => {
     if (notification.type === 'message') {
       router.push('/inbox');
     } else if (notification.type === 'post') {
-      const post = notification.data as FacebookPost | { link?: string };
-      if ('link' in post && post.link) {
+      const post = notification.data as FacebookPost;
+      if (post.link) {
         window.open(post.link, '_blank');
       }
     } else if (notification.type === 'comment') {
-      const comment = notification.data as FacebookComment | { post?: { link?: string } };
-      if (comment.post && comment.post.link) {
+      const comment = notification.data as FacebookComment;
+      if (comment.post?.link) {
         window.open(comment.post.link, '_blank');
       }
     }
@@ -247,13 +207,13 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
       <Button
         variant='outline'
         className={`group relative !rounded-full border border-slate-200 !bg-slate-50 !p-3 transition-all duration-200 hover:border-slate-300 hover:!bg-slate-100 ${className} ${
-          animatingBell ? 'animate-pulse' : ''
+          isAnimating ? 'animate-pulse' : ''
         }`}
         onClick={handleBellClick}
       >
         <Bell
           className={`size-5 text-slate-600 transition-transform duration-200 group-hover:scale-110 ${
-            animatingBell ? 'animate-bounce' : ''
+            isAnimating ? 'animate-bounce' : ''
           }`}
         />
         {unreadCount > 0 && (
@@ -280,7 +240,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
                   </div>
                 </div>
                 <div className='flex items-center gap-1'>
-                  {notifications.length > 0 && (
+                  {displayNotifications.length > 0 && (
                     <Button
                       className='h-7 px-2 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-800'
                       size='sm'
@@ -306,7 +266,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
 
             {/* Notifications List */}
             <div className='max-h-80 overflow-y-auto'>
-              {notifications.length === 0 ? (
+              {displayNotifications.length === 0 ? (
                 <div className='flex flex-col items-center justify-center py-8'>
                   <div className='mb-3 flex size-12 items-center justify-center rounded-full bg-slate-100'>
                     <Bell className='size-6 text-slate-400' />
@@ -316,18 +276,20 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
                 </div>
               ) : (
                 <div className='divide-y divide-slate-100'>
-                  {notifications.slice(0, 8).map((notification) => {
+                  {displayNotifications.slice(0, 8).map((notification) => {
                     const isClickable =
                       notification.type === 'message' ||
                       (notification.type === 'post' &&
-                        ((notification.data as FacebookPost | { link?: string }).link ?? false)) ||
+                        'link' in notification.data &&
+                        !!notification.data.link) ||
                       (notification.type === 'comment' &&
-                        ((notification.data as FacebookComment | { post?: { link?: string } }).post?.link ??
-                          false));
+                        'post' in notification.data &&
+                        !!notification.data.post?.link);
+
                     if (isClickable) {
                       return (
                         <div
-                          key={notification.id}
+                          key={`${notification.id}-${crypto.randomUUID()}`}
                           role='button'
                           tabIndex={0}
                           className={`group px-4 py-3 transition-colors duration-150 hover:bg-slate-50 ${
@@ -401,13 +363,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
                       </div>
                     );
                   })}
-                  {notifications.length > 8 && (
-                    <div className='bg-slate-50 px-4 py-3 text-center'>
-                      <p className='text-sm text-slate-600'>
-                        Showing 8 of {notifications.length} notifications
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

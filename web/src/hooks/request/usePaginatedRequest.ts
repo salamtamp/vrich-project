@@ -30,16 +30,12 @@ function usePaginatedRequest<T, D = object>({
   requireFields = [],
   waiting = false,
 }: UsePaginatedRequestProps) {
-  const { pagination } = usePaginationContext();
+  const { pagination, reset } = usePaginationContext();
   const { limit, offset } = pagination;
 
   const [since, setSince] = useState<string | null>(defaultStartDate.startOf('day').toISOString());
   const [until, setUntil] = useState<string | null>(defaultEndDate.endOf('day').toISOString());
-
-  const handleConfirmPeriod = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
-    setSince(startDate ? startDate.startOf('day').toISOString() : null);
-    setUntil(endDate ? endDate.endOf('day').toISOString() : null);
-  }, []);
+  const [resetting, setResetting] = useState(false);
 
   const { data, error, headers, isLoading, handleRequest } = useRequest<T, D>({
     request: {
@@ -52,7 +48,38 @@ function usePaginatedRequest<T, D = object>({
     },
   });
 
+  const handleConfirmPeriod = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
+    setSince(startDate ? startDate.startOf('day').toISOString() : null);
+    setUntil(endDate ? endDate.endOf('day').toISOString() : null);
+  }, []);
+
+  const handleResetToDefault = useCallback(() => {
+    setResetting(true);
+    reset();
+    setSince(defaultStartDate.startOf('day').toISOString());
+    setUntil(defaultEndDate.endOf('day').toISOString());
+
+    const newParams = {
+      offset,
+      limit,
+      since: defaultStartDate.startOf('day').toISOString(),
+      until: defaultEndDate.endOf('day').toISOString(),
+      ...additionalParams,
+    };
+
+    void handleRequest({ params: newParams });
+    setResetting(false);
+  }, [reset, defaultStartDate, defaultEndDate, offset, limit, additionalParams, handleRequest]);
+
+  // Extract complex expressions for useEffect dependencies
+  const requireFieldsString = JSON.stringify(requireFields);
+  const additionalParamsString = JSON.stringify(additionalParams);
+
   useEffect(() => {
+    if (resetting) {
+      return;
+    }
+
     const newParams = { offset, limit, since, until, ...additionalParams };
     if (waiting) {
       return;
@@ -66,7 +93,7 @@ function usePaginatedRequest<T, D = object>({
 
     void handleRequest({ params: newParams });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit, offset, since, until, JSON.stringify(requireFields), JSON.stringify(additionalParams), waiting]);
+  }, [limit, offset, since, until, requireFieldsString, additionalParamsString, waiting, resetting]);
 
   return {
     data,
@@ -77,6 +104,7 @@ function usePaginatedRequest<T, D = object>({
     since,
     until,
     handleConfirmPeriod,
+    handleResetToDefault,
     setSince,
     setUntil,
     limit,

@@ -28,7 +28,7 @@ async def facebook_posts_webhook(
     data: FacebookPostWebhookRequest,
 ):
     """Webhook for Facebook post events."""
-    post = facebook_post_repo.get_by_id(db, id=data.id)
+    post = facebook_post_repo.get_by_post_id(db, post_id=data.id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
@@ -60,7 +60,7 @@ async def facebook_comments_webhook(
     data: FacebookCommentWebhookRequest,
 ):
     """Webhook for Facebook comment events."""
-    comment = facebook_comment_repo.get_by_id(db, id=data.id)
+    comment = facebook_comment_repo.get_by_comment_id(db, comment_id=data.id)
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
 
@@ -109,7 +109,7 @@ async def facebook_inboxes_webhook(
     data: FacebookInboxWebhookRequest,
 ):
     """Webhook for Facebook inbox events."""
-    inbox = facebook_inbox_repo.get_by_id(db, id=data.id)
+    inbox = facebook_inbox_repo.get_by_messenger_id(db, messenger_id=data.id)
     if not inbox:
         raise HTTPException(status_code=404, detail="Inbox not found")
 
