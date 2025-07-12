@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import { Bell, FileText, MessageSquare, User, X } from 'lucide-react';
 
@@ -59,6 +59,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
 
   const isLoading = getLoading || clearLoading;
   const router = useRouter();
+  const pathname = usePathname();
 
   const apiNotifications = useMemo(() => {
     if (!data) {
@@ -222,18 +223,21 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   };
 
   const handleNotificationClick = (notification: NotificationClickHandler) => {
-    if (notification.type === 'message') {
-      router.push('/inbox');
-    } else if (notification.type === 'post') {
-      const post = notification.data as FacebookPost;
-      if (post.link) {
-        window.open(post.link, '_blank');
+    const targetPath = (() => {
+      if (notification.type === 'message') {
+        return '/inbox';
+      } else if (notification.type === 'post') {
+        return '/post';
+      } else if (notification.type === 'comment') {
+        return '/post';
       }
-    } else if (notification.type === 'comment') {
-      const comment = notification.data as FacebookComment;
-      if (comment.post?.link) {
-        window.open(comment.post.link, '_blank');
-      }
+      return null;
+    })();
+
+    if (targetPath && pathname !== targetPath) {
+      router.push(targetPath);
+    } else if (targetPath && pathname === targetPath) {
+      setIsDropdownOpen(false);
     }
   };
 
