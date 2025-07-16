@@ -1,3 +1,4 @@
+from app.schemas.campaign import Campaign, CampaignCreate, CampaignUpdate
 from app.schemas.common import Message, Token, TokenPayload
 from app.schemas.facebook_post import (
     FacebookPost,
@@ -14,6 +15,9 @@ from app.schemas.facebook_profile import (
 from app.schemas.user import User, UserCreate, UserResponse, UserUpdate
 
 __all__ = [
+    "Campaign",
+    "CampaignCreate",
+    "CampaignUpdate",
     "FacebookPost",
     "FacebookPostCreate",
     "FacebookPostResponse",

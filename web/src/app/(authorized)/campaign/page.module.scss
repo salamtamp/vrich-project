@@ -1,0 +1,7 @@
+.campaignPageContainer {
+  @apply flex flex-col gap-6 p-6;
+}
+
+.campaignTableContainer {
+  @apply w-full overflow-x-auto;
+} 

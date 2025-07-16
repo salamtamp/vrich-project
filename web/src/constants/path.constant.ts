@@ -4,4 +4,5 @@ export const PATH = {
   INBOX: '/inbox',
   POST: '/post',
   PROFILE: '/profile',
+  CAMPAIGN: '/campaign',
 };

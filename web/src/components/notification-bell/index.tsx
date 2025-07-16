@@ -281,10 +281,12 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
         {displayNotifications.slice(0, 8).map((notification) => {
           const isClickable =
             notification.type === 'message' ||
-            (notification.type === 'post' && 'link' in notification.data && !!notification.data.link) ||
+            (notification.type === 'post' &&
+              'link' in notification.data &&
+              (notification.data.link ?? false)) ||
             (notification.type === 'comment' &&
               'post' in notification.data &&
-              !!notification.data.post?.link);
+              (notification.data.post?.link ?? false));
 
           const NotificationContent = (
             <div className='flex items-start gap-3'>
@@ -297,7 +299,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
                   </span>
                 </div>
                 <p className='mt-1 line-clamp-2 text-sm text-slate-600'>{notification.content}</p>
-                {notification.data.profile ? (
+                {notification.data.profile?.name ? (
                   <p className='mt-1 text-xs text-slate-400'>From {notification.data.profile.name}</p>
                 ) : null}
                 {notification.isNew ? (

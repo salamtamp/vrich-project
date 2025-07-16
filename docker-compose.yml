@@ -60,74 +60,74 @@ services:
     depends_on:
       - queue
 
-  facebook-post-worker:
-    build:
-      context: ./facebook-post-worker
-      dockerfile: Dockerfile
-    env_file:
-      - ./facebook-post-worker/.env.docker
-    container_name: facebook-post-worker
-    ports:
-      - "3003:3003"
-    restart: unless-stopped
-    healthcheck:
-      test:
-        ["CMD", "curl", "-f", "http://facebook-post-worker:3003/healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    networks:
-      - local-network
-    depends_on:
-      - database
-      - queue
+  # facebook-post-worker:
+  #   build:
+  #     context: ./facebook-post-worker
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./facebook-post-worker/.env.docker
+  #   container_name: facebook-post-worker
+  #   ports:
+  #     - "3003:3003"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       ["CMD", "curl", "-f", "http://facebook-post-worker:3003/healthcheck"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 5s
+  #   networks:
+  #     - local-network
+  #   depends_on:
+  #     - database
+  #     - queue
 
-  facebook-comment-worker:
-    build:
-      context: ./facebook-comment-worker
-      dockerfile: Dockerfile
-    env_file:
-      - ./facebook-comment-worker/.env.docker
-    container_name: facebook-comment-worker
-    ports:
-      - "3004:3004"
-    restart: unless-stopped
-    healthcheck:
-      test:
-        ["CMD", "curl", "-f", "http://facebook-comment-worker:3004/healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    networks:
-      - local-network
-    depends_on:
-      - database
-      - queue
+  # facebook-comment-worker:
+  #   build:
+  #     context: ./facebook-comment-worker
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./facebook-comment-worker/.env.docker
+  #   container_name: facebook-comment-worker
+  #   ports:
+  #     - "3004:3004"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       ["CMD", "curl", "-f", "http://facebook-comment-worker:3004/healthcheck"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 5s
+  #   networks:
+  #     - local-network
+  #   depends_on:
+  #     - database
+  #     - queue
 
-  facebook-inbox-worker:
-    build:
-      context: ./facebook-inbox-worker
-      dockerfile: Dockerfile
-    env_file:
-      - ./facebook-inbox-worker/.env.docker
-    container_name: facebook-inbox-worker
-    ports:
-      - "3005:3005"
-    restart: unless-stopped
-    healthcheck:
-      test:
-        ["CMD", "curl", "-f", "http://facebook-inbox-worker:3005/healthcheck"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 5s
-    networks:
-      - local-network
-    depends_on:
-      - database
-      - queue
+  # facebook-inbox-worker:
+  #   build:
+  #     context: ./facebook-inbox-worker
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - ./facebook-inbox-worker/.env.docker
+  #   container_name: facebook-inbox-worker
+  #   ports:
+  #     - "3005:3005"
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test:
+  #       ["CMD", "curl", "-f", "http://facebook-inbox-worker:3005/healthcheck"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 5s
+  #   networks:
+  #     - local-network
+  #   depends_on:
+  #     - database
+  #     - queue
 
   database:
     image: postgres:15.8

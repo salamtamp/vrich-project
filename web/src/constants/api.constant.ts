@@ -10,4 +10,5 @@ export const API = {
     GET_LAST: '/api/v1/notifications/latest',
     CLEAR: '/api/v1/notifications/clear',
   },
+  CAMPAIGN: '/api/v1/campaigns',
 };

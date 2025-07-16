@@ -1,5 +1,6 @@
 export type * from './api-response';
 export type * from './auth';
+export type * from './campaign';
 export type * from './facebook-comment';
 export type * from './facebook-inbox';
 export type * from './facebook-post';

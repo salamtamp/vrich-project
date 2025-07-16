@@ -1,0 +1,27 @@
+import uuid
+
+from sqlalchemy import Column, DateTime, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.sql import func
+
+from app.db.session import Base
+
+
+class Campaign(Base):
+    __tablename__ = "campaigns"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
+    name = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="inactive")
+    products = Column(JSONB, nullable=False, default=list)
+    channels = Column(JSONB, nullable=False, default=list)
+    start_at = Column(DateTime(timezone=True), nullable=False)
+    end_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

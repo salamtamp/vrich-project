@@ -37,6 +37,7 @@ print("Initializing Socket.IO ASGI app...")
 socket_app = socketio.ASGIApp(sio, app)
 print("Socket.IO ASGI app initialized successfully")
 
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize Redis connection on startup."""
@@ -46,6 +47,7 @@ async def startup_event():
     except Exception as e:
         print(f"Failed to connect to Redis: {e}")
         print("Application will continue without Redis caching")
+
 
 @app.on_event("shutdown")
 async def shutdown_event():

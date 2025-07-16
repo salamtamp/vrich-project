@@ -82,6 +82,7 @@ const MonthDropdown: React.FC<MonthDropdownProps> = ({
     <button
       aria-label='select-mount'
       className='flex items-center gap-1 rounded-lg border border-solid border-gray-200 px-2 py-1 text-sm font-medium transition-colors hover:bg-gray-100'
+      type='button'
       onClick={onToggle}
     >
       {MONTHS[currentMonth.month()]}
@@ -96,6 +97,7 @@ const MonthDropdown: React.FC<MonthDropdownProps> = ({
             <button
               key={`month-date-picker-${crypto.randomUUID()}`}
               disabled={disabled}
+              type='button'
               className={`w-full px-3 py-2 text-left text-sm transition-colors ${
                 disabled ? 'cursor-not-allowed bg-gray-50 text-gray-300' : `hover:bg-gray-100 ${bgClass}`
               }`}
@@ -133,6 +135,7 @@ const YearDropdown: React.FC<YearDropdownProps> = ({
     <button
       aria-label='select-year'
       className='flex items-center gap-1 rounded-lg border border-solid border-gray-100 px-2 py-1 text-sm font-medium transition-colors hover:bg-gray-100'
+      type='button'
       onClick={onToggle}
     >
       {currentMonth.year()}
@@ -147,6 +150,7 @@ const YearDropdown: React.FC<YearDropdownProps> = ({
             <button
               key={year}
               disabled={disabled}
+              type='button'
               className={`w-full px-3 py-2 text-left text-sm transition-colors ${
                 disabled ? 'cursor-not-allowed bg-gray-50 text-gray-300' : `hover:bg-gray-100 ${bgClass}`
               }`}
@@ -209,6 +213,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         aria-label='เดือนก่อนหน้า'
         className={`rounded p-1 ${isPrevDisabled ? 'cursor-not-allowed text-gray-300' : 'hover:bg-gray-100'}`}
         disabled={isPrevDisabled}
+        type='button'
         onClick={() => {
           onNavigateMonth(-1);
         }}
@@ -240,6 +245,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         aria-label='เดือนถัดไป'
         className={`rounded p-1 ${isNextDisabled ? 'cursor-not-allowed text-gray-300' : 'hover:bg-gray-100'}`}
         disabled={isNextDisabled}
+        type='button'
         onClick={() => {
           onNavigateMonth(1);
         }}
@@ -300,6 +306,7 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
       aria-label={`${date.format('D MMMM YYYY')}`}
       className={getButtonClassName()}
       disabled={disabled}
+      type='button'
       onMouseLeave={onDateLeave}
       onClick={() => {
         onDateClick(date);
@@ -468,6 +475,7 @@ const CalendarFooter: React.FC<CalendarFooterProps> = ({
     <div className='mt-4 flex justify-end space-x-2 border-t pt-4'>
       <button
         className='px-3 py-1 text-xs text-gray-600 transition-colors hover:text-gray-800'
+        type='button'
         onClick={onCancel}
       >
         Cancel
@@ -475,6 +483,7 @@ const CalendarFooter: React.FC<CalendarFooterProps> = ({
       <button
         className={getApplyButtonClassName()}
         disabled={!selectedStartDate || !selectedEndDate}
+        type='button'
         onClick={onApply}
       >
         Apply
@@ -890,6 +899,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             <button
               aria-label='clear-selection'
               className='text-gray-400 hover:text-gray-600'
+              type='button'
               onClick={(e) => {
                 e.stopPropagation();
                 clearSelection();
