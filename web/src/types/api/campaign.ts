@@ -7,14 +7,11 @@ export type CampaignProduct = {
   quantity: number;
 };
 
-export type CampaignChannel = 'facebook_comment' | 'inbox';
-
 export type Campaign = {
   id: string;
   name: string;
   status: CampaignStatus;
   products: CampaignProduct[];
-  channels: CampaignChannel[];
   startAt?: string;
   endAt?: string;
   createdAt: string;

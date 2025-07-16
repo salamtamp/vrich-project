@@ -79,7 +79,7 @@ const CampaignProductRow = ({
                 if (typeof field.ref === 'function') {
                   field.ref(el);
                 } else if (field.ref) {
-                  (field.ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
+                  (field.ref as React.RefObject<HTMLInputElement | null>).current = el;
                 }
               }}
               name={field.name}

@@ -3,7 +3,6 @@ CREATE TABLE campaigns (
     name VARCHAR NOT NULL,
     status VARCHAR NOT NULL DEFAULT 'inactive',
     products JSONB NOT NULL DEFAULT '[]',
-    channels JSONB NOT NULL DEFAULT '[]',
     start_at TIMESTAMPTZ NOT NULL,
     end_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

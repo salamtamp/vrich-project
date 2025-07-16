@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
 import ContentPagination from '@/components/content/pagination';
-import Modal from '@/components/modal';
 import type { TableColumn } from '@/components/table';
 import Table from '@/components/table';
 import { Badge } from '@/components/ui/badge';
@@ -12,11 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import { PaginationProvider } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
+import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Campaign } from '@/types/api/campaign';
 
-import CampaignForm from './campaign-form';
+import CampaignForm from './(modal-create)/campaign-form';
 
 const columns: TableColumn<Campaign>[] = [
   { key: 'name', label: 'Name', bold: true },
@@ -58,13 +58,28 @@ const columns: TableColumn<Campaign>[] = [
 ];
 
 const CampaignPage = () => {
-  const [open, setOpen] = useState(false);
+  const { open } = useModalContext();
   const { data, isLoading } = usePaginatedRequest<PaginationResponse<Campaign>>({
     url: API.CAMPAIGN,
     orderBy: 'createdAt',
   });
   const campaigns = useMemo(() => data?.docs ?? [], [data?.docs]);
   const total = data?.total ?? 0;
+
+  const handleOpenCreateCampaign = () => {
+    open({
+      content: (
+        <Card className='mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-sm'>
+          <CardHeader>
+            <CardTitle className='text-xl font-semibold text-blue-700'>Create Campaign</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CampaignForm />
+          </CardContent>
+        </Card>
+      ),
+    });
+  };
 
   return (
     <PaginationProvider defaultValue={{ limit: 15 }}>
@@ -74,9 +89,7 @@ const CampaignPage = () => {
             <CardTitle className='text-2xl font-bold text-blue-700'>Campaigns</CardTitle>
             <Button
               variant='softgray'
-              onClick={() => {
-                setOpen(true);
-              }}
+              onClick={handleOpenCreateCampaign}
             >
               Create Campaign
             </Button>
@@ -94,22 +107,6 @@ const CampaignPage = () => {
             />
           </CardContent>
         </Card>
-        <Modal
-          isOpen={open}
-          title='Create Campaign'
-          onClose={() => {
-            setOpen(false);
-          }}
-        >
-          <Card className='mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-sm'>
-            <CardHeader>
-              <CardTitle className='text-xl font-semibold text-blue-700'>Create Campaign</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CampaignForm />
-            </CardContent>
-          </Card>
-        </Modal>
       </div>
     </PaginationProvider>
   );

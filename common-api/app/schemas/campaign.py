@@ -14,7 +14,6 @@ class CampaignBase(BaseModel):
     name: str
     status: Literal["active", "inactive"]
     products: list[dict]  # or List[CampaignProduct] if you want strict typing
-    channels: list[Literal["facebook_comment", "inbox"]]
     start_at: datetime
     end_at: datetime
 
@@ -27,7 +26,6 @@ class CampaignUpdate(BaseModel):
     name: str | None = None
     status: Literal["active", "inactive"] | None = None
     products: list[dict] | None = None
-    channels: list[Literal["facebook_comment", "inbox"]] | None = None
     start_at: datetime | None = None
     end_at: datetime | None = None
 

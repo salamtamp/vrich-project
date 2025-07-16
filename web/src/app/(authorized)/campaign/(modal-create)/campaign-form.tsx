@@ -106,8 +106,8 @@ const CampaignForm = () => {
     await handleRequest({
       data: {
         name: data.name,
-        startAt: data.startAt,
-        endAt: data.endAt,
+        start_at: data.startAt,
+        end_at: data.endAt,
         products: data.products,
       },
     });
