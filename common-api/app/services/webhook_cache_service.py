@@ -37,8 +37,8 @@ class WebhookCacheService:
                     )
             await self.client.store_webhook_data(data_type, unique_item_id, data)
         except Exception as e:
-            # Log error but don't fail the webhook processing
-            print(f"Failed to cache webhook data for {data_type}:{item_id}: {e}")
+            # Removed print statement for failed webhook cache
+            pass
             # Continue without caching
 
 

@@ -123,7 +123,6 @@ def clean_db():
 def db():
     db = TestingSessionLocal()
     db.execute(text("PRAGMA foreign_keys=ON"))
-    print(f"[DEBUG] db fixture session id: {id(db)}")
     try:
         yield db
     finally:

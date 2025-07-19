@@ -26,17 +26,14 @@ async def lifespan(app: FastAPI):
     # Startup
     try:
         await redis_client.connect()
-        print("Redis connection established")
     except Exception as e:
-        print(f"Failed to connect to Redis: {e}")
-        print("Application will continue without Redis caching")
+        pass
     yield
     # Shutdown
     try:
         await redis_client.disconnect()
-        print("Redis connection closed")
     except Exception as e:
-        print(f"Error closing Redis connection: {e}")
+        pass
 
 
 app = FastAPI(lifespan=lifespan)
@@ -54,9 +51,7 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api/v1")
 
 # Combine FastAPI and Socket.IO
-print("Initializing Socket.IO ASGI app...")
 socket_app = socketio.ASGIApp(sio, app)
-print("Socket.IO ASGI app initialized successfully")
 
 
 # Remove @app.on_event("startup") and @app.on_event("shutdown") handlers

@@ -39,7 +39,6 @@ class CRUDBase[
         return db.query(self.model).offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
-        print(f"[DEBUG] CRUDBase.create session id: {id(db)}")
         obj_in_data = obj_in.model_dump(
             exclude_unset=False
         )  # Use model_dump to preserve datetime objects
