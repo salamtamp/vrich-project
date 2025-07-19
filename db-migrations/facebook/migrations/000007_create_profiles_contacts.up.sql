@@ -1,6 +1,6 @@
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS customers (
+CREATE TABLE IF NOT EXISTS profiles_contacts (
     id UUID NOT NULL DEFAULT gen_random_uuid(),
     profile_id UUID NOT NULL,
     first_name TEXT NOT NULL,
@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS customers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL,
-    CONSTRAINT customers_pkey PRIMARY KEY (id),
-    CONSTRAINT customers_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES facebook_profiles(id) ON DELETE CASCADE
+    CONSTRAINT profiles_contacts_pkey PRIMARY KEY (id),
+    CONSTRAINT profiles_contacts_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES facebook_profiles(id) ON DELETE CASCADE
 );
 
 COMMIT;
