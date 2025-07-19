@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS orders (
     CONSTRAINT orders_pkey PRIMARY KEY (id),
     CONSTRAINT orders_code_unique UNIQUE (code),
     CONSTRAINT orders_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES facebook_profiles(id) ON DELETE CASCADE,
-    CONSTRAINT orders_product_id_fkey FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     CONSTRAINT orders_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
     CONSTRAINT orders_status_check CHECK (
         status IN (
