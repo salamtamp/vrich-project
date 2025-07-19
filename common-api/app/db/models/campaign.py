@@ -2,8 +2,8 @@ import uuid
 
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from app.db.session import Base
 

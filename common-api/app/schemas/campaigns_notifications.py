@@ -1,7 +1,9 @@
 from datetime import datetime
-from uuid import UUID
-from pydantic import BaseModel, ConfigDict
 from typing import Any
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
+
 
 class CampaignNotificationBase(BaseModel):
     campaign_id: UUID
@@ -10,8 +12,10 @@ class CampaignNotificationBase(BaseModel):
     message: dict[str, Any]
     status: str
 
+
 class CampaignNotificationCreate(CampaignNotificationBase):
     pass
+
 
 class CampaignNotificationUpdate(BaseModel):
     campaign_id: UUID | None = None
@@ -21,10 +25,12 @@ class CampaignNotificationUpdate(BaseModel):
     status: str | None = None
     deleted_at: datetime | None = None
 
+
 class CampaignNotificationResponse(CampaignNotificationBase):
     id: UUID
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
+
 class CampaignNotification(CampaignNotificationResponse):
-    pass 
+    pass

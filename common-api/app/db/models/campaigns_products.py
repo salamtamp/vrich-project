@@ -1,8 +1,9 @@
-from sqlalchemy import Column, DateTime, Text, Integer, ForeignKey, text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text, text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
+
 from app.db.models.base import UUIDPrimaryKeyMixin
 from app.db.session import Base
-from sqlalchemy.orm import relationship
 
 
 class CampaignProduct(Base, UUIDPrimaryKeyMixin):
