@@ -40,19 +40,21 @@ const columns: TableColumn<Campaign>[] = [
   {
     key: 'startAt',
     label: 'Start Date',
-    render: (row) => (row.startAt ? dayjs(row.startAt).format('YYYY-MM-DD') : '-'),
+    render: (row) => {
+      return row.start_at ? dayjs(row.start_at).format('YYYY-MM-DD') : '-';
+    },
     align: 'center',
   },
   {
     key: 'endAt',
     label: 'End Date',
-    render: (row) => (row.endAt ? dayjs(row.endAt).format('YYYY-MM-DD') : '-'),
+    render: (row) => (row.end_at ? dayjs(row.end_at).format('YYYY-MM-DD') : '-'),
     align: 'center',
   },
   {
     key: 'createdAt',
     label: 'Created',
-    render: (row) => dayjs(row.createdAt).format('YYYY-MM-DD HH:mm'),
+    render: (row) => dayjs(row.created_at).format('YYYY-MM-DD HH:mm'),
     align: 'center',
   },
 ];

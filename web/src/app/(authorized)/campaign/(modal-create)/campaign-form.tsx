@@ -13,8 +13,10 @@ import DatePicker from '@/components/date-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCampaignRequest } from '@/hooks/request/useCampaignRequest';
+import { API } from '@/constants/api.constant';
+import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
+import type { CampaignResponse } from '@/types/api';
 
 import CampaignProductList from './campaign-product-list';
 
@@ -52,7 +54,13 @@ const defaultValues: FormValues = {
 };
 
 const CampaignForm = () => {
-  const { handleRequest, isLoading } = useCampaignRequest();
+  const { handleRequest, isLoading } = useRequest<CampaignResponse>({
+    request: {
+      url: API.CAMPAIGN,
+      method: 'POST',
+    },
+  });
+
   const { control, handleSubmit, reset, setValue, watch } = useForm<FormValues>({
     defaultValues,
     resolver: yupResolver(schema),
@@ -109,6 +117,7 @@ const CampaignForm = () => {
         start_at: data.startAt,
         end_at: data.endAt,
         products: data.products,
+        status: 'inactive',
       },
     });
     reset(defaultValues);

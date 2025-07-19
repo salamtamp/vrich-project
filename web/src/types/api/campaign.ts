@@ -12,12 +12,12 @@ export type Campaign = {
   name: string;
   status: CampaignStatus;
   products: CampaignProduct[];
-  startAt?: string;
-  endAt?: string;
-  createdAt: string;
-  updatedAt?: string;
+  start_at?: string;
+  end_at?: string;
+  created_at: string;
+  updated_at?: string;
 };
 
-export type CampaignCreate = Omit<Campaign, 'id' | 'createdAt' | 'updatedAt'>;
+export type CampaignCreate = Omit<Campaign, 'id' | 'created_at' | 'updated_at'>;
 
 export type CampaignResponse = Campaign;
