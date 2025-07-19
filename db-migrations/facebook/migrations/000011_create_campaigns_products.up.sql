@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS campaigns_products (
     product_id UUID NOT NULL,
     keyword TEXT NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
-    max_order_quantity INT NOT NULL DEFAULT 0,
+    max_order_quantity INT DEFAULT NULL,
     status TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
