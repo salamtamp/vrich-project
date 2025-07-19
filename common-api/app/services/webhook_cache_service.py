@@ -36,7 +36,7 @@ class WebhookCacheService:
                         self.client._get_cache_key(data_type, oldest_id)
                     )
             await self.client.store_webhook_data(data_type, unique_item_id, data)
-        except Exception as e:
+        except Exception:
             # Removed print statement for failed webhook cache
             pass
             # Continue without caching

@@ -1,6 +1,6 @@
 import logging
 import sys
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 import socketio
 from fastapi import FastAPI
@@ -24,16 +24,12 @@ logging.basicConfig(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    try:
+    with suppress(Exception):
         await redis_client.connect()
-    except Exception as e:
-        pass
     yield
     # Shutdown
-    try:
+    with suppress(Exception):
         await redis_client.disconnect()
-    except Exception as e:
-        pass
 
 
 app = FastAPI(lifespan=lifespan)
