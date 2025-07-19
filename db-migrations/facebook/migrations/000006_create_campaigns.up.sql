@@ -2,7 +2,6 @@ CREATE TABLE campaigns (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR NOT NULL,
     status VARCHAR NOT NULL DEFAULT 'inactive',
-    products JSONB NOT NULL DEFAULT '[]',
     start_at TIMESTAMPTZ NOT NULL,
     end_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,

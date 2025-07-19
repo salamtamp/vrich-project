@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 from app.db.session import Base
 
@@ -23,4 +24,9 @@ class Campaign(Base):
         nullable=False,
         server_default=func.now(),
         onupdate=func.now(),
+    )
+    orders = relationship("Order", back_populates="campaign")
+    campaigns_products = relationship("CampaignProduct", back_populates="campaign")
+    campaigns_notifications = relationship(
+        "CampaignNotification", back_populates="campaign"
     )
