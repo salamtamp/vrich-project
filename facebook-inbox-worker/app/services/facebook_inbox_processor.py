@@ -4,6 +4,7 @@ from app.utils.logging import log_message
 from datetime import datetime
 from typing import Dict, Any, Optional
 
+import httpx
 import uuid
 
 
@@ -18,6 +19,34 @@ class FacebookInboxProcessor:
         )
 
         self.database.connect()
+
+    def _noti_facebook_inbox(self, host: str, inbox_id: str) -> bool:
+        """Send notification about Facebook inbox to webhook endpoint."""
+        try:
+            webhook_url = f"http://{host}/api/v1/webhooks/facebook-inboxes"
+            payload = {
+                "event": "seeded_event",
+                "id": inbox_id
+            }
+
+            with httpx.Client() as client:
+                response = client.post(
+                    webhook_url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=30.0
+                )
+
+                if response.status_code == 200:
+                    log_message("FacebookInboxProcessor", "debug", f"Webhook notification sent successfully for inbox: {inbox_id}")
+                    return True
+                else:
+                    log_message("FacebookInboxProcessor", "error", f"Webhook notification failed with status {response.status_code}: {response.text}")
+                    return False
+
+        except Exception as e:
+            log_message("FacebookInboxProcessor", "error", f"Error sending webhook notification for inbox {inbox_id}: {e}")
+            return False
 
     def process_facebook_inbox(self, message: Dict[str, Any]) -> bool:
         """Process and save a Facebook inbox from a message."""
@@ -129,6 +158,7 @@ class FacebookInboxProcessor:
             affected_rows = self.database.execute_command(query, params)
             if affected_rows > 0:
                 log_message("FacebookInboxProcessor", "debug", f"Facebook inbox saved successfully: {inbox_data['messenger_id']}")
+                self._noti_facebook_inbox(f"{settings.WEBHOOK_HOST}:{settings.WEBHOOK_PORT}", inbox_data['messenger_id'])
             else:
                 log_message("FacebookInboxProcessor", "info", f"Inbox already exists, skipped: {inbox_data['messenger_id']}")
 
