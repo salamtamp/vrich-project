@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 
 from app.api.dependencies.pagination import OrderDirection, PaginationBuilder
@@ -9,7 +11,7 @@ from app.schemas.facebook_profile import FacebookProfileCreate, FacebookProfileU
 @pytest.fixture
 def facebook_profile_data():
     return {
-        "facebook_id": "fb_123456",
+        "facebook_id": f"fb_{uuid4()}",
         "type": "user",
         "name": "Test FB User",
         "profile_picture_url": "http://example.com/pic.jpg",
@@ -62,7 +64,7 @@ def seed_profiles(db, count=5):
     profiles = []
     for i in range(count):
         profile_in = FacebookProfileCreate(
-            facebook_id=f"fbid-{i}",
+            facebook_id=f"fbid-{i}-{uuid4()}",
             type="user",
             name=f"User {i}",
             profile_picture_url=f"http://example.com/pic{i}.jpg",
@@ -115,7 +117,7 @@ def test_pagination_search(db):
 
     unique_name = "SpecialSearchUser"
     profile_in = FacebookProfileCreate(
-        facebook_id="fbid-special",
+        facebook_id=f"fbid-special-{uuid4()}",
         type="user",
         name=unique_name,
         profile_picture_url="http://example.com/pic-special.jpg",

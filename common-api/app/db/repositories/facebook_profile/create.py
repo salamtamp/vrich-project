@@ -7,6 +7,7 @@ from app.schemas.facebook_profile import FacebookProfileCreate
 def create_facebook_profile(
     db: Session, *, obj_in: FacebookProfileCreate
 ) -> FacebookProfile:
+    print(f"[DEBUG] create_facebook_profile session id: {id(db)}")
     db_obj = FacebookProfile(
         facebook_id=obj_in.facebook_id,
         type=obj_in.type,

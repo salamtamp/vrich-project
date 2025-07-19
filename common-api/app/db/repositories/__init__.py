@@ -11,12 +11,6 @@ from .products import *  # noqa: F403
 from .profiles_contacts import *  # noqa: F403
 
 __all__ = [
-    "campaign_notification_repo",
-    "campaign_product_repo",
-    "order_product_repo",
-    "order_repo",
-    "payment_repo",
-    "product_repo",
-    "profile_contact_repo",
+    # Add only actually imported or defined symbols here, or remove if not needed
     "user_repo",
 ]

@@ -12,10 +12,14 @@ from app.schemas.facebook_messenger import FacebookInboxCreate
 def create_facebook_messenger(
     db: Session, *, obj_in: FacebookInboxCreate
 ) -> FacebookInbox:
+    print(f"[DEBUG] create_facebook_messenger session id: {id(db)}")
+    # Debug: Print all FacebookProfile IDs and the type/value being searched
+    print("All FacebookProfile IDs:", [p.id for p in db.query(FacebookProfile).all()])
+    print("Looking for profile_id:", obj_in.profile_id, type(obj_in.profile_id))
     # Check if profile exists
     profile = (
         db.query(FacebookProfile)
-        .filter(FacebookProfile.id == obj_in.profile_id)
+        .filter(FacebookProfile.id == str(obj_in.profile_id))
         .first()
     )
     if not profile:

@@ -28,6 +28,7 @@ class PaginationParams(BaseModel):
 T = TypeVar("T")
 
 
+# PaginationResponse uses Generic[T] as required by typing and pydantic generics
 class PaginationResponse(GenericModel, Generic[T]):
     total: int
     docs: list[T]

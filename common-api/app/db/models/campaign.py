@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy import Column, DateTime, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -13,7 +13,6 @@ class Campaign(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String, nullable=False)
     status = Column(String, nullable=False, default="inactive")
-    products = Column(JSONB, nullable=False, default=list)
     start_at = Column(DateTime(timezone=True), nullable=False)
     end_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(

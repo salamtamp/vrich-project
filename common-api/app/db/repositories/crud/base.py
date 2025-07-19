@@ -39,7 +39,10 @@ class CRUDBase[
         return db.query(self.model).offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
-        obj_in_data = jsonable_encoder(obj_in)
+        print(f"[DEBUG] CRUDBase.create session id: {id(db)}")
+        obj_in_data = obj_in.model_dump(
+            exclude_unset=False
+        )  # Use model_dump to preserve datetime objects
         db_obj = self.model(**obj_in_data)
         db.add(db_obj)
         db.commit()
@@ -67,7 +70,7 @@ class CRUDBase[
         return db_obj
 
     def remove(self, db: Session, *, id: UUID) -> ModelType:
-        obj = db.query(self.model).get(id)
+        obj = db.get(self.model, id)
         db.delete(obj)
         db.commit()
         return obj

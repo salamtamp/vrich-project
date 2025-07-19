@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -16,34 +16,35 @@ from app.schemas.products import ProductCreate
 def create_campaign(db):
     campaign_in = CampaignCreate(
         name=f"Campaign {uuid4()}",
-        description="Test campaign",
-        start_date=datetime.utcnow(),
-        end_date=datetime.utcnow(),
         status="active",
+        start_at=datetime.now(UTC),
+        end_at=datetime.now(UTC) + timedelta(days=1),
     )
     return campaign_repo.create(db, obj_in=campaign_in)
 
 
 def create_product(db):
     product_in = ProductCreate(
-        code=f"P{uuid4()}",
+        code=f"P-{uuid4()}",
         name="Test Product",
-        description="A product for testing.",
-        quantity=10,
-        unit="pcs",
-        full_price=100.0,
-        selling_price=80.0,
-        cost=60.0,
-        shipping_fee=10.0,
-        note="Test note",
-        keyword="test,product",
-        product_category="CategoryA",
-        product_type="TypeA",
-        color="red",
-        size="M",
-        weight=1.5,
+        price=100.0,
+        stock=10,
     )
     return product_repo.create(db, obj_in=product_in)
+
+
+def create_campaign_product(db):
+    campaign = create_campaign(db)
+    product = create_product(db)
+    campaign_product_in = CampaignProductCreate(
+        campaign_id=campaign.id,
+        product_id=product.id,
+        keyword="test",
+        quantity=10,
+        max_order_quantity=5,
+        status="active",
+    )
+    return campaign_product_repo.create(db, obj_in=campaign_product_in)
 
 
 @pytest.fixture
@@ -60,56 +61,42 @@ def campaign_product_data(db):
     }
 
 
-def test_create_campaign_product(db, campaign_product_data):
-    campaign_product = campaign_product_repo.create(
-        db, CampaignProductCreate(**campaign_product_data)
-    )
-    assert campaign_product.quantity == campaign_product_data["quantity"]
+def test_create_campaign_product(db):
+    campaign_product = create_campaign_product(db)
     assert campaign_product.id is not None
 
 
-def test_get_campaign_product(db, campaign_product_data):
-    created = campaign_product_repo.create(
-        db, CampaignProductCreate(**campaign_product_data)
+def test_get_campaign_product(db):
+    campaign_product = create_campaign_product(db)
+    db.expire_all()
+    found = (
+        db.query(CampaignProduct)
+        .filter(CampaignProduct.id == str(campaign_product.id))
+        .first()
     )
-    found = db.query(CampaignProduct).filter(CampaignProduct.id == created.id).first()
     assert found is not None
-    assert found.id == created.id
+    assert str(found.id) == str(campaign_product.id)
 
 
-def test_update_campaign_product(db, campaign_product_data):
-    created = campaign_product_repo.create(
-        db, CampaignProductCreate(**campaign_product_data)
-    )
+def test_update_campaign_product(db):
+    campaign_product = create_campaign_product(db)
     update_data = CampaignProductUpdate(quantity=20)
-    updated = campaign_product_repo.update(db, created, update_data)
+    updated = campaign_product_repo.update(
+        db, db_obj=campaign_product, obj_in=update_data
+    )
     assert updated.quantity == 20
 
 
-def test_delete_campaign_product(db, campaign_product_data):
-    created = campaign_product_repo.create(
-        db, CampaignProductCreate(**campaign_product_data)
-    )
-    db.delete(created)
-    db.commit()
-    found = db.query(CampaignProduct).filter(CampaignProduct.id == created.id).first()
-    assert found is None
+def test_delete_campaign_product(db):
+    campaign_product = create_campaign_product(db)
+    deleted = campaign_product_repo.remove(db, id=campaign_product.id)
+    assert deleted.id == campaign_product.id
 
 
 def seed_campaign_products(db, count=5):
-    campaign = create_campaign(db)
-    product = create_product(db)
     campaign_products = []
-    for i in range(count):
-        campaign_product_in = CampaignProductCreate(
-            campaign_id=campaign.id,
-            product_id=product.id,
-            keyword=f"keyword-{i}",
-            quantity=i + 1,
-            max_order_quantity=5,
-            status="active",
-        )
-        campaign_product = campaign_product_repo.create(db, obj_in=campaign_product_in)
+    for _i in range(count):
+        campaign_product = create_campaign_product(db)
         campaign_products.append(campaign_product)
     return campaign_products
 

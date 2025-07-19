@@ -25,18 +25,21 @@ def create_facebook_profile(db):
         name="Test User",
         profile_picture_url="http://example.com/pic.jpg",
     )
-    return facebook_profile_repo.create(db, obj_in=profile_in)
+    profile = facebook_profile_repo.create(db, obj_in=profile_in)
+    print(f"Created FacebookProfile with ID: {profile.id}")
+    return profile
 
 
 def create_campaign(db):
     campaign_in = CampaignCreate(
         name=f"Campaign {uuid4()}",
-        description="Test campaign",
-        start_date=datetime.utcnow(),
-        end_date=datetime.utcnow(),
         status="active",
+        start_at=datetime.now(),
+        end_at=datetime.now(),
     )
-    return campaign_repo.create(db, obj_in=campaign_in)
+    campaign = campaign_repo.create(db, obj_in=campaign_in)
+    print(f"Created Campaign with ID: {campaign.id}")
+    return campaign
 
 
 def create_order(db, profile_id, campaign_id):
@@ -45,9 +48,11 @@ def create_order(db, profile_id, campaign_id):
         profile_id=profile_id,
         campaign_id=campaign_id,
         status="pending",
-        purchase_date=datetime.utcnow(),
+        purchase_date=datetime.now(),
     )
-    return order_repo.create(db, obj_in=order_in)
+    order = order_repo.create(db, obj_in=order_in)
+    print(f"Created Order with ID: {order.id}")
+    return order
 
 
 @pytest.fixture
@@ -66,37 +71,47 @@ def campaign_notification_data(db):
 
 def test_create_campaign_notification(db, campaign_notification_data):
     notification = campaign_notification_repo.create(
-        db, CampaignNotificationCreate(**campaign_notification_data)
+        db, obj_in=CampaignNotificationCreate(**campaign_notification_data)
     )
+    db.add(notification)
+    db.commit()
+    db.refresh(notification)
     assert notification.status == campaign_notification_data["status"]
     assert notification.id is not None
 
 
 def test_get_campaign_notification(db, campaign_notification_data):
     created = campaign_notification_repo.create(
-        db, CampaignNotificationCreate(**campaign_notification_data)
+        db, obj_in=CampaignNotificationCreate(**campaign_notification_data)
     )
+    db.expire_all()
+    all_objs = db.query(CampaignNotification).all()
+    for _obj in all_objs:
+        pass
     found = (
         db.query(CampaignNotification)
-        .filter(CampaignNotification.id == created.id)
+        .filter(CampaignNotification.id == str(created.id))
         .first()
     )
     assert found is not None
-    assert found.id == created.id
+    assert str(found.id) == str(created.id)
 
 
 def test_update_campaign_notification(db, campaign_notification_data):
     created = campaign_notification_repo.create(
-        db, CampaignNotificationCreate(**campaign_notification_data)
+        db, obj_in=CampaignNotificationCreate(**campaign_notification_data)
     )
+    db.add(created)
+    db.commit()
+    db.refresh(created)
     update_data = CampaignNotificationUpdate(status="read")
-    updated = campaign_notification_repo.update(db, created, update_data)
+    updated = campaign_notification_repo.update(db, db_obj=created, obj_in=update_data)
     assert updated.status == "read"
 
 
 def test_delete_campaign_notification(db, campaign_notification_data):
     created = campaign_notification_repo.create(
-        db, CampaignNotificationCreate(**campaign_notification_data)
+        db, obj_in=CampaignNotificationCreate(**campaign_notification_data)
     )
     db.delete(created)
     db.commit()

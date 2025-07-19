@@ -13,7 +13,6 @@ class CampaignProduct(BaseModel):
 class CampaignBase(BaseModel):
     name: str
     status: Literal["active", "inactive"]
-    products: list[dict]  # or List[CampaignProduct] if you want strict typing
     start_at: datetime
     end_at: datetime
 
@@ -25,7 +24,6 @@ class CampaignCreate(CampaignBase):
 class CampaignUpdate(BaseModel):
     name: str | None = None
     status: Literal["active", "inactive"] | None = None
-    products: list[dict] | None = None
     start_at: datetime | None = None
     end_at: datetime | None = None
 

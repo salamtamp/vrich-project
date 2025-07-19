@@ -20,6 +20,7 @@ logging.basicConfig(
 
 # Initialize FastAPI app
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -36,6 +37,7 @@ async def lifespan(app: FastAPI):
         print("Redis connection closed")
     except Exception as e:
         print(f"Error closing Redis connection: {e}")
+
 
 app = FastAPI(lifespan=lifespan)
 

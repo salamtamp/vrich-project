@@ -12,7 +12,6 @@ def seed_campaigns(db, count=10):
         campaign_in = CampaignCreate(
             name=f"Campaign {i}",
             status="active" if i % 2 == 0 else "inactive",
-            products=[],
             start_at=datetime.utcnow() - timedelta(days=i),
             end_at=datetime.utcnow() + timedelta(days=i),
         )

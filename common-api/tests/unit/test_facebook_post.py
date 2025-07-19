@@ -6,23 +6,21 @@ from sqlalchemy.exc import IntegrityError
 
 from app.api.dependencies.pagination import OrderDirection, PaginationBuilder
 from app.db.models.facebook_post import FacebookPost
-from app.db.models.facebook_profile import FacebookProfile
 from app.db.repositories.facebook_post.repo import facebook_post_repo
+from app.db.repositories.facebook_profile.repo import facebook_profile_repo
 from app.schemas.facebook_post import FacebookPostCreate, FacebookPostUpdate
+from app.schemas.facebook_profile import FacebookProfileCreate
 
 
 @pytest.fixture
 def profile(db):
-    profile = FacebookProfile(
-        id=uuid4(),
-        facebook_id="fbid-123",
+    profile_in = FacebookProfileCreate(
+        facebook_id=f"fbid-{uuid4()}",
         type="user",
         name="Test User",
         profile_picture_url="http://example.com/pic.jpg",
     )
-    db.add(profile)
-    db.commit()
-    return profile
+    return facebook_profile_repo.create(db, obj_in=profile_in)
 
 
 @pytest.fixture
@@ -69,7 +67,6 @@ def test_unique_facebook_post(db, facebook_post_data):
 
 def test_foreign_key_profile_id_facebook_post(db, facebook_post_data):
     data = facebook_post_data.copy()
-    from uuid import uuid4
 
     data["profile_id"] = uuid4()
     with pytest.raises(ValueError):
