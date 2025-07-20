@@ -279,6 +279,7 @@ const CampaignForm = () => {
                     <DatePicker
                       defaultEndDate={typeof endValue === 'string' && endValue ? dayjs(endValue) : undefined}
                       defaultStartDate={typeof value === 'string' && value ? dayjs(value) : undefined}
+                      position='top'
                       onChange={(start, end) => {
                         onChange(start ? start.toISOString() : '');
                         onEndChange(end ? end.toISOString() : '');

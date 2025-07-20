@@ -21,6 +21,7 @@ type DatePickerProps = {
   defaultEndDate?: Dayjs;
   onChange?: (startDate: Dayjs | null, endDate: Dayjs | null) => void;
   onConfirm?: (startDate: Dayjs | null, endDate: Dayjs | null) => void;
+  position?: 'top' | 'bottom';
 };
 
 const isSameDay = (date1: Dayjs | null, date2: Dayjs | null): boolean => {
@@ -521,6 +522,7 @@ type DatePickerDialogProps = {
   setShowYearDropdown: (show: boolean) => void;
   setShowMonthDropdown: (show: boolean) => void;
   isSingleYearRange?: boolean;
+  position?: 'top' | 'bottom';
 };
 
 const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
@@ -552,18 +554,20 @@ const DatePickerDialog: React.FC<DatePickerDialogProps> = ({
   setShowYearDropdown,
   setShowMonthDropdown,
   isSingleYearRange,
+  position = 'bottom',
 }) => {
   if (!isOpen) {
     return null;
   }
 
   const days = getDaysInMonth(currentMonth);
+  const positionClass = position === 'top' ? 'bottom-full' : 'top-full';
 
   return (
     <dialog
       open
       aria-label='date-picker-calendar'
-      className='absolute inset-x-0 top-12 z-50 w-[260px] rounded-lg border border-gray-200 bg-white p-4 shadow-lg'
+      className={`absolute inset-x-0 z-50 w-[260px] rounded-lg border border-gray-200 bg-white p-4 shadow-lg ${positionClass}`}
       onKeyDown={onCalendarKeyDown}
       onClick={(e) => {
         if (!(e.target as Element).closest('.relative')) {
@@ -625,6 +629,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   defaultEndDate,
   onChange,
   onConfirm,
+  position = 'bottom',
 }) => {
   const [selectedStartDate, setSelectedStartDate] = useState<Dayjs | null>(defaultStartDate ?? null);
   const [selectedEndDate, setSelectedEndDate] = useState<Dayjs | null>(defaultEndDate ?? null);
@@ -923,6 +928,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         isYearDisabled={isYearDisabled}
         maxDate={maxDate}
         minDate={minDate}
+        position={position}
         selectedEndDate={selectedEndDate}
         selectedStartDate={selectedStartDate}
         setShowMonthDropdown={setShowMonthDropdown}
