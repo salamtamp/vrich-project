@@ -9,8 +9,8 @@ from app.schedule.facebook_comments import (
     start_comments_scheduler,
     stop_comments_scheduler,
     restart_comments_scheduler,
-    add_posts_to_comments_scheduler,
-    remove_posts_from_comments_scheduler,
+    get_comments_scheduler_status,
+    update_comments_scheduler_schedule,
 )
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, ConfigDict
@@ -363,23 +363,32 @@ async def start_facebook_comments_scheduler(
     settings = Depends(get_settings),
 ):
     try:
-        if start_comments_scheduler.is_running():
+        # Get current status to check if already running
+        current_status = await get_comments_scheduler_status()
+        if current_status.get("fetch_comments", {}).get("status") == "running":
             return SchedulerResponse(
                 status="error",
                 message="Comments scheduler is already running"
             )
 
-        start_comments_scheduler(
+        success = await start_comments_scheduler(
             post_ids=request.post_ids,
             cron_schedule=request.schedule,
             trigger_type=request.trigger_type
         )
 
-        return SchedulerResponse(
-            status="success",
-            message=f"Comments scheduler started successfully for {len(request.post_ids)} posts",
-            jobs_info=start_comments_scheduler.get_jobs_info()
-        )
+        if success:
+            jobs_info = await get_comments_scheduler_status()
+            return SchedulerResponse(
+                status="success",
+                message=f"Comments scheduler started successfully for {len(request.post_ids)} posts",
+                jobs_info=jobs_info
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to start comments scheduler"
+            )
 
     except Exception as e:
         logger.error(f"Error starting comments scheduler: {e}")
@@ -392,19 +401,28 @@ async def start_facebook_comments_scheduler(
 async def stop_facebook_comments_scheduler():
     """Stop the Facebook comments scheduler"""
     try:
-        if not start_comments_scheduler.is_running():
+        # Get current status to check if running
+        current_status = await get_comments_scheduler_status()
+        if current_status.get("fetch_comments", {}).get("status") != "running":
             return SchedulerResponse(
                 status="error",
                 message="Comments scheduler is not running"
             )
 
-        stop_comments_scheduler()
+        success = await stop_comments_scheduler()
 
-        return SchedulerResponse(
-            status="success",
-            message="Comments scheduler stopped successfully",
-            jobs_info=start_comments_scheduler.get_jobs_info()
-        )
+        if success:
+            jobs_info = await get_comments_scheduler_status()
+            return SchedulerResponse(
+                status="success",
+                message="Comments scheduler stopped successfully",
+                jobs_info=jobs_info
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to stop comments scheduler"
+            )
 
     except Exception as e:
         logger.error(f"Error stopping comments scheduler: {e}")
@@ -420,17 +438,24 @@ async def restart_facebook_comments_scheduler(
 ):
     """Restart the Facebook comments scheduler with new parameters"""
     try:
-        restart_comments_scheduler(
+        success = await restart_comments_scheduler(
             post_ids=request.post_ids,
             cron_schedule=request.schedule,
             trigger_type=request.trigger_type
         )
 
-        return SchedulerResponse(
-            status="success",
-            message=f"Comments scheduler restarted successfully for {len(request.post_ids)} posts",
-            jobs_info=start_comments_scheduler.get_jobs_info()
-        )
+        if success:
+            jobs_info = await get_comments_scheduler_status()
+            return SchedulerResponse(
+                status="success",
+                message=f"Comments scheduler restarted successfully for {len(request.post_ids)} posts",
+                jobs_info=jobs_info
+            )
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to restart comments scheduler"
+            )
 
     except Exception as e:
         logger.error(f"Error restarting comments scheduler: {e}")
@@ -440,13 +465,14 @@ async def restart_facebook_comments_scheduler(
         )
 
 @router.get("/scheduler/comments/status", response_model=SchedulerResponse)
-async def get_comments_scheduler_status():
+async def get_comments_scheduler_status_endpoint():
     """Get the current status of the Facebook comments scheduler"""
     try:
+        jobs_info = await get_comments_scheduler_status()
         return SchedulerResponse(
             status="success",
             message="Comments scheduler status retrieved successfully",
-            jobs_info=start_comments_scheduler.get_jobs_info()
+            jobs_info=jobs_info
         )
 
     except Exception as e:
@@ -457,13 +483,15 @@ async def get_comments_scheduler_status():
         )
 
 @router.post("/scheduler/comments/update", response_model=SchedulerResponse)
-async def update_comments_scheduler_schedule(
+async def update_comments_scheduler_schedule_endpoint(
     request: CommentsSchedulerRequest,
     settings = Depends(get_settings),
 ):
     """Update the cron schedule for the running comments scheduler"""
     try:
-        if not start_comments_scheduler.is_running():
+        # Get current status to check if running
+        current_status = await get_comments_scheduler_status()
+        if current_status.get("fetch_comments", {}).get("status") != "running":
             raise HTTPException(
                 status_code=400,
                 detail="Comments scheduler is not running. Start it first."
@@ -475,10 +503,11 @@ async def update_comments_scheduler_schedule(
             trigger_type=request.trigger_type
         )
 
+        jobs_info = await get_comments_scheduler_status()
         return SchedulerResponse(
             status="success",
             message=f"Comments schedule updated successfully for {len(request.post_ids)} posts",
-            jobs_info=start_comments_scheduler.get_jobs_info()
+            jobs_info=jobs_info
         )
 
     except Exception as e:
@@ -495,7 +524,9 @@ async def add_posts_to_comments_scheduler(
 ):
     """Add new post IDs to the comments scheduler"""
     try:
-        if not start_comments_scheduler.is_running():
+        # Get current status to check if running
+        current_status = await get_comments_scheduler_status()
+        if current_status.get("fetch_comments", {}).get("status") != "running":
             raise HTTPException(
                 status_code=400,
                 detail="Comments scheduler is not running. Start it first."
@@ -503,10 +534,11 @@ async def add_posts_to_comments_scheduler(
 
         add_posts_to_comments_scheduler(post_ids)
 
+        jobs_info = await get_comments_scheduler_status()
         return SchedulerResponse(
             status="success",
             message=f"Added {len(post_ids)} post IDs to comments scheduler",
-            jobs_info=start_comments_scheduler.get_jobs_info()
+            jobs_info=jobs_info
         )
 
     except Exception as e:
@@ -523,7 +555,9 @@ async def remove_posts_from_comments_scheduler(
 ):
     """Remove post IDs from the comments scheduler"""
     try:
-        if not start_comments_scheduler.is_running():
+        # Get current status to check if running
+        current_status = await get_comments_scheduler_status()
+        if current_status.get("fetch_comments", {}).get("status") != "running":
             raise HTTPException(
                 status_code=400,
                 detail="Comments scheduler is not running. Start it first."
@@ -531,10 +565,11 @@ async def remove_posts_from_comments_scheduler(
 
         remove_posts_from_comments_scheduler(post_ids)
 
+        jobs_info = await get_comments_scheduler_status()
         return SchedulerResponse(
             status="success",
             message=f"Removed {len(post_ids)} post IDs from comments scheduler",
-            jobs_info=start_comments_scheduler.get_jobs_info()
+            jobs_info=jobs_info
         )
 
     except Exception as e:

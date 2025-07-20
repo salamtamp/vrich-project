@@ -75,26 +75,14 @@ POST http://localhost:3002/api/v1/facebooks/scheduler/comments/update
 Content-Type: application/json
 
 {
-    "postIds": [],
-    "schedule": 15,
+    "postIds": ["221760221538013_1023344559595544"],
+    "schedule": 300,
     "triggerType": "interval"
 }
 
-### Add posts to comments scheduler
-POST http://localhost:3002/api/v1/facebooks/scheduler/comments/add-posts
-Content-Type: application/json
+### Get comments scheduler jobs info
+GET http://localhost:3002/api/v1/facebooks/scheduler/comments/jobs-info
 
-{
-    "postIds": ["221760221538013_1023344559595544"]
-}
-
-### Remove posts from comments scheduler
-POST http://localhost:3002/api/v1/facebooks/scheduler/comments/remove-posts
-Content-Type: application/json
-
-{
-    "postIds": ["221760221538013_1023344559595544"]
-}
 
 ### ===== Facebook Page Profile =====
 

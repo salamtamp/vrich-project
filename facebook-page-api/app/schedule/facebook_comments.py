@@ -359,19 +359,3 @@ def update_comments_scheduler_schedule(post_ids: List[str], new_cron_schedule=No
     except Exception as e:
         logger.error(f"Error updating comments scheduler schedule: {e}")
         raise
-
-def add_posts_to_comments_scheduler(post_ids: List[str]):
-    """Add post IDs to the comments scheduler"""
-    try:
-        facebook_comments_scheduler.add_post_ids(post_ids)
-    except Exception as e:
-        logger.error(f"Error adding posts to comments scheduler: {e}")
-        raise
-
-def remove_posts_from_comments_scheduler(post_ids: List[str]):
-    """Remove post IDs from the comments scheduler"""
-    try:
-        facebook_comments_scheduler.remove_post_ids(post_ids)
-    except Exception as e:
-        logger.error(f"Error removing posts from comments scheduler: {e}")
-        raise
