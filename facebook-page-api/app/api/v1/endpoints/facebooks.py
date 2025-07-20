@@ -339,9 +339,9 @@ async def restart_facebook_posts_scheduler(
         )
 
 @router.get("/scheduler/posts/status", response_model=SchedulerResponse)
-async def get_posts_scheduler_status():
+async def get_posts_scheduler_status_endpoint():  # Rename the function to avoid conflict
     try:
-        status_info = await get_posts_scheduler_status()
+        status_info = await get_posts_scheduler_status()  # This now calls the imported function
 
         return SchedulerResponse(
             status="success",

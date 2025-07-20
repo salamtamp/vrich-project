@@ -98,15 +98,16 @@ class FacebookPostsScheduler:
         except Exception as e:
             logger.error(f"Error stopping scheduler: {e}")
 
-    def restart_scheduler(self, page_id: str, cron_schedule: Optional[str] = None):
+    def restart_scheduler(self, page_id: str, schedule: Optional[Union[str, int]] = None, trigger_type: str = "cron"):
         """Restart the scheduler with new parameters"""
         try:
             # Use provided cron_schedule or fall back to settings
-            if cron_schedule is None:
-                cron_schedule = self.settings.FACEBOOK_POSTS_CRON_SCHEDULE
+            if schedule is None:
+                schedule = self.settings.FACEBOOK_POSTS_CRON_SCHEDULE
+                trigger_type = "cron"
 
             self.stop_scheduler()
-            self.start_scheduler(page_id, cron_schedule)
+            self.start_scheduler(page_id, schedule, trigger_type)
             logger.info("Scheduler restarted successfully")
         except Exception as e:
             logger.error(f"Error restarting scheduler: {e}")

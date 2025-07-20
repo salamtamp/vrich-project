@@ -21,6 +21,7 @@ POST http://localhost:3002/api/v1/facebooks/scheduler/posts/stop
 Content-Type: application/json
 
 {
+  "pageId": "221760221538013"
 }
 
 ### Restart posts scheduler
@@ -36,15 +37,6 @@ Content-Type: application/json
 ### Get posts scheduler status
 GET http://localhost:3002/api/v1/facebooks/scheduler/posts/status
 
-### Update posts scheduler schedule
-POST http://localhost:3002/api/v1/facebooks/scheduler/posts/update
-Content-Type: application/json
-
-{
-    "pageId": "221760221538013",
-    "schedule": "0 12 * * *",
-    "triggerType": "cron"
-}
 
 ### ===== Facebook Comments Scheduler =====
 
