@@ -4,9 +4,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.schemas.products import Product
+
 
 class CampaignProduct(BaseModel):
-    # Define fields as needed, or use dict if dynamic
     ...
 
 
@@ -19,6 +20,7 @@ class CampaignBase(BaseModel):
     channels: list[Literal["facebook_comment", "facebook_inbox"]] = Field(
         ..., min_items=1
     )
+    post_id: UUID | None = None
 
 
 class CampaignCreate(CampaignBase):
@@ -34,6 +36,7 @@ class CampaignUpdate(BaseModel):
     channels: list[Literal["facebook_comment", "facebook_inbox"]] | None = Field(
         None, min_items=1
     )
+    post_id: UUID | None = None
 
 
 class Campaign(CampaignBase):
@@ -41,6 +44,7 @@ class Campaign(CampaignBase):
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None = None
+    product: Product | None = None
 
     class Config:
         from_attributes = True

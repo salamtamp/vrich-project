@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Plus } from 'lucide-react';
+import { User } from 'lucide-react';
 import type { Resolver } from 'react-hook-form';
 import { useFieldArray, useForm, useFormState } from 'react-hook-form';
 import * as yup from 'yup';
@@ -22,13 +23,17 @@ import { API } from '@/constants/api.constant';
 import { useLoading } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
+import useModalContext from '@/hooks/useContext/useModalContext';
+import { ImageWithFallback } from '@/hooks/useImageFallback';
 import dayjs from '@/lib/dayjs';
 import type { CampaignChannel, CampaignResponse, CampaignStatus } from '@/types/api';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
+import type { FacebookPostResponse } from '@/types/api/facebook-post';
 import type { Product } from '@/types/api/product';
 
 import CampaignProductList from './campaign-product-list';
 import type { CampaignFormValues } from './campaign-types';
+import PostSelectModal from './post-select-modal';
 
 const schema = yup.object({
   name: yup.string().required('Campaign name is required'),
@@ -56,6 +61,11 @@ const schema = yup.object({
     )
     .min(1, 'At least one product is required')
     .required('Products are required'),
+  postId: yup.string().when('channels', {
+    is: (channels: string[]) => Array.isArray(channels) && !channels.includes('facebook_comment'),
+    then: (schema) => schema.optional(),
+    otherwise: (schema) => schema.optional(),
+  }),
 });
 
 const defaultValues: CampaignFormValues = {
@@ -65,6 +75,7 @@ const defaultValues: CampaignFormValues = {
   startDate: '',
   endDate: '',
   channels: [],
+  postId: '',
   products: [],
 };
 
@@ -85,6 +96,8 @@ const CampaignForm = () => {
   });
   const productsList = productData?.docs ?? [];
 
+  const [selectedPost, setSelectedPost] = useState<FacebookPostResponse | null>(null);
+
   const { handleRequest: createCampaignProduct } = useRequest<CampaignsProduct>({
     request: {
       url: API.CAMPAIGNS_PRODUCTS,
@@ -97,7 +110,12 @@ const CampaignForm = () => {
     resolver: yupResolver(schema) as Resolver<CampaignFormValues>,
     mode: 'onSubmit',
   });
+
+  const postId = watch('postId');
+
   const { errors } = useFormState({ control });
+
+  const channels = watch('channels');
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -107,6 +125,8 @@ const CampaignForm = () => {
   const selectedProductIds = fields.map((f) => f.productId);
   const products = watch('products');
   const productRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const { open, close } = useModalContext();
 
   useEffect(() => {
     if (fields.length === 0) {
@@ -118,20 +138,17 @@ const CampaignForm = () => {
     append({ productId: '', name: '', keyword: '', quantity: 1 });
   };
 
-  // Update onProductChange to use real products
   const onProductChange = (idx: number, productId: string) => {
     const product = productsList?.find?.((p) => p.id === productId);
     setValue(`products.${idx}.productId`, productId);
     setValue(`products.${idx}.name`, product ? product.name : '');
   };
 
-  // Update onSubmit to create products if needed, then campaign, then campaign-product links
   const onSubmit = async (data: CampaignFormValues) => {
     openLoading();
     try {
-      // 1. Ensure all products exist
       const productIds = data.products.map((prod) => prod.productId);
-      // 2. Create campaign
+
       const campaignRes = await createCampaign({
         data: {
           name: data.name,
@@ -140,9 +157,10 @@ const CampaignForm = () => {
           start_date: data.startDate,
           end_date: data.endDate,
           channels: data.channels,
+          post_id: channels.includes('facebook_comment') ? data.postId : undefined,
         },
       });
-      // 3. Link products to campaign (call campaign-product API)
+
       if (campaignRes?.id) {
         await Promise.all(
           data.products?.map((prod, i) =>
@@ -289,6 +307,63 @@ const CampaignForm = () => {
               </div>
             )}
           </div>
+          {channels.includes('facebook_comment') && (
+            <div className='flex flex-col gap-1'>
+              <Label htmlFor='campaign-facebook-comment'>Facebook Post</Label>
+              {selectedPost ? (
+                <div className='mb-2 flex items-center gap-4 rounded border border-gray-200 bg-gray-50 p-4'>
+                  {selectedPost.profile?.profile_picture_url ? (
+                    <ImageWithFallback
+                      alt={selectedPost.profile?.name || 'profile'}
+                      className='size-12 rounded-full object-cover'
+                      fallbackIcon={<User size={28} />}
+                      size={48}
+                      src={selectedPost.profile.profile_picture_url}
+                    />
+                  ) : null}
+                  <div className='flex-1'>
+                    <div className='font-semibold'>{selectedPost.profile?.name}</div>
+                    <div className='text-gray-700'>{selectedPost.message ?? 'ไม่มีข้อความ'}</div>
+                  </div>
+                  <button
+                    className='ml-4 rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200'
+                    type='button'
+                    onClick={() => {
+                      setValue('postId', '');
+                      setSelectedPost(null);
+                    }}
+                  >
+                    ลบโพสต์ที่เลือก
+                  </button>
+                </div>
+              ) : null}
+              <Button
+                className='w-fit'
+                type='button'
+                variant='outline'
+                onClick={() => {
+                  open({
+                    content: (
+                      <PostSelectModal
+                        control={control}
+                        fieldName='postId'
+                        setValue={setValue}
+                        value={postId}
+                        onClose={close}
+                        onSelect={(post) => {
+                          setValue('postId', post.id);
+                          setSelectedPost(post);
+                          close();
+                        }}
+                      />
+                    ),
+                  });
+                }}
+              >
+                {selectedPost ? 'Select New Facebook Post' : 'Select Facebook Post'}
+              </Button>
+            </div>
+          )}
           <div className='flex flex-col gap-1'>
             <Label>Date Range</Label>
             <div>

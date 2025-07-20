@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -23,6 +23,7 @@ def list_campaigns(
     pagination: PaginationParams = Depends(get_pagination_params),
 ) -> PaginationResponse[Campaign]:
     builder = PaginationBuilder(CampaignModel, db)
+    builder.query = builder.query.options(joinedload(CampaignModel.post))
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
@@ -39,6 +40,7 @@ def get_campaign(
 ) -> Campaign:
     campaign = (
         db.query(CampaignModel)
+        .options(joinedload(CampaignModel.post))
         .filter(CampaignModel.id == campaign_id, CampaignModel.deleted_at.is_(None))
         .first()
     )
@@ -51,7 +53,10 @@ def get_campaign(
 def create_campaign(
     *, db: Session = Depends(get_db), campaign_in: CampaignCreate
 ) -> Campaign:
-    return campaign_repo.create(db, obj_in=campaign_in)
+    try:
+        return campaign_repo.create(db, obj_in=campaign_in)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.put("/{campaign_id}", response_model=Campaign)
@@ -78,7 +83,6 @@ def delete_campaign(*, db: Session = Depends(get_db), campaign_id: UUID) -> Camp
     if not db_obj:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
-    # Soft delete
     from datetime import datetime
 
     db_obj.deleted_at = datetime.utcnow()

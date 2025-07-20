@@ -7,6 +7,8 @@ export type CampaignFormValues = {
   startDate: string;
   endDate: string;
   channels: CampaignChannel[];
+  postId?: string;
+  facebookComment?: string;
   products: {
     productId: string;
     name: string;

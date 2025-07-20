@@ -24,7 +24,6 @@ type TableRowType = CampaignsProduct;
 
 const CampaignPage = () => {
   const router = useRouter();
-  // Fetch all campaign-product links (joined with campaign and product)
   const { data: campaignsProductsData, isLoading } = usePaginatedRequest<
     PaginationResponse<CampaignsProduct>
   >({
@@ -49,7 +48,6 @@ const CampaignPage = () => {
     if (confirm('Are you sure you want to delete this campaign-product link?')) {
       try {
         await handleDeleteRequest({ patchId: campaignProductId });
-        // Optionally, refetch campaign-products here
       } catch (error) {
         console.error('Failed to delete campaign-product:', error);
       }

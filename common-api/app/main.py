@@ -2,7 +2,7 @@ import logging
 import sys
 from contextlib import asynccontextmanager, suppress
 
-import socketio
+import socketio # type: ignore
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,23 +18,17 @@ logging.basicConfig(
 )
 
 
-# Initialize FastAPI app
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     with suppress(Exception):
         await redis_client.connect()
     yield
-    # Shutdown
     with suppress(Exception):
         await redis_client.disconnect()
 
 
 app = FastAPI(lifespan=lifespan)
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*", "http://localhost:3000", "http://127.0.0.1:3000"],
@@ -43,14 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include existing API routers
 app.include_router(api_router, prefix="/api/v1")
 
-# Combine FastAPI and Socket.IO
 socket_app = socketio.ASGIApp(sio, app)
-
-
-# Remove @app.on_event("startup") and @app.on_event("shutdown") handlers
 
 
 @app.get("/healthcheck")

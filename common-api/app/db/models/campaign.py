@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, DateTime, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -16,6 +16,7 @@ class Campaign(Base):
     start_date = Column(DateTime(timezone=True), nullable=False)
     end_date = Column(DateTime(timezone=True), nullable=False)
     status = Column(String, nullable=False, default="inactive")
+    post_id = Column(UUID(as_uuid=True), ForeignKey("facebook_posts.id"), nullable=True)
     channels = Column(ARRAY(String), nullable=False)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -32,3 +33,4 @@ class Campaign(Base):
     campaigns_notifications = relationship(
         "CampaignNotification", back_populates="campaign"
     )
+    post = relationship("FacebookPost", foreign_keys=[post_id])

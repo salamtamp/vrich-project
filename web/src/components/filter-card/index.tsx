@@ -37,6 +37,7 @@ type FilterCardProps = {
   isLoading?: boolean;
   skeletonSize?: 'small' | 'medium' | 'large';
   disableDatePicker?: boolean;
+  disableNotificationBell?: boolean;
 };
 
 const FilterCard: React.FC<FilterCardProps> = ({
@@ -55,6 +56,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
   isLoading = false,
   skeletonSize = 'medium',
   disableDatePicker = false,
+  disableNotificationBell = false,
 }) => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
@@ -107,7 +109,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
             </div>
           ) : null}
 
-          <NotificationBell />
+          {!disableNotificationBell && <NotificationBell />}
         </div>
       </div>
       <div className='mb-4 mt-5 flex justify-between text-gray-800'>

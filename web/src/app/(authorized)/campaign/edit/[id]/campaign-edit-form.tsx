@@ -19,9 +19,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
+import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
 import type { CampaignChannel, CampaignResponse } from '@/types/api';
+import type { Product } from '@/types/api/product';
 
 import CampaignProductList from '../../create/campaign-product-list';
 import type { CampaignFormValues } from '../../create/campaign-types';
@@ -80,6 +82,13 @@ const CampaignEditForm = ({ campaignId }: CampaignEditFormProps) => {
       method: 'PUT',
     },
   });
+
+  const { data: productData, isLoading: isProductsLoading } = usePaginatedRequest<{ docs: Product[] }>({
+    url: API.PRODUCTS,
+    order: 'desc',
+    orderBy: 'created_at',
+  });
+  const productsList = productData?.docs ?? [];
 
   const { control, handleSubmit, reset, setValue, watch } = useForm<CampaignFormValues>({
     resolver: yupResolver(schema) as Resolver<CampaignFormValues>,
@@ -336,10 +345,13 @@ const CampaignEditForm = ({ campaignId }: CampaignEditFormProps) => {
         </div>
       </div>
       <CampaignProductList
+        availableProducts={productsList}
         fields={fieldsWithControl}
-        isLoading={isUpdating}
+        isLoading={isUpdating || isProductsLoading}
         productRefs={productRefs}
+        products={products}
         selectedProductIds={selectedProductIds}
+        setValue={setValue}
         onProductChange={onProductChange}
         onRemoveProduct={remove}
       />
