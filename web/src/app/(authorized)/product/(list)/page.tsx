@@ -9,7 +9,6 @@ import { Edit, Trash2 } from 'lucide-react';
 import ContentPagination from '@/components/content/pagination';
 import type { TableColumn } from '@/components/table';
 import Table from '@/components/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
@@ -18,76 +17,64 @@ import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { Campaign } from '@/types/api/campaign';
+import type { Product } from '@/types/api/product';
 
-const CampaignPage = () => {
+const ProductPage = () => {
   const router = useRouter();
   const {
     data,
     isLoading,
     handleRequest: handlePaginatedRequest,
-  } = usePaginatedRequest<PaginationResponse<Campaign>>({
-    url: API.CAMPAIGN,
+  } = usePaginatedRequest<PaginationResponse<Product>>({
+    url: API.PRODUCTS,
     orderBy: 'createdAt',
   });
 
-  const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<Campaign>({
+  const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<Product>({
     request: {
-      url: API.CAMPAIGN,
+      url: API.PRODUCTS,
       method: 'DELETE',
     },
   });
 
-  const campaigns = useMemo(() => data?.docs ?? [], [data?.docs]);
+  const products = useMemo(() => data?.docs ?? [], [data?.docs]);
   const total = data?.total ?? 0;
 
-  const handleGoToCreateCampaign = () => {
-    router.push('/campaign/create');
+  const handleGoToCreateProduct = () => {
+    router.push('/product/create');
   };
 
-  const handleDeleteCampaign = async (campaignId: string) => {
-    if (confirm('Are you sure you want to delete this campaign?')) {
+  const handleDeleteProduct = async (productId: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
       try {
-        await handleDeleteRequest({ patchId: campaignId });
+        await handleDeleteRequest({ patchId: productId });
         await handlePaginatedRequest();
       } catch (error) {
-        console.error('Failed to delete campaign:', error);
+        console.error('Failed to delete product:', error);
       }
     }
   };
 
-  const columns: TableColumn<Campaign>[] = [
-    { key: 'name', label: 'Name', bold: true },
+  const columns: TableColumn<Product>[] = [
+    { key: 'code', label: 'Code', bold: true },
+    { key: 'name', label: 'Name' },
     {
-      key: 'status',
-      label: 'Status',
+      key: 'quantity',
+      label: 'Quantity',
       align: 'center',
-      render: (row) => (
-        <Badge
-          variant={row.status === 'active' ? 'default' : 'secondary'}
-          className={
-            row.status === 'active'
-              ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
-              : 'border-gray-200 bg-gray-100 text-gray-500'
-          }
-        >
-          {row.status === 'active' ? 'Active' : 'Inactive'}
-        </Badge>
-      ),
+      render: (row) => `${row.quantity} ${row.unit ?? ''}`.trim(),
     },
     {
-      key: 'startAt',
-      label: 'Start Date',
-      render: (row) => {
-        return row.start_at ? dayjs(row.start_at).format('YYYY-MM-DD') : '-';
-      },
+      key: 'selling_price',
+      label: 'Price',
       align: 'center',
+      render: (row) => `${row.selling_price?.toFixed(2)}`,
     },
     {
-      key: 'endAt',
-      label: 'End Date',
-      render: (row) => (row.end_at ? dayjs(row.end_at).format('YYYY-MM-DD') : '-'),
+      key: 'product_category',
+      label: 'Category',
       align: 'center',
+      render: (row) => row.product_category ?? '-',
     },
     {
       key: 'createdAt',
@@ -104,7 +91,7 @@ const CampaignPage = () => {
           <Button
             size='sm'
             variant='outline'
-            onClick={() => (window.location.href = `/campaign/edit/${row.id}`)}
+            onClick={() => (window.location.href = `/product/edit/${row.id}`)}
           >
             <Edit className='size-4' />
           </Button>
@@ -113,7 +100,7 @@ const CampaignPage = () => {
             size='sm'
             variant='outline'
             onClick={() => {
-              void handleDeleteCampaign(row.id);
+              void handleDeleteProduct(row.id);
             }}
           >
             <Trash2 className='size-4' />
@@ -128,19 +115,19 @@ const CampaignPage = () => {
       <div className='flex min-h-screen flex-col gap-6 bg-base-gray-light p-6'>
         <Card className='w-full rounded-2xl border border-gray-200 bg-white shadow-sm'>
           <CardHeader className='flex flex-row items-center justify-between'>
-            <CardTitle className='text-2xl font-bold text-blue-700'>Campaigns</CardTitle>
+            <CardTitle className='text-2xl font-bold text-blue-700'>Products</CardTitle>
             <Button
               variant='softgray'
-              onClick={handleGoToCreateCampaign}
+              onClick={handleGoToCreateProduct}
             >
-              Create Campaign
+              Create Product
             </Button>
           </CardHeader>
           <CardContent className='p-0'>
             <Table
               bodyRowProps={{ className: 'bg-white hover:bg-gray-50 transition-colors' }}
               columns={columns}
-              data={campaigns}
+              data={products}
               isLoading={isLoading || isDeleting}
             />
             <ContentPagination
@@ -154,4 +141,4 @@ const CampaignPage = () => {
   );
 };
 
-export default CampaignPage;
+export default ProductPage;
