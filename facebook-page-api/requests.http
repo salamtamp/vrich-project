@@ -158,3 +158,99 @@ Content-Type: application/json
     }
   ]
 }
+
+### ===== Facebook Messenger =====
+
+### Send plain text message to user
+POST http://localhost:3002/api/v1/messenger/send-text-message
+Content-Type: application/json
+
+{
+    "recipient_id": "9913831188727714",
+    "message": "ทดสอบ ส่งรูปภาพ"
+}
+
+### Send image message to user
+POST http://localhost:3002/api/v1/messenger/send-image-message
+Content-Type: application/json
+
+{
+    "recipient_id": "9913831188727714",
+    "message": {
+        "attachment": {
+            "type": "image",
+            "payload": {
+                "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+            }
+        }
+    }
+}
+
+### Send template message to user
+POST http://localhost:3002/api/v1/messenger/send-template-message
+Content-Type: application/json
+
+{
+    "recipient_id": "9913831188727714",
+    "message": {
+        "attachment": {
+            "type": "template",
+            "payload": {
+                "template_type": "button",
+                "text": "กดปุ่มด้านล่างเพื่อดูออเดอร์/แจ้งโอนเงิน",
+                "buttons": [
+                    {
+                      "type": "web_url",
+                      "url": "https://www.google.com",
+                      "title": "ดูออเดอร์"
+                    }
+                ]
+            }
+        }
+    }
+}
+
+### Send message batch with multiple recipients
+POST http://localhost:3002/api/v1/messenger/send-message-batch
+Content-Type: application/json
+
+{
+    "messages": [
+        {
+            "recipient_id": "9913831188727714",
+            "message": {
+                "text": "ทดสอบ ส่งข้อความ"
+            }
+        },
+        {
+            "recipient_id": "9913831188727715",
+            "message": {
+                "attachment": {
+                    "type": "image",
+                    "payload": {
+                        "url": "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+                    }
+                }
+            }
+        },
+        {
+            "recipient_id": "9913831188727716",
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "button",
+                        "text": "กดปุ่มด้านล่างเพื่อดูออเดอร์/แจ้งโอนเงิน",
+                        "buttons": [
+                            {
+                                "type": "web_url",
+                                "url": "https://www.google.com",
+                                "title": "ดูออเดอร์"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}
