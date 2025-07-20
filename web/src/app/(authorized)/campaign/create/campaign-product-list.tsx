@@ -1,6 +1,8 @@
 import React from 'react';
 
-import type { Control, FieldArrayWithId } from 'react-hook-form';
+import type { Control, FieldArrayWithId, UseFormSetValue } from 'react-hook-form';
+
+import type { Product } from '@/types/api/product';
 
 import CampaignProductRow from './campaign-product-row';
 import type { CampaignFormValues } from './campaign-types';
@@ -12,6 +14,9 @@ const CampaignProductList = ({
   onRemoveProduct,
   productRefs,
   isLoading,
+  availableProducts,
+  products,
+  setValue,
 }: {
   fields: (FieldArrayWithId<CampaignFormValues, 'products'> & { control: Control<CampaignFormValues> })[];
   selectedProductIds: string[];
@@ -19,13 +24,10 @@ const CampaignProductList = ({
   onRemoveProduct: (idx: number) => void;
   productRefs: React.RefObject<(HTMLInputElement | null)[]>;
   isLoading: boolean;
+  availableProducts: Product[];
+  products: CampaignFormValues['products'];
+  setValue: UseFormSetValue<CampaignFormValues>;
 }) => {
-  const availableProducts = [
-    { id: 'orange', name: 'Orange' },
-    { id: 'watermelon', name: 'Watermelon' },
-    { id: 'banana', name: 'Banana' },
-  ];
-
   return (
     <div>
       <h2 className='mb-2 text-lg font-semibold'>Products</h2>
@@ -33,13 +35,15 @@ const CampaignProductList = ({
         {fields.length === 0 && <div className='italic text-gray-400'>No products added yet.</div>}
         {fields.map((field, idx) => (
           <CampaignProductRow
-            key={field.id}
+            key={`${field.id}-${crypto.randomUUID()}`}
             availableProducts={availableProducts}
             control={field.control}
             idx={idx}
             isLoading={isLoading}
             productRefs={productRefs}
+            products={products}
             selectedProductIds={selectedProductIds}
+            setValue={setValue}
             onProductChange={onProductChange}
             onRemoveProduct={onRemoveProduct}
           />

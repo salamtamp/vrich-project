@@ -12,4 +12,5 @@ export const API = {
   },
   CAMPAIGN: '/api/v1/campaigns',
   PRODUCTS: '/api/v1/products',
+  CAMPAIGNS_PRODUCTS: '/api/v1/campaigns-products',
 };

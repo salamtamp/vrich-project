@@ -18,49 +18,54 @@ import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { Campaign } from '@/types/api/campaign';
+import type { CampaignsProduct } from '@/types/api/campaigns_products';
+
+type TableRowType = CampaignsProduct;
 
 const CampaignPage = () => {
   const router = useRouter();
-  const {
-    data,
-    isLoading,
-    handleRequest: handlePaginatedRequest,
-  } = usePaginatedRequest<PaginationResponse<Campaign>>({
-    url: API.CAMPAIGN,
+  // Fetch all campaign-product links (joined with campaign and product)
+  const { data: campaignsProductsData, isLoading } = usePaginatedRequest<
+    PaginationResponse<CampaignsProduct>
+  >({
+    url: API.CAMPAIGNS_PRODUCTS,
     orderBy: 'createdAt',
   });
-
-  const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<Campaign>({
+  const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<CampaignsProduct>({
     request: {
-      url: API.CAMPAIGN,
+      url: API.CAMPAIGNS_PRODUCTS,
       method: 'DELETE',
     },
   });
 
-  const campaigns = useMemo(() => data?.docs ?? [], [data?.docs]);
-  const total = data?.total ?? 0;
+  const campaignsProducts = useMemo(() => campaignsProductsData?.docs ?? [], [campaignsProductsData?.docs]);
+  const total = campaignsProductsData?.total ?? 0;
 
   const handleGoToCreateCampaign = () => {
     router.push('/campaign/create');
   };
 
-  const handleDeleteCampaign = async (campaignId: string) => {
-    if (confirm('Are you sure you want to delete this campaign?')) {
+  const handleDeleteCampaignProduct = async (campaignProductId: string) => {
+    if (confirm('Are you sure you want to delete this campaign-product link?')) {
       try {
-        await handleDeleteRequest({ patchId: campaignId });
-        await handlePaginatedRequest();
+        await handleDeleteRequest({ patchId: campaignProductId });
+        // Optionally, refetch campaign-products here
       } catch (error) {
-        console.error('Failed to delete campaign:', error);
+        console.error('Failed to delete campaign-product:', error);
       }
     }
   };
 
-  const columns: TableColumn<Campaign>[] = [
-    { key: 'name', label: 'Name', bold: true },
+  const columns: TableColumn<TableRowType>[] = [
+    { key: 'campaign.name', label: 'Campaign', bold: true },
+    { key: 'product.name', label: 'Product', bold: true },
+    { key: 'keyword', label: 'Keyword' },
+    { key: 'quantity', label: 'Quantity', align: 'center' },
+    { key: 'campaign.status', label: 'Campaign Status', align: 'center' },
+    { key: 'product.selling_price', label: 'Product Price', align: 'center' },
     {
       key: 'status',
-      label: 'Status',
+      label: 'Link Status',
       align: 'center',
       render: (row) => (
         <Badge
@@ -76,21 +81,7 @@ const CampaignPage = () => {
       ),
     },
     {
-      key: 'startAt',
-      label: 'Start Date',
-      render: (row) => {
-        return row.start_date ? dayjs(row.start_date).format('YYYY-MM-DD') : '-';
-      },
-      align: 'center',
-    },
-    {
-      key: 'endAt',
-      label: 'End Date',
-      render: (row) => (row.end_date ? dayjs(row.end_date).format('YYYY-MM-DD') : '-'),
-      align: 'center',
-    },
-    {
-      key: 'createdAt',
+      key: 'created_at',
       label: 'Created',
       render: (row) => dayjs(row.created_at).format('YYYY-MM-DD HH:mm'),
       align: 'center',
@@ -104,7 +95,7 @@ const CampaignPage = () => {
           <Button
             size='sm'
             variant='outline'
-            onClick={() => (window.location.href = `/campaign/edit/${row.id}`)}
+            onClick={() => (window.location.href = `/campaign/edit/${String(row.campaign_id)}`)}
           >
             <Edit className='size-4' />
           </Button>
@@ -113,7 +104,7 @@ const CampaignPage = () => {
             size='sm'
             variant='outline'
             onClick={() => {
-              void handleDeleteCampaign(row.id);
+              void handleDeleteCampaignProduct(row.id);
             }}
           >
             <Trash2 className='size-4' />
@@ -140,7 +131,7 @@ const CampaignPage = () => {
             <Table
               bodyRowProps={{ className: 'bg-white hover:bg-gray-50 transition-colors' }}
               columns={columns}
-              data={campaigns}
+              data={campaignsProducts}
               isLoading={isLoading || isDeleting}
             />
             <ContentPagination

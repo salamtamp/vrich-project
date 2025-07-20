@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -15,24 +15,33 @@ from app.db.session import get_db
 from app.schemas.campaigns_products import (
     CampaignProduct,
     CampaignProductCreate,
+    CampaignProductResponse,
     CampaignProductUpdate,
 )
 
 router = APIRouter()
 
 
-@router.get("/", response_model=PaginationResponse[CampaignProduct])
+@router.get("/", response_model=PaginationResponse[CampaignProductResponse])
 def list_campaign_products(
     db: Session = Depends(get_db),
     pagination: PaginationParams = Depends(get_pagination_params),
-) -> PaginationResponse[CampaignProduct]:
+) -> PaginationResponse[CampaignProductResponse]:
     builder = PaginationBuilder(CampaignProductModel, db)
+    builder.query = builder.query.options(
+        joinedload(CampaignProductModel.campaign),
+        joinedload(CampaignProductModel.product),
+    )
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
         .search(pagination.search, pagination.search_by)
         .order_by(pagination.order_by, pagination.order)
-        .paginate(pagination.limit, pagination.offset, serializer=CampaignProduct)
+        .paginate(
+            pagination.limit,
+            pagination.offset,
+            serializer=CampaignProductResponse,
+        )
     )
 
 
@@ -63,7 +72,7 @@ def update_campaign_product(
     *,
     db: Session = Depends(get_db),
     campaign_product_id: UUID,
-    campaign_product_in: CampaignProductUpdate
+    campaign_product_in: CampaignProductUpdate,
 ) -> CampaignProduct:
     db_obj = (
         db.query(CampaignProductModel)

@@ -36,3 +36,11 @@ class CampaignProduct(Base, UUIDPrimaryKeyMixin):
     campaign = relationship("Campaign", back_populates="campaigns_products")
     product = relationship("Product", back_populates="campaigns_products")
     order_products = relationship("OrderProduct", back_populates="campaign_product")
+
+    @property
+    def campaign_name(self):
+        return self.campaign.name if self.campaign else None
+
+    @property
+    def product_name(self):
+        return self.product.name if self.product else None
