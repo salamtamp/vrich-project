@@ -313,4 +313,65 @@ class FacebookCommentsScheduler:
             logger.error(f"Error removing post IDs: {e}")
             raise
 
+# Global scheduler instance
 facebook_comments_scheduler = FacebookCommentsScheduler()
+
+# Export functions for compatibility with facebooks.py
+async def start_comments_scheduler(post_ids: List[str], cron_schedule=None, trigger_type: str = "cron"):
+    """Start the comments scheduler"""
+    try:
+        facebook_comments_scheduler.start_scheduler(post_ids, cron_schedule, trigger_type)
+        return True
+    except Exception as e:
+        logger.error(f"Error starting comments scheduler: {e}")
+        return False
+
+async def stop_comments_scheduler():
+    """Stop the comments scheduler"""
+    try:
+        facebook_comments_scheduler.stop_scheduler()
+        return True
+    except Exception as e:
+        logger.error(f"Error stopping comments scheduler: {e}")
+        return False
+
+async def restart_comments_scheduler(post_ids: List[str], cron_schedule=None, trigger_type: str = "cron"):
+    """Restart the comments scheduler"""
+    try:
+        facebook_comments_scheduler.restart_scheduler(post_ids, cron_schedule, trigger_type)
+        return True
+    except Exception as e:
+        logger.error(f"Error restarting comments scheduler: {e}")
+        return False
+
+async def get_comments_scheduler_status():
+    """Get the status of the comments scheduler"""
+    try:
+        return facebook_comments_scheduler.get_jobs_info()
+    except Exception as e:
+        logger.error(f"Error getting comments scheduler status: {e}")
+        raise
+
+def update_comments_scheduler_schedule(post_ids: List[str], new_cron_schedule=None, trigger_type: str = "cron"):
+    """Update the schedule of the comments scheduler"""
+    try:
+        facebook_comments_scheduler.update_schedule(post_ids, new_cron_schedule, trigger_type)
+    except Exception as e:
+        logger.error(f"Error updating comments scheduler schedule: {e}")
+        raise
+
+def add_posts_to_comments_scheduler(post_ids: List[str]):
+    """Add post IDs to the comments scheduler"""
+    try:
+        facebook_comments_scheduler.add_post_ids(post_ids)
+    except Exception as e:
+        logger.error(f"Error adding posts to comments scheduler: {e}")
+        raise
+
+def remove_posts_from_comments_scheduler(post_ids: List[str]):
+    """Remove post IDs from the comments scheduler"""
+    try:
+        facebook_comments_scheduler.remove_post_ids(post_ids)
+    except Exception as e:
+        logger.error(f"Error removing posts from comments scheduler: {e}")
+        raise

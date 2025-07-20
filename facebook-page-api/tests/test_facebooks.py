@@ -406,7 +406,7 @@ class TestFacebookPostComments:
 
             result = await get_facebook_post_comments(
                 post_id="post_123",
-                next_token=Query(None),
+                next_token=None,  # Fixed: Remove Query(None)
                 settings=mock_settings
             )
 
@@ -415,11 +415,20 @@ class TestFacebookPostComments:
             assert len(result.data) == 2
             assert result.data[0].id == "comment_123"
             assert result.data[0].message == "Great post!"
-            assert result.data[0].from_user == "John Doe"
+            assert result.data[0].from_user == "John Doe"  # This should match the implementation
             assert result.paging == "https://graph.facebook.com/v18.0/post_123/comments?after=next_token"
 
             # Verify the API call
-            mock_client.get.assert_called_once()
+            mock_client.get.assert_called_once_with(
+                "https://graph.facebook.com/v18.0/post_123/comments",
+                params={
+                    "access_token": "test_access_token",
+                    "fields": "id,from,message,created_time",
+                    "order": "reverse_chronological",
+                    "limit": 50,
+                    "summary": "true"
+                }
+            )
 
     @pytest.mark.asyncio
     async def test_get_facebook_post_comments_with_pagination(self, mock_settings):
@@ -449,7 +458,8 @@ class TestFacebookPostComments:
             mock_client.get.assert_called_once_with(
                 "https://graph.facebook.com/v18.0/post_123/comments",
                 params={
-                    "access_token": "test_access_token",                    "fields": "id,from,message,created_time",
+                    "access_token": "test_access_token",
+                    "fields": "id,from,message,created_time",
                     "order": "reverse_chronological",
                     "limit": 50,
                     "summary": "true",
@@ -512,7 +522,7 @@ class TestFacebookPostComments:
                 settings=mock_settings
             )
 
-            assert result.data[0].message == ""
+            assert result.data[0].message == ""  # Implementation returns empty string for missing message
 
     @pytest.mark.asyncio
     async def test_get_facebook_post_comments_comment_without_from(self, mock_settings):
@@ -543,7 +553,7 @@ class TestFacebookPostComments:
                 settings=mock_settings
             )
 
-            assert result.data[0].from_user == "UNKNOWN"
+            assert result.data[0].from_user == "UNKNOWN"  # Implementation returns "UNKNOWN" for missing from field
 
     @pytest.mark.asyncio
     async def test_get_facebook_post_comments_facebook_api_error(self, mock_settings):

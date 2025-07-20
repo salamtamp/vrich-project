@@ -1,9 +1,10 @@
+from app.core.config import get_settings
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, Union
+
 import httpx
 import logging
-from app.core.config import get_settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -18,7 +19,8 @@ class SendImageMessageRequest(BaseModel):
 
 class MessageTemplate(BaseModel):
     template_type: str = Field(..., description="Type of template (generic, button, etc.)")
-    elements: list[Dict[str, Any]] = Field(..., description="Template elements")
+    text: str = Field(..., description="Text of the template")
+    buttons: list[Dict[str, Any]] = Field(..., description="Buttons of the template")
 
 class SendTemplateRequest(BaseModel):
     recipient_id: str = Field(..., description="Facebook user ID to send template to")
@@ -31,6 +33,12 @@ class SendMessageResponse(BaseModel):
     success: bool
     message_id: Optional[str] = None
     error: Optional[str] = None
+
+class BatchMessageResponse(BaseModel):
+    total_messages: int
+    successful_messages: int
+    failed_messages: int
+    results: list[Dict[str, Any]]
 
 
 def format_text_message(recipient_id: str, message_text: str) -> Dict[str, Any]:
@@ -54,7 +62,11 @@ def format_template_message(recipient_id: str, template: MessageTemplate) -> Dic
         "message": {
             "attachment": {
                 "type": "template",
-                "payload": template.model_dump()
+                "payload": {
+                    "template_type": template.template_type,
+                    "text": template.text,
+                    "buttons": template.buttons
+                }
             }
         }
     }
@@ -91,6 +103,11 @@ async def send_facebook_text_message(
         "access_token": settings.FACEBOOK_PAGE_ACCESS_TOKEN
     }
 
+    print("url", url)
+    print("payload", payload)
+    print("params", params)
+    print("recipient_id", recipient_id)
+
     try:
         logger.info(f"Sending message to recipient {recipient_id}")
 
@@ -102,6 +119,8 @@ async def send_facebook_text_message(
                 headers={"Content-Type": "application/json"},
                 timeout=30.0
             )
+
+            print("response", response.json())
 
             response_data = response.json()
 
@@ -379,7 +398,7 @@ async def send_template_message(
 
     return result
 
-@router.post("/send-message-batch")
+@router.post("/send-message-batch", response_model=BatchMessageResponse)
 async def send_message_batch(
     request: SendMessageBatchRequest,
     settings = Depends(get_settings)
@@ -393,39 +412,47 @@ async def send_message_batch(
     logger.info(f"Received batch send message request for {len(request.messages)} recipients")
 
     results = []
-    for i, request in enumerate(request.messages):
-        logger.info(f"Processing message {i+1}/{len(request.messages)} for recipient: {request.recipient_id}")
+    for i, msg in enumerate(request.messages):
+        logger.info(f"Processing message {i+1}/{len(request.messages)} for recipient: {msg.recipient_id}")
+        result = None
 
-        if isinstance(request, SendTextMessageRequest):
+        if isinstance(msg, SendTextMessageRequest):
             result = await send_facebook_text_message(
-                recipient_id=request.recipient_id,
-                message_text=request.message,
+                recipient_id=msg.recipient_id,
+                message_text=msg.message,
                 settings=settings
             )
-        elif isinstance(request, SendImageMessageRequest):
+        elif isinstance(msg, SendImageMessageRequest):
             result = await send_facebook_image_message(
-                recipient_id=request.recipient_id,
-                image_url=request.image_url,
+                recipient_id=msg.recipient_id,
+                image_url=msg.image_url,
                 settings=settings
             )
-        elif isinstance(request, SendTemplateRequest):
+        elif isinstance(msg, SendTemplateRequest):
             result = await send_facebook_template_message(
-                recipient_id=request.recipient_id,
-                template=request.template,
+                recipient_id=msg.recipient_id,
+                template=msg.template,
                 settings=settings
+            )
+        else:
+            # Handle unknown message type
+            logger.error(f"Unknown message type for message {i}: {type(msg)}")
+            result = SendMessageResponse(
+                success=False,
+                error=f"Unknown message type: {type(msg)}"
             )
 
         results.append({
             "index": i,
-            "recipient_id": request.recipient_id,
+            "recipient_id": msg.recipient_id,
             "success": result.success,
             "message_id": result.message_id,
             "error": result.error
         })
 
-    return {
-        "total_messages": len(request.messages),
-        "successful_messages": sum(1 for r in results if r["success"]),
-        "failed_messages": sum(1 for r in results if not r["success"]),
-        "results": results
-    }
+    return BatchMessageResponse(
+        total_messages=len(request.messages),
+        successful_messages=sum(1 for r in results if r["success"]),
+        failed_messages=sum(1 for r in results if not r["success"]),
+        results=results
+    )

@@ -318,3 +318,39 @@ class FacebookPostsScheduler:
 
 # Global scheduler instance
 facebook_posts_scheduler = FacebookPostsScheduler()
+
+# Export functions for compatibility with facebooks.py
+async def start_posts_scheduler(page_id: str, schedule=None, trigger_type: str = "cron", settings=None):
+    """Start the posts scheduler"""
+    try:
+        facebook_posts_scheduler.start_scheduler(page_id, schedule, trigger_type)
+        return True
+    except Exception as e:
+        logger.error(f"Error starting posts scheduler: {e}")
+        return False
+
+async def stop_posts_scheduler():
+    """Stop the posts scheduler"""
+    try:
+        facebook_posts_scheduler.stop_scheduler()
+        return True
+    except Exception as e:
+        logger.error(f"Error stopping posts scheduler: {e}")
+        return False
+
+async def restart_posts_scheduler(page_id: str, schedule=None, trigger_type: str = "cron", settings=None):
+    """Restart the posts scheduler"""
+    try:
+        facebook_posts_scheduler.restart_scheduler(page_id, schedule)
+        return True
+    except Exception as e:
+        logger.error(f"Error restarting posts scheduler: {e}")
+        return False
+
+async def get_posts_scheduler_status():
+    """Get the status of the posts scheduler"""
+    try:
+        return facebook_posts_scheduler.get_jobs_info()
+    except Exception as e:
+        logger.error(f"Error getting posts scheduler status: {e}")
+        raise
