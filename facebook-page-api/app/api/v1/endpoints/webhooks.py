@@ -24,24 +24,32 @@ class FacebookMessageAttachmentPayload(BaseModel):
     url: Optional[str] = None
     title: Optional[str] = None
 
+    def __getitem__(self, key: str):
+        """Support dictionary-like access for backward compatibility with tests"""
+        if key == "url":
+            return self.url
+        elif key == "title":
+            return self.title
+        raise KeyError(key)
+
 class FacebookMessageAttachment(BaseModel):
     type: str
     payload: FacebookMessageAttachmentPayload
 
 class FacebookMessage(BaseModel):
-    mid: str
+    mid: Optional[str] = None
     text: Optional[str] = None
     attachments: Optional[List[FacebookMessageAttachment]] = None
 
 class FacebookMessagingEvent(BaseModel):
     sender: FacebookSender
-    recipient: FacebookRecipient
+    recipient: Optional[FacebookRecipient] = None
     timestamp: Optional[int] = None
     message: Optional[FacebookMessage] = None
 
 class FacebookEntry(BaseModel):
-    id: str
-    time: int
+    id: Optional[str] = None
+    time: Optional[int] = None
     messaging: List[FacebookMessagingEvent]
 
 class FacebookWebhookBody(BaseModel):
@@ -107,7 +115,7 @@ def process_media_message(sender_id: str, message: FacebookMessage, timestamp: O
         attachment_type = attachment.type
 
         if attachment_type in ALLOWED_MEDIA_TYPES:
-            media_url = attachment.payload.get("url")
+            media_url = attachment.payload.url
             if not media_url:
                 logger.warning(f"No URL found for {attachment_type} attachment")
                 continue
@@ -237,17 +245,20 @@ async def handle_webhook(request: Request):
                 status_code=400
             )
 
+        # Process the webhook body to get processed events
+        processed_events = process_webhook_body(body)
+
         msg = body.entry[0]
 
         print("msg:", json.dumps(msg.model_dump(), indent=4))
 
         processed_data = {
-            "id": msg.messaging[0].message.mid,
+            "id": msg.messaging[0].message.mid or "unknown",
             "message": msg.messaging[0].message.text,
-            "created_time": msg.time,
+            "created_time": msg.time or 0,
             "from_name": msg.messaging[0].sender.name if msg.messaging[0].sender.name else "UNKNOWN",
             "from_id": msg.messaging[0].sender.id if msg.messaging[0].sender.id else "0000000000000999",
-            "page_id": msg.id,
+            "page_id": msg.id or "unknown",
         }
 
         if msg.messaging[0].message.attachments:
@@ -267,8 +278,11 @@ async def handle_webhook(request: Request):
         else:
             logger.info("No events to publish to queue")
 
+        # Count the number of processed events for the response
+        processed_events_count = len(processed_events)
+
         return JSONResponse(
-            content={"status": "OK", "processed_events": processed_data},
+            content={"status": "OK", "processed_events": processed_events_count},
             status_code=200
         )
 

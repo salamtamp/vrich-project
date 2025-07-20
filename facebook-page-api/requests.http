@@ -21,6 +21,7 @@ POST http://localhost:3002/api/v1/facebooks/scheduler/posts/stop
 Content-Type: application/json
 
 {
+  "pageId": "221760221538013"
 }
 
 ### Restart posts scheduler
@@ -36,15 +37,6 @@ Content-Type: application/json
 ### Get posts scheduler status
 GET http://localhost:3002/api/v1/facebooks/scheduler/posts/status
 
-### Update posts scheduler schedule
-POST http://localhost:3002/api/v1/facebooks/scheduler/posts/update
-Content-Type: application/json
-
-{
-    "pageId": "221760221538013",
-    "schedule": "0 12 * * *",
-    "triggerType": "cron"
-}
 
 ### ===== Facebook Comments Scheduler =====
 
@@ -83,26 +75,14 @@ POST http://localhost:3002/api/v1/facebooks/scheduler/comments/update
 Content-Type: application/json
 
 {
-    "postIds": [],
-    "schedule": 15,
+    "postIds": ["221760221538013_1023344559595544"],
+    "schedule": 300,
     "triggerType": "interval"
 }
 
-### Add posts to comments scheduler
-POST http://localhost:3002/api/v1/facebooks/scheduler/comments/add-posts
-Content-Type: application/json
+### Get comments scheduler jobs info
+GET http://localhost:3002/api/v1/facebooks/scheduler/comments/jobs-info
 
-{
-    "postIds": ["221760221538013_1023344559595544"]
-}
-
-### Remove posts from comments scheduler
-POST http://localhost:3002/api/v1/facebooks/scheduler/comments/remove-posts
-Content-Type: application/json
-
-{
-    "postIds": ["221760221538013_1023344559595544"]
-}
 
 ### ===== Facebook Page Profile =====
 
@@ -157,4 +137,74 @@ Content-Type: application/json
       ]
     }
   ]
+}
+
+### ===== Facebook Messenger =====
+
+### Send plain text message to user
+POST http://localhost:3002/api/v1/messengers/send-text-message
+Content-Type: application/json
+
+{
+    "recipient_id": "9913831188727714",
+    "message": "ทดสอบ ส่งข้อความจากเพจ"
+}
+
+### Send image message to user
+POST http://localhost:3002/api/v1/messengers/send-image-message
+Content-Type: application/json
+
+{
+    "recipient_id": "9913831188727714",
+    "image_url": "https://scontent.fbkk28-1.fna.fbcdn.net/v/t39.30808-6/434319474_732149262449727_8550082078302143044_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=tIBezAjYEAIQ7kNvwFiFH0G&_nc_oc=AdnXw8C_3mHUfEtUL_9NBKi4EshzxUeNYUuWFMc-AUf11G7tAxq_Au5E3YlF7-53Lh4IruUHxrE5VYcn9eGkTz_Y&_nc_zt=23&_nc_ht=scontent.fbkk28-1.fna&_nc_gid=x0rz-Yu6qoNKC8ffhBKxqw&oh=00_AfQzHYx881YTyVnvf-r_4L3OwSHkHEN7lOw-4P6D2fs2pA&oe=68826C65"
+}
+
+### Send template message to user
+POST http://localhost:3002/api/v1/messengers/send-template-message
+Content-Type: application/json
+
+{
+    "recipient_id": "9913831188727714",
+    "template": {
+      "template_type": "button",
+      "text": "กดปุ่มด้านล่างเพื่อดูออเดอร์/แจ้งโอนเงิน",
+      "buttons": [
+          {
+              "type": "web_url",
+              "url": "https://www.google.com",
+              "title": "ดูออเดอร์"
+          }
+      ]
+    }
+}
+
+### Send message batch with multiple recipients
+POST http://localhost:3002/api/v1/messengers/send-message-batch
+Content-Type: application/json
+
+{
+    "messages": [
+        {
+            "recipient_id": "9913831188727714",
+            "message": "ทดสอบ ส่งข้อความจากเพจ"
+        },
+        {
+            "recipient_id": "9913831188727714",
+            "image_url": "https://scontent.fbkk28-1.fna.fbcdn.net/v/t39.30808-6/434319474_732149262449727_8550082078302143044_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=tIBezAjYEAIQ7kNvwFiFH0G&_nc_oc=AdnXw8C_3mHUfEtUL_9NBKi4EshzxUeNYUuWFMc-AUf11G7tAxq_Au5E3YlF7-53Lh4IruUHxrE5VYcn9eGkTz_Y&_nc_zt=23&_nc_ht=scontent.fbkk28-1.fna&_nc_gid=x0rz-Yu6qoNKC8ffhBKxqw&oh=00_AfQzHYx881YTyVnvf-r_4L3OwSHkHEN7lOw-4P6D2fs2pA&oe=68826C65"
+        },
+        {
+            "recipient_id": "9913831188727714",
+            "template": {
+              "template_type": "button",
+              "text": "กดปุ่มด้านล่างเพื่อดูออเดอร์/แจ้งโอนเงิน",
+              "buttons": [
+                  {
+                      "type": "web_url",
+                      "url": "https://www.google.com",
+                      "title": "ดูออเดอร์"
+                  }
+              ]
+            }
+        }
+    ]
 }
