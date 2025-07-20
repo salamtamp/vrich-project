@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -33,9 +33,11 @@ def create_facebook_profile(db):
 def create_campaign(db):
     campaign_in = CampaignCreate(
         name=f"Campaign {uuid4()}",
+        description=f"Test campaign description {uuid4()}",
         status="active",
-        start_at=datetime.now(),
-        end_at=datetime.now(),
+        start_date=datetime.now(),
+        end_date=datetime.now() + timedelta(days=1),
+        channels=["facebook_comment", "facebook_inbox"],
     )
     campaign = campaign_repo.create(db, obj_in=campaign_in)
     print(f"Created Campaign with ID: {campaign.id}")

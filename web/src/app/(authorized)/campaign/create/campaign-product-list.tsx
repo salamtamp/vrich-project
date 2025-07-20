@@ -2,8 +2,8 @@ import React from 'react';
 
 import type { Control, FieldArrayWithId } from 'react-hook-form';
 
-import type { FormValues } from './campaign-form';
 import CampaignProductRow from './campaign-product-row';
+import type { CampaignFormValues } from './campaign-types';
 
 const CampaignProductList = ({
   fields,
@@ -13,7 +13,7 @@ const CampaignProductList = ({
   productRefs,
   isLoading,
 }: {
-  fields: (FieldArrayWithId<FormValues, 'products'> & { control: Control<FormValues> })[];
+  fields: (FieldArrayWithId<CampaignFormValues, 'products'> & { control: Control<CampaignFormValues> })[];
   selectedProductIds: string[];
   onProductChange: (idx: number, productId: string) => void;
   onRemoveProduct: (idx: number) => void;

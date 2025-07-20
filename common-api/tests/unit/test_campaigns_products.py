@@ -16,9 +16,11 @@ from app.schemas.products import ProductCreate
 def create_campaign(db):
     campaign_in = CampaignCreate(
         name=f"Campaign {uuid4()}",
+        description=f"Test campaign description {uuid4()}",
         status="active",
-        start_at=datetime.now(UTC),
-        end_at=datetime.now(UTC) + timedelta(days=1),
+        start_date=datetime.now(UTC),
+        end_date=datetime.now(UTC) + timedelta(days=1),
+        channels=["facebook_comment", "facebook_inbox"],
     )
     return campaign_repo.create(db, obj_in=campaign_in)
 

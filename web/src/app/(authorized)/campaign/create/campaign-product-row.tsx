@@ -7,15 +7,9 @@ import { FormController } from '@/components/ui';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select as ShadcnSelect,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import type { FormValues } from './campaign-form';
+import type { CampaignFormValues } from './campaign-types';
 
 const CampaignProductRow = ({
   idx,
@@ -28,7 +22,7 @@ const CampaignProductRow = ({
   isLoading,
 }: {
   idx: number;
-  control: Control<FormValues>;
+  control: Control<CampaignFormValues>;
   selectedProductIds: string[];
   availableProducts: { id: string; name: string }[];
   onProductChange: (idx: number, productId: string) => void;
@@ -43,7 +37,7 @@ const CampaignProductRow = ({
         name={`products.${idx}.productId`}
         render={({ field }) => (
           <div className='flex flex-col'>
-            <ShadcnSelect
+            <Select
               value={typeof field.value === 'string' ? field.value : ''}
               onValueChange={(v) => {
                 field.onChange(v);
@@ -64,7 +58,7 @@ const CampaignProductRow = ({
                   </SelectItem>
                 ))}
               </SelectContent>
-            </ShadcnSelect>
+            </Select>
           </div>
         )}
       />

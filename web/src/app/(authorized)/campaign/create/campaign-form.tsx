@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Plus } from 'lucide-react';
+import type { Resolver } from 'react-hook-form';
 import { useFieldArray, useForm, useFormState } from 'react-hook-form';
 import * as yup from 'yup';
 
@@ -13,12 +14,15 @@ import DatePicker from '@/components/date-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
-import type { CampaignResponse } from '@/types/api';
+import type { CampaignChannel, CampaignResponse, CampaignStatus } from '@/types/api';
 
 import CampaignProductList from './campaign-product-list';
+import type { CampaignFormValues } from './campaign-types';
 
 const availableProducts = [
   { id: 'orange', name: 'Orange' },
@@ -28,8 +32,18 @@ const availableProducts = [
 
 const schema = yup.object({
   name: yup.string().required('Campaign name is required'),
-  startAt: yup.string().required('Start time is required'),
-  endAt: yup.string().required('End time is required'),
+  description: yup.string().optional(),
+  status: yup
+    .string()
+    .oneOf(['active', 'inactive'] as const)
+    .required('Status is required'),
+  startDate: yup.string().required('Start time is required'),
+  endDate: yup.string().required('End time is required'),
+  channels: yup
+    .array()
+    .of(yup.string().oneOf(['facebook_comment', 'facebook_inbox'] as const))
+    .min(1, 'At least one channel is required')
+    .required('Channels are required'),
   products: yup
     .array()
     .of(
@@ -44,12 +58,13 @@ const schema = yup.object({
     .required('Products are required'),
 });
 
-export type FormValues = yup.InferType<typeof schema>;
-
-const defaultValues: FormValues = {
+const defaultValues: CampaignFormValues = {
   name: '',
-  startAt: '',
-  endAt: '',
+  description: '',
+  status: 'inactive' as CampaignStatus,
+  startDate: '',
+  endDate: '',
+  channels: [],
   products: [],
 };
 
@@ -61,9 +76,9 @@ const CampaignForm = () => {
     },
   });
 
-  const { control, handleSubmit, reset, setValue, watch } = useForm<FormValues>({
+  const { control, handleSubmit, reset, setValue, watch } = useForm<CampaignFormValues>({
     defaultValues,
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as Resolver<CampaignFormValues>,
     mode: 'onSubmit',
   });
   const { errors } = useFormState({ control });
@@ -110,14 +125,16 @@ const CampaignForm = () => {
     setValue(`products.${idx}.name`, product ? product.name : '');
   };
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: CampaignFormValues) => {
     await handleRequest({
       data: {
         name: data.name,
-        start_at: data.startAt,
-        end_at: data.endAt,
+        description: data.description ?? undefined,
+        status: data.status,
+        start_date: data.startDate,
+        end_date: data.endDate,
+        channels: data.channels,
         products: data.products,
-        status: 'inactive',
       },
     });
     reset(defaultValues);
@@ -155,17 +172,109 @@ const CampaignForm = () => {
           />
         </div>
         <div className='flex flex-col gap-1'>
+          <Label htmlFor='campaign-description'>Description</Label>
+          <FormController
+            control={control}
+            name='description'
+            render={({ field }) => (
+              <Textarea
+                ref={field.ref}
+                id='campaign-description'
+                name={field.name}
+                placeholder='Enter campaign description...'
+                value={typeof field.value === 'string' ? field.value : ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <Label htmlFor='campaign-status'>Status</Label>
+          <FormController
+            control={control}
+            name='status'
+            render={({ field }) => (
+              <Select
+                value={typeof field.value === 'string' ? field.value : ''}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger id='campaign-status'>
+                  <SelectValue placeholder='Select status' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='active'>Active</SelectItem>
+                  <SelectItem value='inactive'>Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <Label htmlFor='campaign-channels'>Channels</Label>
+          <FormController
+            control={control}
+            name='channels'
+            render={({ field }) => (
+              <Select
+                value=''
+                onValueChange={(value) => {
+                  const currentChannels = (
+                    Array.isArray(field.value) ? field.value : []
+                  ) as CampaignChannel[];
+                  if (value && !currentChannels.includes(value as CampaignChannel)) {
+                    field.onChange([...currentChannels, value as CampaignChannel]);
+                  }
+                }}
+              >
+                <SelectTrigger id='campaign-channels'>
+                  <SelectValue placeholder='Select channels' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='facebook_comment'>Facebook Comment</SelectItem>
+                  <SelectItem value='facebook_inbox'>Facebook Inbox</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {Array.isArray(watch('channels')) && watch('channels').length > 0 && (
+            <div className='mt-2 flex flex-wrap gap-2'>
+              {watch('channels').map((channel, index) => (
+                <div
+                  key={`channel-${channel}-${crypto.randomUUID()}`}
+                  className='flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm'
+                >
+                  <span>{channel === 'facebook_comment' ? 'Facebook Comment' : 'Facebook Inbox'}</span>
+                  <button
+                    className='ml-1 text-blue-600 hover:text-blue-800'
+                    type='button'
+                    onClick={() => {
+                      const currentChannels = watch('channels');
+                      setValue(
+                        'channels',
+                        currentChannels.filter((_, i) => i !== index)
+                      );
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className='flex flex-col gap-1'>
           <Label>Date Range</Label>
           <div>
             <FormController
               disableError
               control={control}
-              name='startAt'
+              name='startDate'
               render={({ field: { value, onChange } }) => (
                 <FormController
                   disableError
                   control={control}
-                  name='endAt'
+                  name='endDate'
                   render={({ field: { value: endValue, onChange: onEndChange } }) => (
                     <DatePicker
                       defaultEndDate={typeof endValue === 'string' && endValue ? dayjs(endValue) : undefined}
@@ -179,9 +288,9 @@ const CampaignForm = () => {
                 />
               )}
             />
-            {errors.startAt || errors.endAt ? (
+            {errors.startDate || errors.endDate ? (
               <div className='mt-1 text-xs text-red-500'>
-                {errors.startAt?.message ?? errors.endAt?.message}
+                {errors.startDate?.message ?? errors.endDate?.message}
               </div>
             ) : null}
           </div>

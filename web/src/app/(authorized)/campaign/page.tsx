@@ -79,14 +79,14 @@ const CampaignPage = () => {
       key: 'startAt',
       label: 'Start Date',
       render: (row) => {
-        return row.start_at ? dayjs(row.start_at).format('YYYY-MM-DD') : '-';
+        return row.start_date ? dayjs(row.start_date).format('YYYY-MM-DD') : '-';
       },
       align: 'center',
     },
     {
       key: 'endAt',
       label: 'End Date',
-      render: (row) => (row.end_at ? dayjs(row.end_at).format('YYYY-MM-DD') : '-'),
+      render: (row) => (row.end_date ? dayjs(row.end_date).format('YYYY-MM-DD') : '-'),
       align: 'center',
     },
     {

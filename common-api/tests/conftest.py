@@ -9,8 +9,10 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.types import CHAR, JSON
 
-# Patch UUID for SQLite before any model imports
+# Patch PostgreSQL types for SQLite before any model imports
 if "sqlite" in str(__import__("os").environ.get("DATABASE_URL", "sqlite:///./test.db")):
+    # Patch ARRAY to use JSON for SQLite
+    sqlalchemy.dialects.postgresql.ARRAY = JSON
 
     class SQLiteUUID(CHAR):
         def __init__(self, *args, **kwargs):
