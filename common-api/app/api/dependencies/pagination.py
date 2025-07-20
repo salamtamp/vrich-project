@@ -5,7 +5,6 @@ from typing import Generic, TypeVar
 import sqlalchemy as sa
 from fastapi import HTTPException, Query
 from pydantic import BaseModel, Field
-from pydantic.generics import GenericModel
 from sqlalchemy.orm import Session
 
 
@@ -29,7 +28,7 @@ T = TypeVar("T")
 
 
 # PaginationResponse uses Generic[T] as required by typing and pydantic generics
-class PaginationResponse(GenericModel, Generic[T]):
+class PaginationResponse(BaseModel, Generic[T]):
     total: int
     docs: list[T]
     limit: int
