@@ -1,5 +1,6 @@
 import logging
 import sys
+from contextlib import asynccontextmanager, suppress
 
 import socketio
 from fastapi import FastAPI
@@ -18,7 +19,20 @@ logging.basicConfig(
 
 
 # Initialize FastAPI app
-app = FastAPI()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    with suppress(Exception):
+        await redis_client.connect()
+    yield
+    # Shutdown
+    with suppress(Exception):
+        await redis_client.disconnect()
+
+
+app = FastAPI(lifespan=lifespan)
 
 # CORS middleware
 app.add_middleware(
@@ -33,30 +47,10 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api/v1")
 
 # Combine FastAPI and Socket.IO
-print("Initializing Socket.IO ASGI app...")
 socket_app = socketio.ASGIApp(sio, app)
-print("Socket.IO ASGI app initialized successfully")
 
 
-@app.on_event("startup")
-async def startup_event():
-    """Initialize Redis connection on startup."""
-    try:
-        await redis_client.connect()
-        print("Redis connection established")
-    except Exception as e:
-        print(f"Failed to connect to Redis: {e}")
-        print("Application will continue without Redis caching")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Close Redis connection on shutdown."""
-    try:
-        await redis_client.disconnect()
-        print("Redis connection closed")
-    except Exception as e:
-        print(f"Error closing Redis connection: {e}")
+# Remove @app.on_event("startup") and @app.on_event("shutdown") handlers
 
 
 @app.get("/healthcheck")

@@ -37,7 +37,11 @@ def get_campaign(
     campaign_id: UUID,
     db: Session = Depends(get_db),
 ) -> Campaign:
-    campaign = db.query(CampaignModel).filter(CampaignModel.id == campaign_id).first()
+    campaign = (
+        db.query(CampaignModel)
+        .filter(CampaignModel.id == campaign_id, CampaignModel.deleted_at.is_(None))
+        .first()
+    )
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     return campaign
@@ -54,7 +58,11 @@ def create_campaign(
 def update_campaign(
     *, db: Session = Depends(get_db), campaign_id: UUID, campaign_in: CampaignUpdate
 ) -> Campaign:
-    db_obj = db.query(CampaignModel).filter(CampaignModel.id == campaign_id).first()
+    db_obj = (
+        db.query(CampaignModel)
+        .filter(CampaignModel.id == campaign_id, CampaignModel.deleted_at.is_(None))
+        .first()
+    )
     if not db_obj:
         raise HTTPException(status_code=404, detail="Campaign not found")
     return campaign_repo.update(db, db_obj=db_obj, obj_in=campaign_in)
@@ -62,9 +70,18 @@ def update_campaign(
 
 @router.delete("/{campaign_id}", response_model=Campaign)
 def delete_campaign(*, db: Session = Depends(get_db), campaign_id: UUID) -> Campaign:
-    db_obj = db.query(CampaignModel).filter(CampaignModel.id == campaign_id).first()
+    db_obj = (
+        db.query(CampaignModel)
+        .filter(CampaignModel.id == campaign_id, CampaignModel.deleted_at.is_(None))
+        .first()
+    )
     if not db_obj:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    db.delete(db_obj)
+
+    # Soft delete
+    from datetime import datetime
+
+    db_obj.deleted_at = datetime.utcnow()
     db.commit()
+    db.refresh(db_obj)
     return db_obj

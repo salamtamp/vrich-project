@@ -14,6 +14,16 @@ type BodyCellProps<T extends Record<string, unknown>> = {
   skeletonWidthPercent?: string;
 };
 
+function getNestedValue<T>(obj: T, path: string): unknown {
+  return path.split('.').reduce<unknown>((acc, part) => {
+    if (acc && typeof acc === 'object' && part in acc) {
+      // @ts-expect-error: dynamic access
+      return acc[part];
+    }
+    return undefined;
+  }, obj);
+}
+
 const BodyCell = <T extends Record<string, unknown>>({
   column,
   row,
@@ -25,12 +35,15 @@ const BodyCell = <T extends Record<string, unknown>>({
   let content: React.ReactNode;
   if (render) {
     content = render(row);
-  } else if (typeof row[key] === 'undefined' || row[key] === null) {
-    content = '-';
-  } else if (typeof row[key] === 'string' || typeof row[key] === 'number' || typeof row[key] === 'boolean') {
-    content = String(row[key]);
   } else {
-    content = '[object]';
+    const value = getNestedValue(row, key);
+    if (typeof value === 'undefined' || value === null) {
+      content = '-';
+    } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      content = String(value);
+    } else {
+      content = '[object]';
+    }
   }
   return (
     <TableCell

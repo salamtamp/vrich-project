@@ -31,17 +31,19 @@ services:
       "
     profiles: ["migration"]
 
-  db:
-    image: postgres:15-alpine
+  database:
+    image: postgres:15.8
     container_name: vrich_db_dev
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-vrich_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-vrich_db}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./deployments/database/init-db:/docker-entrypoint-initdb.d
+    restart: unless-stopped
     networks:
       - vrich_network_dev
     profiles: ["db"]

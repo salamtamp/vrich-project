@@ -1,0 +1,376 @@
+'use client';
+
+import React, { useEffect, useRef } from 'react';
+
+import { useRouter } from 'next/navigation';
+
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Plus } from 'lucide-react';
+import type { Resolver } from 'react-hook-form';
+import { useFieldArray, useForm, useFormState } from 'react-hook-form';
+import * as yup from 'yup';
+
+import { FormController } from '@/components/ui';
+
+import DatePicker from '@/components/date-picker';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { API } from '@/constants/api.constant';
+import useRequest from '@/hooks/request/useRequest';
+import dayjs from '@/lib/dayjs';
+import type { CampaignChannel, CampaignResponse } from '@/types/api';
+
+import CampaignProductList from '../../create/campaign-product-list';
+import type { CampaignFormValues } from '../../create/campaign-types';
+
+const availableProducts = [
+  { id: 'orange', name: 'Orange' },
+  { id: 'watermelon', name: 'Watermelon' },
+  { id: 'banana', name: 'Banana' },
+];
+
+const schema = yup.object({
+  name: yup.string().required('Campaign name is required'),
+  description: yup.string().optional(),
+  status: yup
+    .string()
+    .oneOf(['active', 'inactive'] as const)
+    .required('Status is required'),
+  startDate: yup.string().required('Start time is required'),
+  endDate: yup.string().required('End time is required'),
+  channels: yup
+    .array()
+    .of(yup.string().oneOf(['facebook_comment', 'facebook_inbox'] as const))
+    .min(1, 'At least one channel is required')
+    .required('Channels are required'),
+  products: yup
+    .array()
+    .of(
+      yup.object({
+        productId: yup.string().required('Product is required'),
+        name: yup.string().required('Name is required'),
+        keyword: yup.string().required('Keyword is required'),
+        quantity: yup.number().min(1, 'Quantity must be at least 1').required('Quantity is required'),
+      })
+    )
+    .min(1, 'At least one product is required')
+    .required('Products are required'),
+});
+
+type CampaignEditFormProps = {
+  campaignId: string;
+};
+
+const CampaignEditForm = ({ campaignId }: CampaignEditFormProps) => {
+  const router = useRouter();
+
+  const { data: campaignData, isLoading: isLoadingCampaign } = useRequest<CampaignResponse>({
+    request: {
+      url: `${API.CAMPAIGN}/${campaignId}`,
+      method: 'GET',
+    },
+  });
+
+  const { handleRequest: handleUpdateRequest, isLoading: isUpdating } = useRequest<CampaignResponse>({
+    request: {
+      url: `${API.CAMPAIGN}/${campaignId}`,
+      method: 'PUT',
+    },
+  });
+
+  const { control, handleSubmit, reset, setValue, watch } = useForm<CampaignFormValues>({
+    resolver: yupResolver(schema) as Resolver<CampaignFormValues>,
+    mode: 'onSubmit',
+  });
+  const { errors } = useFormState({ control });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'products',
+  });
+
+  const selectedProductIds = fields.map((f) => f.productId);
+  const products = watch('products');
+  const productRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (campaignData) {
+      const defaultValues: CampaignFormValues = {
+        name: campaignData.name,
+        description: campaignData.description ?? '',
+        status: campaignData.status,
+        startDate: campaignData.start_date ? dayjs(campaignData.start_date).toISOString() : '',
+        endDate: campaignData.end_date ? dayjs(campaignData.end_date).toISOString() : '',
+        channels: campaignData.channels || [],
+        products:
+          campaignData.products?.map((p) => ({
+            productId: p.productId,
+            name: p.name,
+            keyword: p.keyword,
+            quantity: p.quantity,
+          })) || [],
+      };
+      reset(defaultValues);
+    }
+  }, [campaignData, reset]);
+
+  useEffect(() => {
+    if (fields.length === 0 && campaignData?.products?.length) {
+      campaignData.products.forEach((product) => {
+        append({
+          productId: product.productId,
+          name: product.name,
+          keyword: product.keyword,
+          quantity: product.quantity,
+        });
+      });
+    }
+  }, [fields.length, campaignData, append]);
+
+  useEffect(() => {
+    if (fields.length > 0) {
+      const last = products?.[fields.length - 1];
+      if (last?.productId && last?.keyword && last?.quantity) {
+        append({ productId: '', name: '', keyword: '', quantity: 1 });
+      }
+    }
+  }, [products, fields.length, append]);
+
+  useEffect(() => {
+    if (fields.length > 0) {
+      const lastIdx = fields.length - 1;
+      productRefs.current[lastIdx]?.focus();
+    }
+  }, [fields.length]);
+
+  const onAddProductRow = () => {
+    append({ productId: '', name: '', keyword: '', quantity: 1 });
+  };
+
+  const onProductChange = (idx: number, productId: string) => {
+    const product = availableProducts.find((p) => p.id === productId);
+    setValue(`products.${idx}.productId`, productId);
+    setValue(`products.${idx}.name`, product ? product.name : '');
+  };
+
+  const onSubmit = async (data: CampaignFormValues) => {
+    try {
+      await handleUpdateRequest({
+        data: {
+          name: data.name,
+          description: data.description ?? undefined,
+          status: data.status,
+          start_date: data.startDate,
+          end_date: data.endDate,
+          channels: data.channels,
+          products: data.products,
+        },
+      });
+      router.push('/campaign');
+    } catch (error) {
+      console.error('Failed to update campaign:', error);
+    }
+  };
+
+  const onCancel = () => {
+    router.push('/campaign');
+  };
+
+  const fieldsWithControl = fields.map((f) => ({ ...f, control }));
+
+  if (isLoadingCampaign) {
+    return <div className='flex justify-center p-8'>Loading...</div>;
+  }
+
+  return (
+    <form
+      className='flex flex-col gap-8'
+      onSubmit={(e) => {
+        void handleSubmit(onSubmit)(e);
+      }}
+    >
+      <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-1'>
+          <Label htmlFor='campaign-name'>Campaign Name</Label>
+          <FormController
+            control={control}
+            name='name'
+            render={({ field }) => (
+              <Input
+                ref={field.ref}
+                id='campaign-name'
+                name={field.name}
+                value={typeof field.value === 'string' ? field.value : ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <Label htmlFor='campaign-description'>Description</Label>
+          <FormController
+            control={control}
+            name='description'
+            render={({ field }) => (
+              <Textarea
+                ref={field.ref}
+                id='campaign-description'
+                name={field.name}
+                placeholder='Enter campaign description...'
+                value={typeof field.value === 'string' ? field.value : ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <Label htmlFor='campaign-status'>Status</Label>
+          <FormController
+            control={control}
+            name='status'
+            render={({ field }) => (
+              <Select
+                value={typeof field.value === 'string' ? field.value : ''}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger id='campaign-status'>
+                  <SelectValue placeholder='Select status' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='active'>Active</SelectItem>
+                  <SelectItem value='inactive'>Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <Label htmlFor='campaign-channels'>Channels</Label>
+          <FormController
+            control={control}
+            name='channels'
+            render={({ field }) => (
+              <Select
+                value=''
+                onValueChange={(value) => {
+                  const currentChannels = (
+                    Array.isArray(field.value) ? field.value : []
+                  ) as CampaignChannel[];
+                  if (value && !currentChannels.includes(value as CampaignChannel)) {
+                    field.onChange([...currentChannels, value as CampaignChannel]);
+                  }
+                }}
+              >
+                <SelectTrigger id='campaign-channels'>
+                  <SelectValue placeholder='Select channels' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='facebook_comment'>Facebook Comment</SelectItem>
+                  <SelectItem value='facebook_inbox'>Facebook Inbox</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {Array.isArray(watch('channels')) && watch('channels').length > 0 && (
+            <div className='mt-2 flex flex-wrap gap-2'>
+              {watch('channels').map((channel, index) => (
+                <div
+                  key={`channel-${channel}-${crypto.randomUUID()}`}
+                  className='flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm'
+                >
+                  <span>{channel === 'facebook_comment' ? 'Facebook Comment' : 'Facebook Inbox'}</span>
+                  <button
+                    className='ml-1 text-blue-600 hover:text-blue-800'
+                    type='button'
+                    onClick={() => {
+                      const currentChannels = watch('channels');
+                      setValue(
+                        'channels',
+                        currentChannels.filter((_, i) => i !== index)
+                      );
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className='flex flex-col gap-1'>
+          <Label>Date Range</Label>
+          <div>
+            <FormController
+              disableError
+              control={control}
+              name='startDate'
+              render={({ field: { value, onChange } }) => (
+                <FormController
+                  disableError
+                  control={control}
+                  name='endDate'
+                  render={({ field: { value: endValue, onChange: onEndChange } }) => (
+                    <DatePicker
+                      defaultEndDate={typeof endValue === 'string' && endValue ? dayjs(endValue) : undefined}
+                      defaultStartDate={typeof value === 'string' && value ? dayjs(value) : undefined}
+                      onChange={(start, end) => {
+                        onChange(start ? start.toISOString() : '');
+                        onEndChange(end ? end.toISOString() : '');
+                      }}
+                    />
+                  )}
+                />
+              )}
+            />
+            {errors.startDate || errors.endDate ? (
+              <div className='mt-1 text-xs text-red-500'>
+                {errors.startDate?.message ?? errors.endDate?.message}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+      <CampaignProductList
+        fields={fieldsWithControl}
+        isLoading={isUpdating}
+        productRefs={productRefs}
+        selectedProductIds={selectedProductIds}
+        onProductChange={onProductChange}
+        onRemoveProduct={remove}
+      />
+      <Button
+        className='w-fit'
+        disabled={isUpdating}
+        type='button'
+        variant='outline'
+        onClick={onAddProductRow}
+      >
+        <Plus className='mr-2 size-4' /> Add Product
+      </Button>
+      <div className='flex justify-end gap-2'>
+        <Button
+          disabled={isUpdating}
+          type='button'
+          variant='softgray'
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          disabled={isUpdating}
+          type='submit'
+          variant='softgray'
+        >
+          {isUpdating ? 'Updating...' : 'Update Campaign'}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+export default CampaignEditForm;

@@ -15,7 +15,7 @@ def create_facebook_messenger(
     # Check if profile exists
     profile = (
         db.query(FacebookProfile)
-        .filter(FacebookProfile.id == obj_in.profile_id)
+        .filter(FacebookProfile.id == str(obj_in.profile_id))
         .first()
     )
     if not profile:

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CampaignProduct(BaseModel):
@@ -11,11 +11,14 @@ class CampaignProduct(BaseModel):
 
 
 class CampaignBase(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = None
+    start_date: datetime
+    end_date: datetime
     status: Literal["active", "inactive"]
-    products: list[dict]  # or List[CampaignProduct] if you want strict typing
-    start_at: datetime
-    end_at: datetime
+    channels: list[Literal["facebook_comment", "facebook_inbox"]] = Field(
+        ..., min_items=1
+    )
 
 
 class CampaignCreate(CampaignBase):
@@ -23,17 +26,21 @@ class CampaignCreate(CampaignBase):
 
 
 class CampaignUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     status: Literal["active", "inactive"] | None = None
-    products: list[dict] | None = None
-    start_at: datetime | None = None
-    end_at: datetime | None = None
+    channels: list[Literal["facebook_comment", "facebook_inbox"]] | None = Field(
+        None, min_items=1
+    )
 
 
 class Campaign(CampaignBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
+    deleted_at: datetime | None = None
 
     class Config:
         from_attributes = True

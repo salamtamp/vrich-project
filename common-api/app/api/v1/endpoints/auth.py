@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import database as deps
 from app.constants.auth import (
     ERR_EMAIL_OR_USERNAME_REQUIRED,
     ERR_INCORRECT_EMAIL_OR_PASSWORD,
@@ -82,9 +81,7 @@ def register_user(
 
 
 @router.post("/test-token", response_model=user_schema.User)
-def test_token(
-    current_user: user_schema.User = Depends(deps.get_current_user),
-) -> user_schema.User:
+def test_token(current_user: user_schema.User):
     """
     Test access token
     """

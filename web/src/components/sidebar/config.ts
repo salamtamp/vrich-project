@@ -7,4 +7,5 @@ export const sidebarConfig = [
   { label: 'Posts', path: PATH.POST, icon: MessageSquareText },
   { label: 'Inbox', path: PATH.INBOX, icon: Inbox },
   { label: 'Campaign', path: PATH.CAMPAIGN, icon: Tag },
+  { label: 'Products', path: PATH.PRODUCTS, icon: Tag },
 ];

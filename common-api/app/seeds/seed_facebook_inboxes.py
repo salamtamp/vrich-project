@@ -17,7 +17,6 @@ def main():
     try:
         profiles = db.query(FacebookProfile).all()
         if len(profiles) < 50:
-            print("Not enough facebook profiles to seed inboxes.")
             return
         for i in range(50):
             messenger_id = f"msgid{i+1}"
@@ -30,7 +29,6 @@ def main():
                 .first()
             )
             if existing:
-                print(f"FacebookInbox {messenger_id} already exists.")
                 continue
             inbox = FacebookInbox(
                 profile_id=profile_id,
@@ -42,7 +40,6 @@ def main():
             )
             db.add(inbox)
         db.commit()
-        print("50 facebook inboxes seeded!")
     finally:
         db.close()
 

@@ -5,4 +5,5 @@ export const PATH = {
   POST: '/post',
   PROFILE: '/profile',
   CAMPAIGN: '/campaign',
+  PRODUCTS: '/product',
 };

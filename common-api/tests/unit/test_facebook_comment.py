@@ -6,23 +6,21 @@ import pytest
 from app.api.dependencies.pagination import OrderDirection, PaginationBuilder
 from app.db.models.facebook_comment import FacebookComment
 from app.db.models.facebook_post import FacebookPost
-from app.db.models.facebook_profile import FacebookProfile
 from app.db.repositories.facebook_comment.repo import facebook_comment_repo
+from app.db.repositories.facebook_profile.repo import facebook_profile_repo
 from app.schemas.facebook_comment import FacebookCommentCreate, FacebookCommentUpdate
+from app.schemas.facebook_profile import FacebookProfileCreate
 
 
 @pytest.fixture
 def profile(db):
-    profile = FacebookProfile(
-        id=uuid4(),
-        facebook_id="fbid-123",
+    profile_in = FacebookProfileCreate(
+        facebook_id=f"fbid-{uuid4()}",
         type="user",
         name="Test User",
         profile_picture_url="http://example.com/pic.jpg",
     )
-    db.add(profile)
-    db.commit()
-    return profile
+    return facebook_profile_repo.create(db, obj_in=profile_in)
 
 
 @pytest.fixture
@@ -30,7 +28,7 @@ def post(db, profile):
     post = FacebookPost(
         id=uuid4(),
         profile_id=profile.id,
-        post_id="post-123",
+        post_id=f"post-{uuid4()}",
         message="Test post",
         link=None,
         media_url=None,
@@ -167,7 +165,7 @@ def test_pagination_search(db, profile, post):
     comment_in = FacebookCommentCreate(
         profile_id=profile.id,
         post_id=post.id,
-        comment_id="comment-special",
+        comment_id=f"comment-special-{uuid4()}",
         message=unique_message,
         type="comment",
         link=None,

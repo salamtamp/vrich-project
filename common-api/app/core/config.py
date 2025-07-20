@@ -35,9 +35,13 @@ class Settings(BaseSettings):
     )
 
     # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", "postgresql://user:password@database:5432/postgres"
-    )
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    if ENVIRONMENT in ("test", "testing"):
+        DATABASE_URL: str = "sqlite:///./test.db"
+    else:
+        DATABASE_URL: str = os.getenv(
+            "DATABASE_URL", "postgresql://user:password@database:5432/postgres"
+        )
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "postgres")
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "user")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "password")
@@ -55,7 +59,6 @@ class Settings(BaseSettings):
 
     # Environment
     DEBUG: bool = os.getenv("DEBUG", "False") == "True"
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
 
     # Facebook Scheduler
     FACEBOOK_SCHEDULER_BASE_URL: str = os.getenv(

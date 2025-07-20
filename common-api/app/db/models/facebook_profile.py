@@ -1,4 +1,5 @@
 from sqlalchemy import Column, DateTime, Text, text
+from sqlalchemy.orm import relationship
 
 from app.db.models.base import UUIDPrimaryKeyMixin
 from app.db.session import Base
@@ -25,3 +26,13 @@ class FacebookProfile(Base, UUIDPrimaryKeyMixin):
         server_default=text("CURRENT_TIMESTAMP"),
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    comments = relationship("FacebookComment", back_populates="profile")
+    posts = relationship("FacebookPost", back_populates="profile")
+    inboxes = relationship("FacebookInbox", back_populates="profile")
+    orders = relationship("Order", back_populates="profile")
+    payments = relationship("Payment", back_populates="profile")
+    profiles_contacts = relationship("ProfileContact", back_populates="profile")
+    campaigns_notifications = relationship(
+        "CampaignNotification", back_populates="profile"
+    )

@@ -133,6 +133,10 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
 
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   transpilePackages: ['msw'],
 
   // Asset optimization

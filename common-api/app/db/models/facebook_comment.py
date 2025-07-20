@@ -39,5 +39,4 @@ class FacebookComment(Base, UUIDPrimaryKeyMixin):
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    profile = relationship("FacebookProfile", backref="comments")
-    post = relationship("FacebookPost", backref="comments")
+    profile = relationship("FacebookProfile", back_populates="comments")
