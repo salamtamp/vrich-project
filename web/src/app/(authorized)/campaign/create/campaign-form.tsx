@@ -193,14 +193,14 @@ const CampaignForm = () => {
       }}
     >
       <div className='flex flex-col gap-6 rounded-xl bg-gray-200 px-6 pb-8 pt-4'>
-        <h2 className='text-lg-semibold'>Products</h2>
+        <h2 className='text-lg-semibold'>Campaign Details</h2>
 
         <div className='flex min-w-[250px] flex-1 flex-col gap-1'>
           <Label
             className='mb-2'
             htmlFor='campaign-name'
           >
-            Campaign Name
+            Name
           </Label>
           <FormController
             control={control}
@@ -242,7 +242,7 @@ const CampaignForm = () => {
                 }}
               >
                 <SelectTrigger
-                  className='rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='w-fit rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                   id='campaign-channels'
                 >
                   <SelectValue placeholder='Select channels' />
@@ -281,7 +281,12 @@ const CampaignForm = () => {
           )}
         </div>
         <div className='flex min-w-[260px] flex-1 flex-col gap-1'>
-          <Label>Date Range</Label>
+          <Label
+            className='mb-2'
+            htmlFor='date-range'
+          >
+            Date Range
+          </Label>
           <div>
             <FormController
               disableError
@@ -294,7 +299,7 @@ const CampaignForm = () => {
                   name='endDate'
                   render={({ field: { value: endValue, onChange: onEndChange } }) => (
                     <DatePicker
-                      className='w-full rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                      className='w-fit rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                       defaultEndDate={typeof endValue === 'string' && endValue ? dayjs(endValue) : undefined}
                       defaultStartDate={typeof value === 'string' && value ? dayjs(value) : undefined}
                       onChange={(start, end) => {
@@ -428,7 +433,7 @@ const CampaignForm = () => {
         </Button>
       </div>
 
-      <div className='mt-8 flex justify-end gap-4'>
+      <div className='mt-2 flex justify-end gap-4'>
         <Button
           className='rounded-lg border-gray-300 bg-white px-6 py-2 font-medium text-gray-700 shadow-none hover:border-gray-400 hover:bg-gray-100'
           disabled={isCampaignLoading}

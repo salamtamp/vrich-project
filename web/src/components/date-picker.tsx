@@ -913,7 +913,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 clearSelection();
               }}
             >
-              <X className='size-4' />
+              <X className='ml-2 size-4' />
             </button>
           ) : null}
         </div>
