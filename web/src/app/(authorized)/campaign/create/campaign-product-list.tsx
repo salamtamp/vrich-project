@@ -29,26 +29,23 @@ const CampaignProductList = ({
   setValue: UseFormSetValue<CampaignFormValues>;
 }) => {
   return (
-    <div>
-      <h2 className='mb-2 text-lg font-semibold'>Products</h2>
-      <div className='flex flex-col gap-2 rounded-lg border bg-gray-50 p-4'>
-        {fields.length === 0 && <div className='italic text-gray-400'>No products added yet.</div>}
-        {fields.map((field, idx) => (
-          <CampaignProductRow
-            key={`${field.id}-${crypto.randomUUID()}`}
-            availableProducts={availableProducts}
-            control={field.control}
-            idx={idx}
-            isLoading={isLoading}
-            productRefs={productRefs}
-            products={products}
-            selectedProductIds={selectedProductIds}
-            setValue={setValue}
-            onProductChange={onProductChange}
-            onRemoveProduct={onRemoveProduct}
-          />
-        ))}
-      </div>
+    <div className='flex flex-col gap-2'>
+      {fields.length === 0 && <div className='italic text-gray-400'>No products added yet.</div>}
+      {fields.map((field, idx) => (
+        <CampaignProductRow
+          key={`${field.id}-${crypto.randomUUID()}`}
+          availableProducts={availableProducts}
+          control={field.control}
+          idx={idx}
+          isLoading={isLoading}
+          productRefs={productRefs}
+          products={products}
+          selectedProductIds={selectedProductIds}
+          setValue={setValue}
+          onProductChange={onProductChange}
+          onRemoveProduct={onRemoveProduct}
+        />
+      ))}
     </div>
   );
 };

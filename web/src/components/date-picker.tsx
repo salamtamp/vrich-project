@@ -7,6 +7,7 @@ import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 import { MONTHS, MONTHS_SHORT, WEEK_DAYS } from '@/constants/data-time';
 import dayjs from '@/lib/dayjs';
+import { cn } from '@/lib/utils';
 
 type DatePickerState = {
   startDate: Dayjs | null;
@@ -22,6 +23,7 @@ type DatePickerProps = {
   onChange?: (startDate: Dayjs | null, endDate: Dayjs | null) => void;
   onConfirm?: (startDate: Dayjs | null, endDate: Dayjs | null) => void;
   position?: 'top' | 'bottom';
+  className?: string;
 };
 
 const isSameDay = (date1: Dayjs | null, date2: Dayjs | null): boolean => {
@@ -630,6 +632,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   onConfirm,
   position = 'bottom',
+  className,
 }) => {
   const [selectedStartDate, setSelectedStartDate] = useState<Dayjs | null>(defaultStartDate ?? null);
   const [selectedEndDate, setSelectedEndDate] = useState<Dayjs | null>(defaultEndDate ?? null);
@@ -880,7 +883,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   return (
-    <div className='relative w-[220px]'>
+    <div className={cn('relative w-[220px]', className)}>
       <div
         aria-expanded={isOpen}
         aria-haspopup='true'

@@ -3,7 +3,7 @@ import type { CampaignChannel, CampaignStatus } from '@/types/api';
 export type CampaignFormValues = {
   name: string;
   description?: string;
-  status: CampaignStatus;
+  status?: CampaignStatus;
   startDate: string;
   endDate: string;
   channels: CampaignChannel[];

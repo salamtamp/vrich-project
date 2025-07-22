@@ -40,100 +40,104 @@ const CampaignProductRow = ({
 
   React.useEffect(() => {
     if (selectedProduct && !products[idx]?.keyword) {
-      setValue(`products.${idx}.keyword`, selectedProduct.keyword ?? '');
+      setValue(`products.${idx}.keyword`, selectedProduct.keyword ?? '', { shouldValidate: true });
     }
   }, [selectedProduct, idx, setValue, products]);
 
   return (
     <div className='flex flex-col gap-2 rounded-lg border bg-white p-4 shadow-sm'>
-      <div className='flex flex-wrap items-start gap-4 md:flex-nowrap'>
-        <div className='min-w-[180px] flex-1'>
-          <FormController
-            control={control}
-            name={`products.${idx}.productId`}
-            render={({ field }) => (
-              <div className='flex flex-col gap-1'>
-                <Label htmlFor={`product-select-${idx}`}>Product</Label>
-                <Select
-                  value={typeof field.value === 'string' ? field.value : ''}
-                  onValueChange={(v) => {
-                    field.onChange(v);
-                    onProductChange(idx, v);
-                  }}
-                >
-                  <SelectTrigger
-                    className='w-full'
-                    id={`product-select-${idx}`}
+      <div className='flex w-full items-center justify-between gap-4'>
+        <div className='flex size-full flex-wrap items-start gap-4'>
+          <div className='min-w-[180px] flex-1'>
+            <FormController
+              control={control}
+              name={`products.${idx}.productId`}
+              render={({ field }) => (
+                <div className='flex flex-col gap-2'>
+                  <Label htmlFor='product-name'>Product</Label>
+                  <Select
+                    value={typeof field.value === 'string' ? field.value : ''}
+                    onValueChange={(v) => {
+                      field.onChange(v);
+                      onProductChange(idx, v);
+                    }}
                   >
-                    <SelectValue placeholder='Select Product' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableProducts.map((p) => (
-                      <SelectItem
-                        key={p.id}
-                        disabled={selectedProductIds.includes(p.id) && p.id !== field.value}
-                        value={p.id}
-                      >
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          />
-        </div>
-        <div className='min-w-[120px] flex-1'>
-          <FormController
-            control={control}
-            name={`products.${idx}.keyword`}
-            render={({ field }) => (
-              <div className='flex flex-col gap-1'>
-                <Label htmlFor={`product-keyword-${idx}`}>Keyword</Label>
-                <Input
-                  ref={(el) => {
-                    productRefs.current[idx] = el;
-                    if (typeof field.ref === 'function') {
-                      field.ref(el);
-                    } else if (field.ref) {
-                      (field.ref as React.RefObject<HTMLInputElement | null>).current = el;
+                    <SelectTrigger
+                      className='w-full'
+                      id={`product-select-${idx}`}
+                    >
+                      <SelectValue placeholder='Select Product' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProducts.map((p) => (
+                        <SelectItem
+                          key={p.id}
+                          disabled={selectedProductIds.includes(p.id) && p.id !== field.value}
+                          value={p.id}
+                        >
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            />
+          </div>
+          <div className='min-w-[120px] flex-1'>
+            <FormController
+              control={control}
+              name={`products.${idx}.keyword`}
+              render={({ field }) => (
+                <div className='flex flex-col gap-2'>
+                  <Label htmlFor='keyword'>Keyword</Label>
+                  <Input
+                    ref={(el) => {
+                      productRefs.current[idx] = el;
+                      if (typeof field.ref === 'function') {
+                        field.ref(el);
+                      } else if (field.ref) {
+                        (field.ref as React.RefObject<HTMLInputElement | null>).current = el;
+                      }
+                    }}
+                    id={`product-keyword-${idx}`}
+                    name={field.name}
+                    placeholder='Keyword'
+                    value={typeof field.value === 'string' ? field.value : ''}
+                    onBlur={field.onBlur}
+                    onChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
+          </div>
+          <div className='min-w-[100px] flex-1'>
+            <FormController
+              control={control}
+              name={`products.${idx}.quantity`}
+              render={({ field }) => (
+                <div className='flex flex-col gap-2'>
+                  <Label htmlFor='quantity'>Quantity</Label>
+                  <Input
+                    ref={field.ref}
+                    id={`product-quantity-${idx}`}
+                    max={selectedProduct?.quantity ?? undefined}
+                    min={1}
+                    name={field.name}
+                    type='number'
+                    value={
+                      typeof field.value === 'number' || typeof field.value === 'string' ? field.value : 1
                     }
-                  }}
-                  id={`product-keyword-${idx}`}
-                  name={field.name}
-                  placeholder='Keyword'
-                  value={typeof field.value === 'string' ? field.value : ''}
-                  onBlur={field.onBlur}
-                  onChange={field.onChange}
-                />
-              </div>
-            )}
-          />
-        </div>
-        <div className='min-w-[100px] flex-1'>
-          <FormController
-            control={control}
-            name={`products.${idx}.quantity`}
-            render={({ field }) => (
-              <div className='flex flex-col gap-1'>
-                <Label htmlFor={`product-quantity-${idx}`}>Quantity</Label>
-                <Input
-                  ref={field.ref}
-                  id={`product-quantity-${idx}`}
-                  max={selectedProduct?.quantity ?? undefined}
-                  min={1}
-                  name={field.name}
-                  type='number'
-                  value={typeof field.value === 'number' || typeof field.value === 'string' ? field.value : 1}
-                  onBlur={field.onBlur}
-                  onChange={field.onChange}
-                />
-                {selectedProduct?.quantity ? (
-                  <span className='text-xs text-gray-400'>Max: {selectedProduct.quantity}</span>
-                ) : null}
-              </div>
-            )}
-          />
+                    onBlur={field.onBlur}
+                    onChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
+            {selectedProduct?.quantity ? (
+              <span className='text-xs text-gray-400'>Max: {selectedProduct.quantity}</span>
+            ) : null}
+          </div>
         </div>
         {!(
           products.length - 1 === idx &&
@@ -141,20 +145,18 @@ const CampaignProductRow = ({
           !products[idx]?.keyword &&
           !products[idx]?.quantity
         ) && (
-          <div className='flex items-end'>
-            <Button
-              className='hover:bg-red-50'
-              disabled={isLoading}
-              size='icon'
-              type='button'
-              variant='ghost'
-              onClick={() => {
-                onRemoveProduct(idx);
-              }}
-            >
-              <Trash2 className='size-4 text-red-500' />
-            </Button>
-          </div>
+          <Button
+            className='hover:bg-red-50'
+            disabled={isLoading}
+            size='icon'
+            type='button'
+            variant='ghost'
+            onClick={() => {
+              onRemoveProduct(idx);
+            }}
+          >
+            <Trash2 className='size-4 text-red-500' />
+          </Button>
         )}
       </div>
     </div>

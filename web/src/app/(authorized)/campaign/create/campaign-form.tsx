@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { User } from 'lucide-react';
 import type { Resolver } from 'react-hook-form';
 import { useFieldArray, useForm, useFormState } from 'react-hook-form';
@@ -38,10 +38,6 @@ import PostSelectModal from './post-select-modal';
 const schema = yup.object({
   name: yup.string().required('Campaign name is required'),
   description: yup.string().optional(),
-  status: yup
-    .string()
-    .oneOf(['active', 'inactive'] as const)
-    .required('Status is required'),
   startDate: yup.string().required('Start time is required'),
   endDate: yup.string().required('End time is required'),
   channels: yup
@@ -62,8 +58,8 @@ const schema = yup.object({
     .min(1, 'At least one product is required')
     .required('Products are required'),
   postId: yup.string().when('channels', {
-    is: (channels: string[]) => Array.isArray(channels) && !channels.includes('facebook_comment'),
-    then: (schema) => schema.optional(),
+    is: (channels: string[]) => Array.isArray(channels) && channels.includes('facebook_comment'),
+    then: (schema) => schema.required('Facebook post is required'),
     otherwise: (schema) => schema.optional(),
   }),
 });
@@ -153,7 +149,7 @@ const CampaignForm = () => {
         data: {
           name: data.name,
           description: data.description ?? undefined,
-          status: data.status,
+          status: 'inactive',
           start_date: data.startDate,
           end_date: data.endDate,
           channels: data.channels,
@@ -170,7 +166,7 @@ const CampaignForm = () => {
                 product_id: productIds[i],
                 keyword: prod.keyword,
                 quantity: prod.quantity,
-                status: data.status,
+                status: 'inactive',
               },
             })
           ) ?? []
@@ -191,21 +187,28 @@ const CampaignForm = () => {
 
   return (
     <form
-      className='flex flex-col gap-8'
+      className='flex flex-col gap-4'
       onSubmit={(e) => {
         void handleSubmit(onSubmit)(e);
       }}
     >
-      <div className='flex flex-col gap-4'>
-        <div className='flex flex-col gap-1'>
-          <Label htmlFor='campaign-name'>Campaign Name</Label>
+      <div className='flex flex-col gap-6 rounded-xl bg-gray-200 px-6 pb-8 pt-4'>
+        <h2 className='text-lg-semibold'>Products</h2>
+
+        <div className='flex min-w-[250px] flex-1 flex-col gap-1'>
+          <Label
+            className='mb-2'
+            htmlFor='campaign-name'
+          >
+            Campaign Name
+          </Label>
           <FormController
             control={control}
             name='name'
             render={({ field }) => (
               <Input
                 ref={field.ref}
-                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                 id='campaign-name'
                 name={field.name}
                 value={typeof field.value === 'string' ? field.value : ''}
@@ -215,47 +218,14 @@ const CampaignForm = () => {
             )}
           />
         </div>
-        <div className='flex flex-col gap-1'>
-          <Label htmlFor='campaign-description'>Description</Label>
-          <FormController
-            control={control}
-            name='description'
-            render={({ field }) => (
-              <Textarea
-                ref={field.ref}
-                id='campaign-description'
-                name={field.name}
-                placeholder='Enter campaign description...'
-                value={typeof field.value === 'string' ? field.value : ''}
-                onBlur={field.onBlur}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label htmlFor='campaign-status'>Status</Label>
-          <FormController
-            control={control}
-            name='status'
-            render={({ field }) => (
-              <Select
-                value={typeof field.value === 'string' ? field.value : ''}
-                onValueChange={field.onChange}
-              >
-                <SelectTrigger id='campaign-status'>
-                  <SelectValue placeholder='Select status' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='active'>Active</SelectItem>
-                  <SelectItem value='inactive'>Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-        <div className='flex flex-col gap-1'>
-          <Label htmlFor='campaign-channels'>Channels</Label>
+
+        <div className='flex min-w-[220px] flex-1 flex-col gap-1'>
+          <Label
+            className='mb-2'
+            htmlFor='campaign-channels'
+          >
+            Channels
+          </Label>
           <FormController
             control={control}
             name='channels'
@@ -271,7 +241,10 @@ const CampaignForm = () => {
                   }
                 }}
               >
-                <SelectTrigger id='campaign-channels'>
+                <SelectTrigger
+                  className='rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  id='campaign-channels'
+                >
                   <SelectValue placeholder='Select channels' />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,71 +273,14 @@ const CampaignForm = () => {
                       );
                     }}
                   >
-                    ×
+                    <X className='size-4' />
                   </button>
                 </div>
               ))}
             </div>
           )}
         </div>
-        {channels.includes('facebook_comment') && (
-          <div className='flex flex-col gap-1'>
-            <Label htmlFor='campaign-facebook-comment'>Facebook Post</Label>
-            {selectedPost ? (
-              <div className='mb-2 flex items-center gap-4 rounded border border-gray-200 bg-gray-50 p-4'>
-                {selectedPost.profile?.profile_picture_url ? (
-                  <ImageWithFallback
-                    alt={selectedPost.profile?.name || 'profile'}
-                    className='size-12 rounded-full object-cover'
-                    fallbackIcon={<User size={28} />}
-                    size={48}
-                    src={selectedPost.profile.profile_picture_url}
-                  />
-                ) : null}
-                <div className='flex-1'>
-                  <div className='font-semibold'>{selectedPost.profile?.name}</div>
-                  <div className='text-gray-700'>{selectedPost.message ?? 'ไม่มีข้อความ'}</div>
-                </div>
-                <button
-                  className='ml-4 rounded bg-red-100 px-3 py-1 text-red-600 transition hover:bg-red-200'
-                  type='button'
-                  onClick={() => {
-                    setValue('postId', '');
-                    setSelectedPost(null);
-                  }}
-                >
-                  ลบโพสต์ที่เลือก
-                </button>
-              </div>
-            ) : null}
-            <Button
-              className='w-fit'
-              type='button'
-              variant='outline'
-              onClick={() => {
-                open({
-                  content: (
-                    <PostSelectModal
-                      control={control}
-                      fieldName='postId'
-                      setValue={setValue}
-                      value={postId}
-                      onClose={close}
-                      onSelect={(post) => {
-                        setValue('postId', post.id);
-                        setSelectedPost(post);
-                        close();
-                      }}
-                    />
-                  ),
-                });
-              }}
-            >
-              {selectedPost ? 'Select New Facebook Post' : 'Select Facebook Post'}
-            </Button>
-          </div>
-        )}
-        <div className='flex flex-col gap-1'>
+        <div className='flex min-w-[260px] flex-1 flex-col gap-1'>
           <Label>Date Range</Label>
           <div>
             <FormController
@@ -378,9 +294,9 @@ const CampaignForm = () => {
                   name='endDate'
                   render={({ field: { value: endValue, onChange: onEndChange } }) => (
                     <DatePicker
+                      className='w-full rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
                       defaultEndDate={typeof endValue === 'string' && endValue ? dayjs(endValue) : undefined}
                       defaultStartDate={typeof value === 'string' && value ? dayjs(value) : undefined}
-                      position='top'
                       onChange={(start, end) => {
                         onChange(start ? start.toISOString() : '');
                         onEndChange(end ? end.toISOString() : '');
@@ -397,30 +313,124 @@ const CampaignForm = () => {
             ) : null}
           </div>
         </div>
+        <div className='flex w-full flex-col gap-1'>
+          <Label
+            className='mb-2'
+            htmlFor='campaign-description'
+          >
+            Description
+          </Label>
+          <FormController
+            control={control}
+            name='description'
+            render={({ field }) => (
+              <Textarea
+                ref={field.ref}
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                id='campaign-description'
+                name={field.name}
+                placeholder='Enter campaign description...'
+                value={typeof field.value === 'string' ? field.value : ''}
+                onBlur={field.onBlur}
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
       </div>
-      <CampaignProductList
-        availableProducts={productsList}
-        fields={fieldsWithControl}
-        isLoading={isCampaignLoading || isProductsLoading}
-        productRefs={productRefs}
-        products={products}
-        selectedProductIds={selectedProductIds}
-        setValue={setValue}
-        onProductChange={onProductChange}
-        onRemoveProduct={remove}
-      />
-      <Button
-        className='w-fit rounded-lg border-blue-100 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-none hover:bg-blue-100 hover:text-blue-800'
-        disabled={isCampaignLoading}
-        type='button'
-        variant='outline'
-        onClick={onAddProductRow}
-      >
-        <Plus className='mr-2 size-4' /> Add Product
-      </Button>
-      <div className='flex justify-end gap-2'>
+
+      {channels.includes('facebook_comment') && (
+        <div className='flex flex-col gap-4 rounded-xl bg-gray-200 px-6 pb-8 pt-4'>
+          <h2 className='text-lg-semibold text-blue-700'>Facebook Post</h2>
+
+          {selectedPost ? (
+            <div className='mb-2 flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4'>
+              {selectedPost.profile?.profile_picture_url ? (
+                <ImageWithFallback
+                  alt={selectedPost.profile?.name || 'profile'}
+                  className='size-12 rounded-full object-cover'
+                  fallbackIcon={<User size={28} />}
+                  size={48}
+                  src={selectedPost.profile.profile_picture_url}
+                />
+              ) : null}
+              <div className='flex-1'>
+                <div className='font-semibold'>{selectedPost.profile?.name}</div>
+                <div className='text-gray-700'>{selectedPost.message ?? 'ไม่มีข้อความ'}</div>
+              </div>
+              <Button
+                className='hover:bg-red-50'
+                size='icon'
+                type='button'
+                variant='ghost'
+                onClick={() => {
+                  setValue('postId', '', { shouldValidate: true });
+                  setSelectedPost(null);
+                }}
+              >
+                <Trash2 className='size-4 text-red-500' />
+              </Button>
+            </div>
+          ) : null}
+
+          <Button
+            className='w-fit !rounded-lg border border-gray-300 px-4 pt-2 text-base font-semibold hover:bg-gray-300'
+            type='button'
+            variant='outline'
+            onClick={() => {
+              open({
+                content: (
+                  <PostSelectModal
+                    control={control}
+                    fieldName='postId'
+                    setValue={setValue}
+                    value={postId}
+                    onClose={close}
+                    onSelect={(post) => {
+                      setValue('postId', post.id, { shouldValidate: true });
+                      setSelectedPost(post);
+                      close();
+                    }}
+                  />
+                ),
+              });
+            }}
+          >
+            {selectedPost ? 'Select New Facebook Post' : 'Select Facebook Post'}
+          </Button>
+
+          {errors?.postId ? <div className='mt-1 text-xs text-red-500'>{errors?.postId.message}</div> : null}
+        </div>
+      )}
+
+      <div className='flex flex-col gap-4 rounded-xl bg-gray-200 px-6 pb-8 pt-4'>
+        <h2 className='text-lg-semibold text-blue-700'>Products</h2>
+
+        <CampaignProductList
+          availableProducts={productsList}
+          fields={fieldsWithControl}
+          isLoading={isCampaignLoading || isProductsLoading}
+          productRefs={productRefs}
+          products={products}
+          selectedProductIds={selectedProductIds}
+          setValue={setValue}
+          onProductChange={onProductChange}
+          onRemoveProduct={remove}
+        />
         <Button
-          className='rounded-lg border-gray-100 bg-gray-50 px-4 py-2 font-medium text-gray-700 shadow-none hover:bg-gray-100 hover:text-gray-900'
+          className='w-fit px-6 py-2 text-base font-semibold'
+          disabled={isCampaignLoading}
+          type='button'
+          variant='outline'
+          onClick={onAddProductRow}
+        >
+          <Plus className='mr-1 size-4' /> Add Product
+        </Button>
+      </div>
+
+      <div className='mt-8 flex justify-end gap-4'>
+        <Button
+          className='rounded-lg border-gray-300 bg-white px-6 py-2 font-medium text-gray-700 shadow-none hover:border-gray-400 hover:bg-gray-100'
           disabled={isCampaignLoading}
           type='button'
           variant='outline'
@@ -429,7 +439,7 @@ const CampaignForm = () => {
           Clear
         </Button>
         <Button
-          className='rounded-lg border-blue-600 bg-blue-600 px-4 py-2 font-medium text-white shadow-none hover:border-blue-700 hover:bg-blue-700'
+          className='rounded-lg border-blue-600 bg-blue-600 px-6 py-2 font-medium text-white shadow-none hover:border-blue-700 hover:bg-blue-700'
           disabled={isCampaignLoading}
           type='submit'
           variant='outline'
