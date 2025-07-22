@@ -33,7 +33,7 @@ const CampaignProductList = ({
       {fields.length === 0 && <div className='italic text-gray-400'>No products added yet.</div>}
       {fields.map((field, idx) => (
         <CampaignProductRow
-          key={`${field.id}-${crypto.randomUUID()}`}
+          key={field.id}
           availableProducts={availableProducts}
           control={field.control}
           idx={idx}

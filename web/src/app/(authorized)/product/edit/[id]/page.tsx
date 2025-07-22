@@ -1,28 +1,55 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { useParams } from 'next/navigation';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FormPageWrapper } from '@/components/FormPageWrapper';
+import { API } from '@/constants/api.constant';
+import useRequest from '@/hooks/request/useRequest';
+import type { ProductResponse } from '@/types/api/product';
 
-import ProductEditForm from './product-edit-form';
+import ProductForm from '../../create/product-form';
 
 const EditProductPage = () => {
   const params = useParams();
-  const productId = params.id as string;
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const { data, isLoading, handleRequest } = useRequest<ProductResponse>({
+    request: { url: `${API.PRODUCTS}/${String(id)}`, method: 'GET' },
+    defaultLoading: true,
+  });
+
+  useEffect(() => {
+    void handleRequest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isLoading) {
+    return null;
+  }
+  if (!data) {
+    return null;
+  }
+  // Map API response to form values
+  const formValues = {
+    ...data,
+    description: data.description ?? '',
+    unit: data.unit ?? '',
+    note: data.note ?? '',
+    keyword: data.keyword ?? '',
+    product_category: data.product_category ?? '',
+    product_type: data.product_type ?? '',
+    color: data.color ?? '',
+    size: data.size ?? '',
+  };
 
   return (
-    <div className='flex min-h-screen flex-col gap-6 bg-base-gray-light p-6'>
-      <Card className='mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-sm'>
-        <CardHeader>
-          <CardTitle className='text-xl font-semibold text-blue-700'>Edit Product</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProductEditForm productId={productId} />
-        </CardContent>
-      </Card>
-    </div>
+    <FormPageWrapper title='Edit Product'>
+      <ProductForm
+        initialValues={formValues}
+        mode='edit'
+      />
+    </FormPageWrapper>
   );
 };
 

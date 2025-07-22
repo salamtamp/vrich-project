@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, useFormState } from 'react-hook-form';
@@ -11,6 +11,7 @@ import { FormController } from '@/components/ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Spinner from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
 import { useLoading } from '@/contexts';
@@ -18,6 +19,7 @@ import useRequest from '@/hooks/request/useRequest';
 import type { ProductResponse } from '@/types/api/product';
 
 type ProductFormValues = {
+  id?: string;
   code: string;
   name: string;
   description: string;
@@ -77,23 +79,38 @@ const defaultValues: ProductFormValues = {
   weight: 0,
 };
 
-const ProductForm = () => {
+type ProductFormProps =
+  | { mode: 'create'; initialValues?: undefined }
+  | { mode: 'edit'; initialValues: ProductFormValues | undefined };
+
+const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
+  const params = useParams();
   const router = useRouter();
   const { openLoading, closeLoading } = useLoading();
   const { handleRequest, isLoading } = useRequest<ProductResponse>({
     request: {
       url: API.PRODUCTS,
-      method: 'POST',
+      method: mode === 'edit' ? 'PUT' : 'POST',
     },
   });
 
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
   const { control, handleSubmit, reset } = useForm<ProductFormValues>({
-    defaultValues,
+    defaultValues: mode === 'edit' && initialValues ? { ...defaultValues, ...initialValues } : defaultValues,
     resolver: yupResolver(schema),
     mode: 'onSubmit',
   });
   const { errors } = useFormState({ control });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (mode === 'edit' && !initialValues) {
+    return (
+      <div className='flex h-96 w-full items-center justify-center'>
+        <Spinner />
+      </div>
+    );
+  }
 
   const onSubmit = async (data: typeof defaultValues) => {
     openLoading();
@@ -109,6 +126,7 @@ const ProductForm = () => {
           shipping_fee: Number(data.shipping_fee),
           weight: Number(data.weight),
         },
+        patchId: mode === 'edit' ? id : undefined,
       });
       reset(defaultValues);
       router.push('/product');

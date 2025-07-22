@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Plus, Trash2, X } from 'lucide-react';
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Spinner from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
 import { useLoading } from '@/contexts';
@@ -75,13 +76,26 @@ const defaultValues: CampaignFormValues = {
   products: [],
 };
 
-const CampaignForm = () => {
+type CampaignFormProps =
+  | { mode: 'create'; initialValues?: undefined; campaignId?: undefined }
+  | { mode: 'edit'; initialValues: CampaignFormValues | undefined; campaignId: string };
+
+const CampaignForm = ({ mode, initialValues, campaignId }: CampaignFormProps) => {
+  const params = useParams();
   const router = useRouter();
   const { openLoading, closeLoading } = useLoading();
-  const { handleRequest: createCampaign, isLoading: isCampaignLoading } = useRequest<CampaignResponse>({
+
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
+  const { handleRequest: requestCampaignProduct, isLoading: isCampaignLoading } =
+    useRequest<CampaignsProduct>({
+      request: { url: API.CAMPAIGNS_PRODUCTS, method: mode === 'edit' ? 'PUT' : 'POST' },
+    });
+
+  const { handleRequest: requestCampaign } = useRequest<CampaignResponse>({
     request: {
       url: API.CAMPAIGN,
-      method: 'POST',
+      method: mode === 'edit' ? 'PUT' : 'POST',
     },
   });
 
@@ -90,19 +104,13 @@ const CampaignForm = () => {
     order: 'desc',
     orderBy: 'created_at',
   });
+
   const productsList = productData?.docs ?? [];
 
   const [selectedPost, setSelectedPost] = useState<FacebookPostResponse | null>(null);
 
-  const { handleRequest: createCampaignProduct } = useRequest<CampaignsProduct>({
-    request: {
-      url: API.CAMPAIGNS_PRODUCTS,
-      method: 'POST',
-    },
-  });
-
   const { control, handleSubmit, reset, setValue, watch } = useForm<CampaignFormValues>({
-    defaultValues,
+    defaultValues: mode === 'edit' && initialValues ? { ...defaultValues, ...initialValues } : defaultValues,
     resolver: yupResolver(schema) as Resolver<CampaignFormValues>,
     mode: 'onSubmit',
   });
@@ -113,10 +121,7 @@ const CampaignForm = () => {
 
   const channels = watch('channels');
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'products',
-  });
+  const { fields, append, remove } = useFieldArray({ control, name: 'products' });
 
   const selectedProductIds = fields.map((f) => f.productId);
   const products = watch('products');
@@ -140,12 +145,20 @@ const CampaignForm = () => {
     setValue(`products.${idx}.name`, product ? product.name : '');
   };
 
+  if (mode === 'edit' && !initialValues) {
+    return (
+      <div className='flex h-96 w-full items-center justify-center'>
+        <Spinner />
+      </div>
+    );
+  }
+
   const onSubmit = async (data: CampaignFormValues) => {
     openLoading();
     try {
       const productIds = data.products.map((prod) => prod.productId);
 
-      const campaignRes = await createCampaign({
+      const campaignRes = await requestCampaign({
         data: {
           name: data.name,
           description: data.description ?? undefined,
@@ -155,12 +168,13 @@ const CampaignForm = () => {
           channels: data.channels,
           post_id: channels.includes('facebook_comment') ? data.postId : undefined,
         },
+        patchId: mode === 'edit' ? campaignId : undefined,
       });
 
       if (campaignRes?.id) {
         await Promise.all(
           data.products?.map((prod, i) =>
-            createCampaignProduct({
+            requestCampaignProduct({
               data: {
                 campaign_id: campaignRes.id,
                 product_id: productIds[i],
@@ -168,6 +182,7 @@ const CampaignForm = () => {
                 quantity: prod.quantity,
                 status: 'inactive',
               },
+              patchId: mode === 'edit' ? id : undefined,
             })
           ) ?? []
         );
@@ -258,7 +273,7 @@ const CampaignForm = () => {
             <div className='mt-2 flex flex-wrap gap-2'>
               {watch('channels').map((channel, index) => (
                 <div
-                  key={`channel-${channel}-${crypto.randomUUID()}`}
+                  key={`channel-${channel}`}
                   className='flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm'
                 >
                   <span>{channel === 'facebook_comment' ? 'Facebook Comment' : 'Facebook Inbox'}</span>

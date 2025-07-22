@@ -92,7 +92,7 @@ const CampaignPage = () => {
           <Button
             size='sm'
             variant='outline'
-            onClick={() => (window.location.href = `/campaign/edit/${String(row.campaign_id)}`)}
+            onClick={() => (window.location.href = `/campaign/edit/${String(row.id)}`)}
           >
             <Edit className='size-4' />
           </Button>
@@ -112,7 +112,7 @@ const CampaignPage = () => {
   ];
 
   return (
-    <Card className='flex size-full h-full max-h-fit min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
+    <Card className='flex h-fit max-h-full min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
       <div className='flex flex-row items-center justify-between p-0'>
         <CardTitle className='text-lg-semibold text-blue-700'>Campaigns</CardTitle>
         <Button
@@ -125,7 +125,7 @@ const CampaignPage = () => {
       </div>
       <div className='mt-4 flex h-full flex-1 flex-col gap-4 overflow-hidden'>
         <Table
-          bodyRowProps={{ className: 'bg-white hover:bg-gray-100 ' }}
+          bodyRowProps={{ className: 'bg-white hover:bg-gray-50 ' }}
           columns={columns}
           data={campaignsProducts}
           isLoading={isLoading || isDeleting}

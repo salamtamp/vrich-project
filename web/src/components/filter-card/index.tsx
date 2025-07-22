@@ -100,6 +100,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
           {!disableDatePicker ? (
             <div className='flex'>
               <DatePicker
+                className='w-fit'
                 defaultEndDate={defaultEndDate}
                 defaultStartDate={defaultStartDate}
                 maxDate={dayjs()}

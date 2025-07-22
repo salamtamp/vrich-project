@@ -9,7 +9,7 @@ import CampaignForm from './campaign-form';
 const CreateCampaignPage = () => {
   return (
     <FormPageWrapper title='Create Campaign'>
-      <CampaignForm />
+      <CampaignForm mode='create' />
     </FormPageWrapper>
   );
 };

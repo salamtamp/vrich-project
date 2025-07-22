@@ -44,9 +44,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       return;
     }
 
-    console.info('Attempting to connect to Socket.IO server:', socketServerUrl);
-    console.info('Token present:', !!token);
-
     socketRef.current = io(socketServerUrl, {
       auth: {
         token,
@@ -55,7 +52,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     });
 
     socketRef.current.on('connect', () => {
-      console.info('Connected to Socket.IO server');
       setIsConnected(true);
     });
 
@@ -64,13 +60,13 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       setIsConnected(false);
     });
 
-    socketRef.current.on('connected', (data) => {
-      console.info('Authentication successful:', data);
-    });
+    // socketRef.current.on('connected', (data) => {
+    //   console.info('Authentication successful:', data);
+    // });
 
-    socketRef.current.on('joined_room', (data) => {
-      console.info('Joined room:', data);
-    });
+    // socketRef.current.on('joined_room', (data) => {
+    //   console.info('Joined room:', data);
+    // });
 
     socketRef.current.on('connect_error', (error) => {
       console.error('Connection error:', error);

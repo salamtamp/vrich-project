@@ -1,28 +1,67 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { useParams } from 'next/navigation';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FormPageWrapper } from '@/components/FormPageWrapper';
+import { API } from '@/constants/api.constant';
+import useRequest from '@/hooks/request/useRequest';
+import type { CampaignsProduct } from '@/types/api/campaigns_products';
 
-import CampaignEditForm from './campaign-edit-form';
+import CampaignForm from '../../create/campaign-form';
 
 const EditCampaignPage = () => {
   const params = useParams();
-  const campaignId = params.id as string;
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const { data, isLoading, handleRequest } = useRequest<CampaignsProduct>({
+    request: { url: `${API.CAMPAIGNS_PRODUCTS}/${String(id)}`, method: 'GET' },
+    defaultLoading: true,
+  });
+
+  useEffect(() => {
+    void handleRequest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isLoading) {
+    return null;
+  }
+  if (!data) {
+    return null;
+  }
+  // Map API response to form values
+  const formValues = {
+    id: data.campaign?.id ?? '',
+    name: data.campaign?.name ?? '',
+    description: data.campaign?.description ?? '',
+    status: data.campaign?.status ?? 'inactive',
+    startDate: data.campaign?.start_date ?? '',
+    endDate: data.campaign?.end_date ?? '',
+    channels: data.campaign?.channels ?? [],
+    postId: data.campaign?.post_id ?? '',
+    products: [
+      {
+        productId: data.product_id,
+        name: data.product?.name ?? '',
+        keyword: data.keyword,
+        quantity: data.quantity,
+      },
+    ],
+  };
+
+  if (!data.campaign?.id) {
+    return <></>;
+  }
 
   return (
-    <div className='flex min-h-screen flex-col gap-6 bg-base-gray-light p-6'>
-      <Card className='mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white shadow-sm'>
-        <CardHeader>
-          <CardTitle className='text-xl font-semibold text-blue-700'>Edit Campaign</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CampaignEditForm campaignId={campaignId} />
-        </CardContent>
-      </Card>
-    </div>
+    <FormPageWrapper title='Edit Campaign'>
+      <CampaignForm
+        campaignId={data.campaign.id}
+        initialValues={formValues}
+        mode='edit'
+      />
+    </FormPageWrapper>
   );
 };
 

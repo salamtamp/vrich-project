@@ -110,7 +110,7 @@ const ProductPage = () => {
   ];
 
   return (
-    <Card className='flex size-full h-full max-h-fit min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
+    <Card className='flex h-fit max-h-full min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
       <div className='flex flex-row items-center justify-between p-0'>
         <CardTitle className='text-lg-semibold text-blue-700'>Products</CardTitle>
         <Button
@@ -123,7 +123,7 @@ const ProductPage = () => {
       </div>
       <div className='mt-4 flex flex-1 flex-col gap-4 overflow-hidden'>
         <Table
-          bodyRowProps={{ className: 'bg-white hover:bg-gray-100 ' }}
+          bodyRowProps={{ className: 'bg-white hover:bg-gray-50 ' }}
           columns={columns}
           data={products}
           isLoading={isLoading || isDeleting}

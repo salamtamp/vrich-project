@@ -10,7 +10,7 @@ import ProductForm from './product-form';
 const CreateProductPage = () => {
   return (
     <FormPageWrapper title='Create Product'>
-      <ProductForm />
+      <ProductForm mode='create' />
     </FormPageWrapper>
   );
 };

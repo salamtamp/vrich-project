@@ -79,7 +79,7 @@ const Table = <T extends Record<string, unknown>>({
 
   if (isLoading) {
     return (
-      <div className='flex w-full flex-col overflow-hidden rounded-md border'>
+      <div className='flex w-full flex-col overflow-hidden rounded-md'>
         {/* Fixed Header */}
         <div className='border-b bg-white'>
           <ShadcnTable
@@ -134,7 +134,7 @@ const Table = <T extends Record<string, unknown>>({
   }
 
   return (
-    <div className='flex size-full flex-col overflow-hidden rounded-md border'>
+    <div className='flex size-full flex-1 flex-col overflow-hidden rounded-md'>
       {/* Fixed Header */}
       <div className='border-b bg-white shadow-sm'>
         <ShadcnTable
@@ -148,12 +148,12 @@ const Table = <T extends Record<string, unknown>>({
       {/* Scrollable Body */}
       <div
         ref={tableContainerRef}
-        className='flex flex-1 overflow-y-scroll'
+        className='overflow-y-scroll'
         onScroll={handleScroll}
       >
         <ShadcnTable
           ref={bodyRef}
-          className='h-fit min-w-full'
+          className='h-full min-w-full'
         >
           <TableBody>
             {data.map((row, rowIdx) => (
