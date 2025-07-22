@@ -101,6 +101,7 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
     url: API.PRODUCTS,
     order: 'desc',
     orderBy: 'created_at',
+    defaultStartDate: dayjs().subtract(50, 'years'),
   });
 
   const productsList = productData?.docs ?? [];
@@ -441,6 +442,7 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
                 content: (
                   <PostSelectModal
                     control={control}
+                    defaultStartDate={dayjs().subtract(50, 'years')}
                     fieldName='postId'
                     setValue={setValue}
                     value={postId}

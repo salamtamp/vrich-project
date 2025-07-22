@@ -31,7 +31,7 @@ const CampaignPage = () => {
   } = usePaginatedRequest<PaginationResponse<Campaign>>({
     url: API.CAMPAIGN,
     orderBy: 'created_at',
-    order: 'desc',
+    defaultStartDate: dayjs().subtract(50, 'years'),
   });
 
   const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<Campaign>({

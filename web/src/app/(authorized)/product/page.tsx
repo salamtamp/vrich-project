@@ -28,6 +28,7 @@ const ProductPage = () => {
   } = usePaginatedRequest<PaginationResponse<Product>>({
     url: API.PRODUCTS,
     orderBy: 'created_at',
+    defaultStartDate: dayjs().subtract(50, 'years'),
   });
 
   const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<Product>({

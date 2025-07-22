@@ -106,6 +106,7 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
     def update_campaign_with_products(self, db: Session, campaign_id, campaign_in):
         from app.db.models.campaigns_products import CampaignProduct
         from app.schemas.campaigns_products import CampaignProductCreate
+
         try:
             # Get campaign
             campaign = (
@@ -119,6 +120,11 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
             for field, value in campaign_in.model_dump(exclude_unset=True).items():
                 if field != "products" and value is not None:
                     setattr(campaign, field, value)
+            channels = (
+                campaign_in.channels if hasattr(campaign_in, "channels") else None
+            )
+            if channels is not None and "facebook_comment" not in channels:
+                campaign.post_id = None
             # Replace products if provided
             if campaign_in.products is not None:
                 # Delete old products

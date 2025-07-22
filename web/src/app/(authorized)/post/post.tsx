@@ -60,7 +60,7 @@ const Post = () => {
         cardClassName='!max-h-[300px]'
         data={itemData}
         defaultEndDate={dayjs()}
-        defaultStartDate={dayjs().subtract(6, 'day')}
+        defaultStartDate={dayjs().subtract(1, 'month')}
         isLoading={isLoading}
         skeletonSize='large'
         title='Post'

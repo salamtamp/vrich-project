@@ -26,7 +26,7 @@ function usePaginatedRequest<T, D = object>({
   url,
   order = 'desc',
   orderBy = 'published_at',
-  defaultStartDate = dayjs().subtract(6, 'day'),
+  defaultStartDate = dayjs().subtract(1, 'month'),
   defaultEndDate = dayjs(),
   additionalParams = {},
   requireFields = [],

@@ -96,7 +96,7 @@ const Inbox = () => {
     <FilterCard
       data={itemData}
       defaultEndDate={dayjs()}
-      defaultStartDate={dayjs().subtract(6, 'day')}
+      defaultStartDate={dayjs().subtract(1, 'month')}
       isLoading={isLoading}
       skeletonSize='medium'
       title='Inbox'

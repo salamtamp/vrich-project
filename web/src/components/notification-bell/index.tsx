@@ -227,7 +227,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   };
 
   const handleNotificationClick = (notification: NotificationClickHandler) => {
-    const since = dayjs().subtract(6, 'day').format('YYYY-MM-DD');
+    const since = dayjs().subtract(1, 'month').format('YYYY-MM-DD');
     const until = dayjs().format('YYYY-MM-DD');
 
     const targetPath = (() => {

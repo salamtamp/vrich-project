@@ -126,7 +126,7 @@ const PostDetail = () => {
     }
 
     if (!paramSince) {
-      currentParams.set('since', dayjs().subtract(6, 'day').format('YYYY-MM-DD'));
+      currentParams.set('since', dayjs().subtract(1, 'month').format('YYYY-MM-DD'));
       hasChanges = true;
     }
 
@@ -171,7 +171,7 @@ const PostDetail = () => {
         className={cn(styles.profileContainer, '!w-[400px] !min-w-[400px] !max-w-[400px]')}
         data={postData}
         defaultEndDate={dayjs()}
-        defaultStartDate={dayjs().subtract(6, 'day')}
+        defaultStartDate={dayjs().subtract(1, 'month')}
         isLoading={isLoading}
         skeletonSize='large'
         total={data?.total}

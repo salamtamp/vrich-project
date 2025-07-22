@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 
+import type { Dayjs } from 'dayjs';
 import { type Control, useController, type UseFormSetValue } from 'react-hook-form';
 
 import FilterCard from '@/components/filter-card';
@@ -17,6 +18,7 @@ type PostSelectModalProps = {
   setValue: UseFormSetValue<CampaignFormValues>;
   fieldName: 'facebookComment' | 'postId';
   value?: string;
+  defaultStartDate?: Dayjs;
 };
 
 const PostSelectModal: React.FC<PostSelectModalProps> = ({
@@ -25,6 +27,7 @@ const PostSelectModal: React.FC<PostSelectModalProps> = ({
   setValue,
   fieldName,
   value,
+  defaultStartDate,
 }) => {
   const {
     data: postsData,
@@ -32,6 +35,7 @@ const PostSelectModal: React.FC<PostSelectModalProps> = ({
     handleConfirmPeriod,
   } = usePaginatedRequest<{ docs: FacebookPostResponse[]; total: number }>({
     url: API.POST,
+    defaultStartDate,
   });
 
   const postsList = useMemo(() => postsData?.docs ?? [], [postsData?.docs]);
