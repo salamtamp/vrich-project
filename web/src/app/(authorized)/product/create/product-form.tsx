@@ -93,7 +93,7 @@ const ProductForm = () => {
 
   return (
     <form
-      className='grid gap-6'
+      className='flex flex-col gap-8'
       onSubmit={(e) => {
         void handleSubmit(onSubmit)(e);
       }}
@@ -108,6 +108,7 @@ const ProductForm = () => {
               <Input
                 id='code'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
               />
             )}
           />
@@ -121,6 +122,7 @@ const ProductForm = () => {
               <Input
                 id='name'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
               />
             )}
           />
@@ -136,6 +138,7 @@ const ProductForm = () => {
             <Textarea
               id='description'
               {...field}
+              className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
             />
           )}
         />
@@ -153,6 +156,7 @@ const ProductForm = () => {
                 min='0'
                 type='number'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 onChange={(e) => {
                   field.onChange(Number(e.target.value));
                 }}
@@ -169,6 +173,7 @@ const ProductForm = () => {
               <Input
                 id='unit'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
               />
             )}
           />
@@ -185,6 +190,7 @@ const ProductForm = () => {
                 step='0.01'
                 type='number'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 onChange={(e) => {
                   field.onChange(Number(e.target.value));
                 }}
@@ -207,6 +213,7 @@ const ProductForm = () => {
                 step='0.01'
                 type='number'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 onChange={(e) => {
                   field.onChange(Number(e.target.value));
                 }}
@@ -226,6 +233,7 @@ const ProductForm = () => {
                 step='0.01'
                 type='number'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 onChange={(e) => {
                   field.onChange(Number(e.target.value));
                 }}
@@ -248,6 +256,7 @@ const ProductForm = () => {
                 step='0.01'
                 type='number'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 onChange={(e) => {
                   field.onChange(Number(e.target.value));
                 }}
@@ -267,6 +276,7 @@ const ProductForm = () => {
                 step='0.01'
                 type='number'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
                 onChange={(e) => {
                   field.onChange(Number(e.target.value));
                 }}
@@ -286,6 +296,7 @@ const ProductForm = () => {
               <Input
                 id='product_category'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
               />
             )}
           />
@@ -299,6 +310,7 @@ const ProductForm = () => {
               <Input
                 id='product_type'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
               />
             )}
           />
@@ -315,6 +327,7 @@ const ProductForm = () => {
               <Input
                 id='color'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
               />
             )}
           />
@@ -328,6 +341,7 @@ const ProductForm = () => {
               <Input
                 id='size'
                 {...field}
+                className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
               />
             )}
           />
@@ -343,6 +357,7 @@ const ProductForm = () => {
             <Input
               id='keyword'
               {...field}
+              className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
             />
           )}
         />
@@ -357,6 +372,7 @@ const ProductForm = () => {
             <Textarea
               id='note'
               {...field}
+              className='rounded-lg border border-gray-200 bg-blueGray-25 px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100'
             />
           )}
         />
@@ -364,17 +380,19 @@ const ProductForm = () => {
 
       <div className='flex justify-end gap-2'>
         <Button
+          className='rounded-lg border-gray-100 bg-gray-50 px-4 py-2 font-medium text-gray-700 shadow-none hover:bg-gray-100 hover:text-gray-900'
           disabled={isLoading}
           type='button'
-          variant='softgray'
+          variant='outline'
           onClick={onClear}
         >
           Clear
         </Button>
         <Button
+          className='rounded-lg border-blue-600 bg-blue-600 px-4 py-2 font-medium text-white shadow-none hover:border-blue-700 hover:bg-blue-700'
           disabled={isLoading}
           type='submit'
-          variant='softgray'
+          variant='outline'
         >
           {isLoading ? 'Creating...' : 'Create Product'}
         </Button>

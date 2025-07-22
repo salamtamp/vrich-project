@@ -114,26 +114,30 @@ const CampaignPage = () => {
 
   return (
     <PaginationProvider defaultValue={{ limit: 15 }}>
-      <div className='flex min-h-screen flex-col gap-6 bg-base-gray-light p-6'>
-        <Card className='w-full rounded-2xl border border-gray-200 bg-white shadow-sm'>
-          <CardHeader className='flex flex-row items-center justify-between'>
-            <CardTitle className='text-2xl font-bold text-blue-700'>Campaigns</CardTitle>
+      <div className='flex min-h-screen flex-col gap-8 bg-blueGray-50 p-8'>
+        <Card className='w-full rounded-2xl border border-gray-100 bg-white shadow-sm'>
+          <CardHeader className='flex flex-row items-center justify-between border-b border-gray-100 pb-4'>
+            <CardTitle className='text-2xl font-semibold tracking-tight text-blue-700'>Campaigns</CardTitle>
             <Button
-              variant='softgray'
+              className='rounded-lg border-blue-100 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-none hover:bg-blue-100 hover:text-blue-800'
+              variant='outline'
               onClick={handleGoToCreateCampaign}
             >
-              Create Campaign
+              <span className='text-base'>+ Create Campaign</span>
             </Button>
           </CardHeader>
           <CardContent className='p-0'>
             <Table
-              bodyRowProps={{ className: 'bg-white hover:bg-gray-50 transition-colors' }}
               columns={columns}
               data={campaignsProducts}
               isLoading={isLoading || isDeleting}
+              bodyRowProps={{
+                className:
+                  'bg-white hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0',
+              }}
             />
             <ContentPagination
-              className='mt-4'
+              className='mt-6'
               total={total}
             />
           </CardContent>
