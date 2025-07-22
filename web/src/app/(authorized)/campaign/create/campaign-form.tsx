@@ -208,7 +208,7 @@ const CampaignForm = () => {
             render={({ field }) => (
               <Input
                 ref={field.ref}
-                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 id='campaign-name'
                 name={field.name}
                 value={typeof field.value === 'string' ? field.value : ''}
@@ -242,7 +242,7 @@ const CampaignForm = () => {
                 }}
               >
                 <SelectTrigger
-                  className='w-fit rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='w-fit rounded-lg border border-gray-300 bg-white'
                   id='campaign-channels'
                 >
                   <SelectValue placeholder='Select channels' />
@@ -299,7 +299,7 @@ const CampaignForm = () => {
                   name='endDate'
                   render={({ field: { value: endValue, onChange: onEndChange } }) => (
                     <DatePicker
-                      className='w-fit rounded-lg border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                      className='w-fit rounded-lg border border-gray-300 bg-white'
                       defaultEndDate={typeof endValue === 'string' && endValue ? dayjs(endValue) : undefined}
                       defaultStartDate={typeof value === 'string' && value ? dayjs(value) : undefined}
                       onChange={(start, end) => {
@@ -331,7 +331,7 @@ const CampaignForm = () => {
             render={({ field }) => (
               <Textarea
                 ref={field.ref}
-                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 id='campaign-description'
                 name={field.name}
                 placeholder='Enter campaign description...'

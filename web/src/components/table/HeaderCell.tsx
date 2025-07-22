@@ -8,6 +8,8 @@ import { TableHead } from '@/components/ui/table';
 import type { TableColumn } from './types';
 
 type HeaderCellProps<T extends Record<string, unknown>> = {
+  index: number;
+  lastIndex: number;
   column: TableColumn<T>;
   isSorted?: boolean;
   sortOrder?: 'asc' | 'desc';
@@ -15,6 +17,8 @@ type HeaderCellProps<T extends Record<string, unknown>> = {
 };
 
 const HeaderCell = <T extends Record<string, unknown>>({
+  index,
+  lastIndex,
   column,
   isSorted,
   sortOrder,
@@ -33,11 +37,22 @@ const HeaderCell = <T extends Record<string, unknown>>({
   if (isSorted) {
     ariaSort = sortOrder === 'asc' ? 'ascending' : 'descending';
   }
+  let roundedClass = '';
+  if (index === 0) {
+    roundedClass = 'rounded-tl-lg';
+  } else if (index === lastIndex) {
+    roundedClass = 'rounded-tr-lg';
+  }
   return (
     <TableHead
       aria-sort={ariaSort}
-      className={twMerge(className, sortable && 'cursor-pointer select-none')}
       role={sortable ? 'button' : undefined}
+      className={twMerge(
+        className,
+        sortable && 'cursor-pointer select-none',
+        roundedClass,
+        'bg-gray-200 hover:bg-gray-200'
+      )}
       style={
         width
           ? { maxWidth: width, minWidth: width, textAlign: headerAlign ?? align ?? 'left' }

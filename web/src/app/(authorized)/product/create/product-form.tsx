@@ -142,7 +142,7 @@ const ProductForm = () => {
                 <Input
                   id='code'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 />
               )}
             />
@@ -157,7 +157,7 @@ const ProductForm = () => {
                 <Input
                   id='name'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 />
               )}
             />
@@ -173,7 +173,7 @@ const ProductForm = () => {
               <Textarea
                 id='description'
                 {...field}
-                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
               />
             )}
           />
@@ -190,7 +190,7 @@ const ProductForm = () => {
               <Input
                 id='keyword'
                 {...field}
-                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
               />
             )}
           />
@@ -205,7 +205,7 @@ const ProductForm = () => {
               <Textarea
                 id='note'
                 {...field}
-                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
               />
             )}
           />
@@ -228,7 +228,7 @@ const ProductForm = () => {
                   min='0'
                   type='number'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                   onChange={(e) => {
                     field.onChange(Number(e.target.value));
                   }}
@@ -248,7 +248,7 @@ const ProductForm = () => {
                 <Input
                   id='unit'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 />
               )}
             />
@@ -266,7 +266,7 @@ const ProductForm = () => {
                   step='0.01'
                   type='number'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                   onChange={(e) => {
                     field.onChange(Number(e.target.value));
                   }}
@@ -289,7 +289,7 @@ const ProductForm = () => {
                   step='0.01'
                   type='number'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                   onChange={(e) => {
                     field.onChange(Number(e.target.value));
                   }}
@@ -312,7 +312,7 @@ const ProductForm = () => {
                   step='0.01'
                   type='number'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                   onChange={(e) => {
                     field.onChange(Number(e.target.value));
                   }}
@@ -337,7 +337,7 @@ const ProductForm = () => {
                   step='0.01'
                   type='number'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                   onChange={(e) => {
                     field.onChange(Number(e.target.value));
                   }}
@@ -358,7 +358,7 @@ const ProductForm = () => {
                   step='0.01'
                   type='number'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                   onChange={(e) => {
                     field.onChange(Number(e.target.value));
                   }}
@@ -385,7 +385,7 @@ const ProductForm = () => {
                 <Input
                   id='product_category'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 />
               )}
             />
@@ -402,7 +402,7 @@ const ProductForm = () => {
                 <Input
                   id='product_type'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 />
               )}
             />
@@ -421,7 +421,7 @@ const ProductForm = () => {
                 <Input
                   id='color'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 />
               )}
             />
@@ -436,7 +436,7 @@ const ProductForm = () => {
                 <Input
                   id='size'
                   {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 />
               )}
             />
@@ -455,7 +455,7 @@ const ProductForm = () => {
                 step='0.01'
                 type='number'
                 {...field}
-                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100'
+                className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
                 onChange={(e) => {
                   field.onChange(Number(e.target.value));
                 }}

@@ -47,7 +47,12 @@ const BodyCell = <T extends Record<string, unknown>>({
   }
   return (
     <TableCell
-      className={twMerge(className, bold && 'font-bold', lastItem && 'border-none')}
+      className={twMerge(
+        'border-b border-gray-300',
+        className,
+        bold && 'font-bold',
+        lastItem && 'border-none'
+      )}
       style={
         width
           ? { maxWidth: width, minWidth: width, textAlign: bodyAlign ?? align ?? 'left' }

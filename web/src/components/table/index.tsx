@@ -39,6 +39,8 @@ const Table = <T extends Record<string, unknown>>({
   onSort?: (columnId: string) => void;
 }) => {
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLTableElement | null>(null);
+  const bodyRef = useRef<HTMLTableElement | null>(null);
 
   useEffect(() => {
     if (tableContainerRef.current) {
@@ -47,15 +49,24 @@ const Table = <T extends Record<string, unknown>>({
     }
   }, [isLoading]);
 
+  // Sync horizontal scroll between header and body
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (headerRef.current) {
+      headerRef.current.style.transform = `translateX(-${e.currentTarget.scrollLeft}px)`;
+    }
+  };
+
   const tableHeader = useMemo(
     () => (
       <TableHeader>
         <TableRow>
-          {columns.map((column) => (
-            <HeaderCell
+          {columns.map((column, cIndex) => (
+            <HeaderCell<T>
               key={column.key}
               column={column}
+              index={cIndex}
               isSorted={sortBy === column.key}
+              lastIndex={columns.length - 1}
               sortOrder={sortOrder}
               onSort={column.sortable ? onSort : undefined}
             />
@@ -68,35 +79,50 @@ const Table = <T extends Record<string, unknown>>({
 
   if (isLoading) {
     return (
-      <div
-        ref={tableContainerRef}
-        className={twMerge('w-full overflow-x-auto')}
-      >
-        <ShadcnTable>
-          {tableHeader}
-          <TableBody>
-            {Array(LOADING_ROWS_COUNT)
-              .fill(null)
-              .map((_, rIndex) => (
-                <TableRow key={crypto.randomUUID()}>
-                  {columns.map((column, cIndex) => (
-                    <BodyCell
-                      key={crypto.randomUUID()}
-                      isLoading
-                      column={column}
-                      lastItem={rIndex === LOADING_ROWS_COUNT - 1}
-                      row={{} as T}
-                      skeletonWidthPercent={
-                        SKELETON_WIDTH_PATTERNS[rIndex % SKELETON_WIDTH_PATTERNS.length][
-                          cIndex % SKELETON_WIDTH_PATTERNS[0].length
-                        ] ?? '80%'
-                      }
-                    />
-                  ))}
-                </TableRow>
-              ))}
-          </TableBody>
-        </ShadcnTable>
+      <div className='flex w-full flex-col overflow-hidden rounded-md border'>
+        {/* Fixed Header */}
+        <div className='border-b bg-white'>
+          <ShadcnTable
+            ref={headerRef}
+            className='min-w-full'
+          >
+            {tableHeader}
+          </ShadcnTable>
+        </div>
+
+        {/* Scrollable Body */}
+        <div
+          className='flex-1 overflow-y-scroll'
+          onScroll={handleScroll}
+        >
+          <ShadcnTable
+            ref={bodyRef}
+            className='min-w-full'
+          >
+            <TableBody>
+              {Array(LOADING_ROWS_COUNT)
+                .fill(null)
+                .map((_, rIndex) => (
+                  <TableRow key={crypto.randomUUID()}>
+                    {columns.map((column, cIndex) => (
+                      <BodyCell
+                        key={crypto.randomUUID()}
+                        isLoading
+                        column={column}
+                        lastItem={rIndex === LOADING_ROWS_COUNT - 1}
+                        row={{} as T}
+                        skeletonWidthPercent={
+                          SKELETON_WIDTH_PATTERNS[rIndex % SKELETON_WIDTH_PATTERNS.length][
+                            cIndex % SKELETON_WIDTH_PATTERNS[0].length
+                          ] ?? '80%'
+                        }
+                      />
+                    ))}
+                  </TableRow>
+                ))}
+            </TableBody>
+          </ShadcnTable>
+        </div>
       </div>
     );
   }
@@ -108,38 +134,54 @@ const Table = <T extends Record<string, unknown>>({
   }
 
   return (
-    <div
-      ref={tableContainerRef}
-      className={twMerge('w-full overflow-x-auto')}
-    >
-      <ShadcnTable>
-        {tableHeader}
-        <TableBody>
-          {data.map((row, rowIdx) => (
-            <TableRow
-              key={crypto.randomUUID()}
-              {...bodyRowProps}
-              className={twMerge(bodyRowProps?.className, onClickRow && 'cursor-pointer')}
-              onClick={
-                onClickRow
-                  ? (e) => {
-                      onClickRow(e, row);
-                    }
-                  : undefined
-              }
-            >
-              {columns.map((column) => (
-                <BodyCell
-                  key={crypto.randomUUID()}
-                  column={column}
-                  lastItem={rowIdx === data.length - 1}
-                  row={row}
-                />
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </ShadcnTable>
+    <div className='flex size-full flex-col overflow-hidden rounded-md border'>
+      {/* Fixed Header */}
+      <div className='border-b bg-white shadow-sm'>
+        <ShadcnTable
+          ref={headerRef}
+          className='min-w-full'
+        >
+          {tableHeader}
+        </ShadcnTable>
+      </div>
+
+      {/* Scrollable Body */}
+      <div
+        ref={tableContainerRef}
+        className='flex flex-1 overflow-y-scroll'
+        onScroll={handleScroll}
+      >
+        <ShadcnTable
+          ref={bodyRef}
+          className='h-fit min-w-full'
+        >
+          <TableBody>
+            {data.map((row, rowIdx) => (
+              <TableRow
+                key={crypto.randomUUID()}
+                {...bodyRowProps}
+                className={twMerge(bodyRowProps?.className, onClickRow && 'cursor-pointer')}
+                onClick={
+                  onClickRow
+                    ? (e) => {
+                        onClickRow(e, row);
+                      }
+                    : undefined
+                }
+              >
+                {columns.map((column) => (
+                  <BodyCell
+                    key={crypto.randomUUID()}
+                    column={column}
+                    lastItem={rowIdx === data.length - 1}
+                    row={row}
+                  />
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </ShadcnTable>
+      </div>
     </div>
   );
 };

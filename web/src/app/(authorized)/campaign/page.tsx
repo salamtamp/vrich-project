@@ -11,9 +11,8 @@ import type { TableColumn } from '@/components/table';
 import Table from '@/components/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
-import { PaginationProvider } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
@@ -113,37 +112,30 @@ const CampaignPage = () => {
   ];
 
   return (
-    <PaginationProvider defaultValue={{ limit: 15 }}>
-      <div className='flex min-h-screen flex-col gap-8 bg-blueGray-50 p-8'>
-        <Card className='w-full rounded-2xl border border-gray-100 bg-white shadow-sm'>
-          <CardHeader className='flex flex-row items-center justify-between border-b border-gray-100 pb-4'>
-            <CardTitle className='text-2xl font-semibold tracking-tight text-blue-700'>Campaigns</CardTitle>
-            <Button
-              className='rounded-lg border-blue-100 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-none hover:bg-blue-100 hover:text-blue-800'
-              variant='outline'
-              onClick={handleGoToCreateCampaign}
-            >
-              <span className='text-base'>+ Create Campaign</span>
-            </Button>
-          </CardHeader>
-          <CardContent className='p-0'>
-            <Table
-              columns={columns}
-              data={campaignsProducts}
-              isLoading={isLoading || isDeleting}
-              bodyRowProps={{
-                className:
-                  'bg-white hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0',
-              }}
-            />
-            <ContentPagination
-              className='mt-6'
-              total={total}
-            />
-          </CardContent>
-        </Card>
+    <Card className='flex size-full h-full max-h-fit min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
+      <div className='flex flex-row items-center justify-between p-0'>
+        <CardTitle className='text-lg-semibold text-blue-700'>Campaigns</CardTitle>
+        <Button
+          className='rounded-lg border-blue-100 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-none hover:bg-blue-100 hover:text-blue-800'
+          variant='outline'
+          onClick={handleGoToCreateCampaign}
+        >
+          <span className='text-base'>+ Create Campaign</span>
+        </Button>
       </div>
-    </PaginationProvider>
+      <div className='mt-4 flex h-full flex-1 flex-col gap-4 overflow-hidden'>
+        <Table
+          bodyRowProps={{ className: 'bg-white hover:bg-gray-100 ' }}
+          columns={columns}
+          data={campaignsProducts}
+          isLoading={isLoading || isDeleting}
+        />
+      </div>
+      <ContentPagination
+        className='mt-4'
+        total={total}
+      />
+    </Card>
   );
 };
 
