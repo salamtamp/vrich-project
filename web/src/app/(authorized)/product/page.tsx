@@ -14,6 +14,7 @@ import { Card, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
+import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Product } from '@/types/api/product';
@@ -26,7 +27,7 @@ const ProductPage = () => {
     handleRequest: handlePaginatedRequest,
   } = usePaginatedRequest<PaginationResponse<Product>>({
     url: API.PRODUCTS,
-    orderBy: 'createdAt',
+    orderBy: 'created_at',
   });
 
   const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<Product>({
@@ -36,6 +37,8 @@ const ProductPage = () => {
     },
   });
 
+  const { open, close } = useModalContext();
+
   const products = useMemo(() => data?.docs ?? [], [data?.docs]);
   const total = data?.total ?? 0;
 
@@ -43,15 +46,36 @@ const ProductPage = () => {
     router.push('/product/create');
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      try {
-        await handleDeleteRequest({ patchId: productId });
-        await handlePaginatedRequest();
-      } catch (error) {
-        console.error('Failed to delete product:', error);
-      }
-    }
+  const handleDeleteProduct = (productId: string) => {
+    open({
+      content: (
+        <div className='flex flex-col items-center justify-center gap-4 p-4'>
+          <div className='text-lg font-semibold'>Are you sure you want to delete this product?</div>
+          <div className='mt-2 flex gap-4'>
+            <Button
+              className='bg-red-600 text-white hover:bg-red-700'
+              onClick={() => {
+                void (async () => {
+                  await handleDeleteRequest({ patchId: productId });
+                  await handlePaginatedRequest();
+                  close();
+                })();
+              }}
+            >
+              Delete
+            </Button>
+            <Button
+              variant='outline'
+              onClick={() => {
+                close();
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ),
+    });
   };
 
   const columns: TableColumn<Product>[] = [
@@ -99,7 +123,7 @@ const ProductPage = () => {
             size='sm'
             variant='outline'
             onClick={() => {
-              void handleDeleteProduct(row.id);
+              handleDeleteProduct(row.id);
             }}
           >
             <Trash2 className='size-4' />

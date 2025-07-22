@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useParams, useRouter } from 'next/navigation';
 
@@ -104,6 +104,15 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
   const { errors } = useFormState({ control });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (isLoading) {
+      openLoading();
+    } else {
+      closeLoading();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
   if (mode === 'edit' && !initialValues) {
     return (
       <div className='flex h-96 w-full items-center justify-center'>
@@ -128,11 +137,10 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
         },
         patchId: mode === 'edit' ? id : undefined,
       });
-      reset(defaultValues);
       router.push('/product');
     } finally {
-      setIsSubmitting(false);
       closeLoading();
+      setIsSubmitting(false);
     }
   };
 
@@ -164,7 +172,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 />
               )}
             />
-            {errors?.code ? <div className='mt-1 text-xs text-red-500'>{errors.code.message}</div> : null}
           </div>
           <div className='flex flex-col gap-1'>
             <Label htmlFor='name'>Product Name</Label>
@@ -179,7 +186,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 />
               )}
             />
-            {errors?.name ? <div className='mt-1 text-xs text-red-500'>{errors.name.message}</div> : null}
           </div>
         </div>
         <div className='flex flex-col gap-1'>
@@ -212,7 +218,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               />
             )}
           />
-          {errors?.keyword ? <div className='mt-1 text-xs text-red-500'>{errors.keyword.message}</div> : null}
         </div>
         <div className='flex flex-col gap-1'>
           <Label htmlFor='note'>Note</Label>
@@ -270,7 +275,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 />
               )}
             />
-            {errors?.unit ? <div className='mt-1 text-xs text-red-500'>{errors.unit.message}</div> : null}
           </div>
           <div className='flex flex-col gap-1'>
             <Label htmlFor='weight'>Weight</Label>
@@ -407,9 +411,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 />
               )}
             />
-            {errors?.product_category ? (
-              <div className='mt-1 text-xs text-red-500'>{errors.product_category.message}</div>
-            ) : null}
           </div>
           <div className='flex flex-col gap-1'>
             <Label htmlFor='product_type'>Product Type</Label>
@@ -424,9 +425,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 />
               )}
             />
-            {errors?.product_type ? (
-              <div className='mt-1 text-xs text-red-500'>{errors.product_type.message}</div>
-            ) : null}
           </div>
         </div>
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>

@@ -6,58 +6,65 @@ import { useParams } from 'next/navigation';
 
 import { FormPageWrapper } from '@/components/FormPageWrapper';
 import { API } from '@/constants/api.constant';
+import { useLoading } from '@/contexts';
 import useRequest from '@/hooks/request/useRequest';
-import type { CampaignsProduct } from '@/types/api/campaigns_products';
+import type { Campaign } from '@/types/api/campaign';
 
 import CampaignForm from '../../create/campaign-form';
 
 const EditCampaignPage = () => {
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { data, isLoading, handleRequest } = useRequest<CampaignsProduct>({
-    request: { url: `${API.CAMPAIGNS_PRODUCTS}/${String(id)}`, method: 'GET' },
+  const { data, isLoading, handleRequest } = useRequest<Campaign>({
+    request: { url: `${API.CAMPAIGN}/${String(id)}`, method: 'GET' },
     defaultLoading: true,
   });
+  const { openLoading, closeLoading } = useLoading();
+
+  useEffect(() => {
+    if (isLoading) {
+      openLoading();
+    } else {
+      closeLoading();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   useEffect(() => {
     void handleRequest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (isLoading) {
-    return null;
-  }
-  if (!data) {
-    return null;
-  }
-  // Map API response to form values
-  const formValues = {
-    id: data.campaign?.id ?? '',
-    name: data.campaign?.name ?? '',
-    description: data.campaign?.description ?? '',
-    status: data.campaign?.status ?? 'inactive',
-    startDate: data.campaign?.start_date ?? '',
-    endDate: data.campaign?.end_date ?? '',
-    channels: data.campaign?.channels ?? [],
-    postId: data.campaign?.post_id ?? '',
-    products: [
-      {
-        productId: data.product_id,
-        name: data.product?.name ?? '',
-        keyword: data.keyword,
-        quantity: data.quantity,
-      },
-    ],
-  };
-
-  if (!data.campaign?.id) {
+  if (!data?.id) {
     return <></>;
   }
+
+  // Map API response to form values
+  const formValues = data
+    ? {
+        id: data.id ?? '',
+        name: data.name ?? '',
+        description: data.description ?? '',
+        status: data.status ?? 'inactive',
+        startDate: data.start_date ?? '',
+        endDate: data.end_date ?? '',
+        channels: data.channels ?? [],
+        postId: data.post_id ?? '',
+        products:
+          data.campaigns_products?.map((cp) => ({
+            productId: cp.product_id,
+            name: cp.product?.name ?? '',
+            keyword: cp.keyword,
+            quantity: cp.quantity,
+          })) ?? [],
+      }
+    : undefined;
 
   return (
     <FormPageWrapper title='Edit Campaign'>
       <CampaignForm
-        campaignId={data.campaign.id}
+        campaignId={data.id}
+        initialPost={data.post}
         initialValues={formValues}
         mode='edit'
       />

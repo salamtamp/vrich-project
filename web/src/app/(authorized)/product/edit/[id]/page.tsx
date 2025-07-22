@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 
 import { FormPageWrapper } from '@/components/FormPageWrapper';
 import { API } from '@/constants/api.constant';
+import { useLoading } from '@/contexts';
 import useRequest from '@/hooks/request/useRequest';
 import type { ProductResponse } from '@/types/api/product';
 
@@ -18,17 +19,24 @@ const EditProductPage = () => {
     request: { url: `${API.PRODUCTS}/${String(id)}`, method: 'GET' },
     defaultLoading: true,
   });
+  const { openLoading, closeLoading } = useLoading();
+
+  useEffect(() => {
+    if (isLoading) {
+      openLoading();
+    } else {
+      closeLoading();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   useEffect(() => {
     void handleRequest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (isLoading) {
-    return null;
-  }
-  if (!data) {
-    return null;
+  if (!data?.id) {
+    return <></>;
   }
   // Map API response to form values
   const formValues = {

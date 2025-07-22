@@ -10,7 +10,7 @@ import axiosClient from '@/lib/axios/axiosClient';
 
 export type UseRequestProps<T> = {
   request: AxiosRequestConfig;
-  actionAfterRequest?: (data?: T) => unknown;
+  afterRequest?: (data?: T) => unknown;
   defaultLoading?: boolean;
 };
 
@@ -28,11 +28,7 @@ type RequestState<T, D> = {
   isLoading: boolean;
 };
 
-const useRequest = <T, D = object>({
-  request,
-  actionAfterRequest,
-  defaultLoading = false,
-}: UseRequestProps<T>) => {
+const useRequest = <T, D = object>({ request, afterRequest, defaultLoading = false }: UseRequestProps<T>) => {
   const { data: session } = useSession();
   const [requestState, setRequestState] = useState<RequestState<T, D>>({
     data: null,
@@ -135,11 +131,11 @@ const useRequest = <T, D = object>({
     async (updateRequest?: UpdateRequest) => {
       const data = await onRequest(updateRequest);
 
-      await actionAfterRequest?.(data);
+      await afterRequest?.(data);
 
       return data;
     },
-    [actionAfterRequest, onRequest]
+    [afterRequest, onRequest]
   );
 
   return { data, error, headers, isLoading, handleRequest };

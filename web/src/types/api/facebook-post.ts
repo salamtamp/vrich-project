@@ -30,4 +30,5 @@ export type FacebookPostResponse = FacebookPost & {
   created_at: string;
   updated_at?: string;
   deleted_at?: string;
+  profile?: FacebookProfileResponse;
 };

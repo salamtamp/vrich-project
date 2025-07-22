@@ -1,14 +1,8 @@
-import type { Product } from './product';
+import type { CampaignsProduct } from './campaigns_products';
+import type { FacebookPostResponse } from './facebook-post';
 
 export type CampaignStatus = 'active' | 'inactive';
 export type CampaignChannel = 'facebook_comment' | 'facebook_inbox';
-
-export type CampaignProduct = {
-  productId: string;
-  name: string;
-  keyword: string;
-  quantity: number;
-};
 
 export type Campaign = {
   id: string;
@@ -18,9 +12,9 @@ export type Campaign = {
   start_date?: string;
   end_date?: string;
   channels: CampaignChannel[];
-  products: CampaignProduct[];
+  campaigns_products: CampaignsProduct[];
   post_id?: string;
-  product?: Product;
+  post?: FacebookPostResponse;
   created_at: string;
   updated_at?: string;
   deleted_at?: string;

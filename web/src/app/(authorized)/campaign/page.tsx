@@ -15,54 +15,111 @@ import { Card, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
+import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { CampaignsProduct } from '@/types/api/campaigns_products';
+import type { Campaign } from '@/types/api/campaign';
 
-type TableRowType = CampaignsProduct;
+type TableRowType = Campaign;
 
 const CampaignPage = () => {
   const router = useRouter();
-  const { data: campaignsProductsData, isLoading } = usePaginatedRequest<
-    PaginationResponse<CampaignsProduct>
-  >({
-    url: API.CAMPAIGNS_PRODUCTS,
-    orderBy: 'createdAt',
+  const {
+    data: campaignsData,
+    isLoading,
+    handleRequest: handlePaginatedRequest,
+  } = usePaginatedRequest<PaginationResponse<Campaign>>({
+    url: API.CAMPAIGN,
+    orderBy: 'created_at',
+    order: 'desc',
   });
-  const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<CampaignsProduct>({
+
+  const { handleRequest: handleDeleteRequest, isLoading: isDeleting } = useRequest<Campaign>({
     request: {
-      url: API.CAMPAIGNS_PRODUCTS,
+      url: API.CAMPAIGN,
       method: 'DELETE',
     },
   });
 
-  const campaignsProducts = useMemo(() => campaignsProductsData?.docs ?? [], [campaignsProductsData?.docs]);
-  const total = campaignsProductsData?.total ?? 0;
+  const campaigns = useMemo(() => campaignsData?.docs ?? [], [campaignsData?.docs]);
+  const total = campaignsData?.total ?? 0;
+
+  const { open, close } = useModalContext();
 
   const handleGoToCreateCampaign = () => {
     router.push('/campaign/create');
   };
 
-  const handleDeleteCampaignProduct = async (campaignProductId: string) => {
-    if (confirm('Are you sure you want to delete this campaign-product link?')) {
-      try {
-        await handleDeleteRequest({ patchId: campaignProductId });
-      } catch (error) {
-        console.error('Failed to delete campaign-product:', error);
-      }
-    }
+  const handleDeleteCampaign = (campaignId: string) => {
+    open({
+      content: (
+        <div className='flex flex-col items-center justify-center gap-4 p-4'>
+          <div className='text-lg font-semibold'>Are you sure you want to delete this campaign?</div>
+          <div className='mt-2 flex gap-4'>
+            <Button
+              className='bg-red-600 text-white hover:bg-red-700'
+              onClick={() => {
+                void (async () => {
+                  await handleDeleteRequest({ patchId: campaignId });
+                  await handlePaginatedRequest();
+                  close(); // Close modal
+                })();
+              }}
+            >
+              Delete
+            </Button>
+            <Button
+              variant='outline'
+              onClick={() => {
+                close();
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ),
+    });
   };
 
   const columns: TableColumn<TableRowType>[] = [
-    { key: 'campaign.name', label: 'Campaign', bold: true },
-    { key: 'product.name', label: 'Product', bold: true },
-    { key: 'keyword', label: 'Keyword' },
-    { key: 'quantity', label: 'Quantity', align: 'center' },
-    { key: 'campaign.status', label: 'Campaign Status', align: 'center' },
-    { key: 'product.selling_price', label: 'Product Price', align: 'center' },
+    { key: 'name', label: 'Campaign', bold: true },
+    {
+      key: 'channels',
+      label: 'Channels',
+      render: (row) => (
+        <span>
+          {row.channels && row.channels.length > 0
+            ? row.channels.map((ch, idx) => {
+                const label = ch.startsWith('facebook_') ? ch.replace('facebook_', '') : ch;
+                return (
+                  <React.Fragment key={ch}>
+                    {label}
+                    {idx < row.channels.length - 1 && <br />}
+                  </React.Fragment>
+                );
+              })
+            : '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'keywords',
+      label: 'Keywords',
+      render: (row) => (
+        <span>
+          {row.campaigns_products && row.campaigns_products.length > 0
+            ? row.campaigns_products
+                .map((cp) => cp.keyword)
+                .filter(Boolean)
+                .join(', ')
+            : '-'}
+        </span>
+      ),
+    },
     {
       key: 'status',
-      label: 'Link Status',
+      label: 'Status',
       align: 'center',
       render: (row) => (
         <Badge
@@ -76,6 +133,18 @@ const CampaignPage = () => {
           {row.status === 'active' ? 'Active' : 'Inactive'}
         </Badge>
       ),
+    },
+    {
+      key: 'start_date',
+      label: 'Start Date',
+      render: (row) => dayjs(row.start_date).format('YYYY-MM-DD'),
+      align: 'center',
+    },
+    {
+      key: 'end_date',
+      label: 'End Date',
+      render: (row) => dayjs(row.end_date).format('YYYY-MM-DD'),
+      align: 'center',
     },
     {
       key: 'created_at',
@@ -101,7 +170,7 @@ const CampaignPage = () => {
             size='sm'
             variant='outline'
             onClick={() => {
-              void handleDeleteCampaignProduct(row.id);
+              handleDeleteCampaign(row.id);
             }}
           >
             <Trash2 className='size-4' />
@@ -127,7 +196,7 @@ const CampaignPage = () => {
         <Table
           bodyRowProps={{ className: 'bg-white hover:bg-gray-50 ' }}
           columns={columns}
-          data={campaignsProducts}
+          data={campaigns}
           isLoading={isLoading || isDeleting}
         />
       </div>

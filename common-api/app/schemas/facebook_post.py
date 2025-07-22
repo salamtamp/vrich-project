@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas.facebook_profile import FacebookProfile
+from app.schemas.facebook_profile import FacebookProfile, FacebookProfileResponse
 
 
 class FacebookPostBase(BaseModel):
@@ -40,6 +40,7 @@ class FacebookPostResponse(FacebookPostBase):
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
+    profile: FacebookProfileResponse | None = None
     model_config = ConfigDict(from_attributes=True)
 
 

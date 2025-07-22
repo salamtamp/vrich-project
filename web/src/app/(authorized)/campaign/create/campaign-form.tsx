@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Plus, Trash2, X } from 'lucide-react';
@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Spinner from '@/components/ui/spinner';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
 import { useLoading } from '@/contexts';
@@ -28,7 +29,6 @@ import useModalContext from '@/hooks/useContext/useModalContext';
 import { ImageWithFallback } from '@/hooks/useImageFallback';
 import dayjs from '@/lib/dayjs';
 import type { CampaignChannel, CampaignResponse, CampaignStatus } from '@/types/api';
-import type { CampaignsProduct } from '@/types/api/campaigns_products';
 import type { FacebookPostResponse } from '@/types/api/facebook-post';
 import type { Product } from '@/types/api/product';
 
@@ -77,27 +77,25 @@ const defaultValues: CampaignFormValues = {
 };
 
 type CampaignFormProps =
-  | { mode: 'create'; initialValues?: undefined; campaignId?: undefined }
-  | { mode: 'edit'; initialValues: CampaignFormValues | undefined; campaignId: string };
+  | { mode: 'create'; initialValues?: undefined; campaignId?: undefined; initialPost?: undefined }
+  | {
+      mode: 'edit';
+      initialValues: CampaignFormValues | undefined;
+      campaignId: string;
+      initialPost?: FacebookPostResponse | null;
+    };
 
-const CampaignForm = ({ mode, initialValues, campaignId }: CampaignFormProps) => {
-  const params = useParams();
+const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: CampaignFormProps) => {
   const router = useRouter();
   const { openLoading, closeLoading } = useLoading();
 
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
-
-  const { handleRequest: requestCampaignProduct, isLoading: isCampaignLoading } =
-    useRequest<CampaignsProduct>({
-      request: { url: API.CAMPAIGNS_PRODUCTS, method: mode === 'edit' ? 'PUT' : 'POST' },
+  const { handleRequest: requestCampaignWithProducts, isLoading: isCampaignLoading } =
+    useRequest<CampaignResponse>({
+      request: {
+        url: mode === 'edit' ? API.CAMPAIGN_WITH_PRODUCTS_PUT(campaignId) : API.CAMPAIGN_WITH_PRODUCTS_POST,
+        method: mode === 'edit' ? 'PUT' : 'POST',
+      },
     });
-
-  const { handleRequest: requestCampaign } = useRequest<CampaignResponse>({
-    request: {
-      url: API.CAMPAIGN,
-      method: mode === 'edit' ? 'PUT' : 'POST',
-    },
-  });
 
   const { data: productData, isLoading: isProductsLoading } = usePaginatedRequest<{ docs: Product[] }>({
     url: API.PRODUCTS,
@@ -107,7 +105,9 @@ const CampaignForm = ({ mode, initialValues, campaignId }: CampaignFormProps) =>
 
   const productsList = productData?.docs ?? [];
 
-  const [selectedPost, setSelectedPost] = useState<FacebookPostResponse | null>(null);
+  const { handleRequest: fetchPost, isLoading: isPostLoading } = useRequest<FacebookPostResponse>({
+    request: { url: API.POST, method: 'GET' },
+  });
 
   const { control, handleSubmit, reset, setValue, watch } = useForm<CampaignFormValues>({
     defaultValues: mode === 'edit' && initialValues ? { ...defaultValues, ...initialValues } : defaultValues,
@@ -129,6 +129,28 @@ const CampaignForm = ({ mode, initialValues, campaignId }: CampaignFormProps) =>
 
   const { open, close } = useModalContext();
 
+  const [selectedPost, setSelectedPost] = useState<FacebookPostResponse | null>(initialPost ?? null);
+
+  useEffect(() => {
+    if (initialPost) {
+      setSelectedPost(initialPost);
+      setValue('postId', initialPost.id, { shouldValidate: true });
+      return;
+    }
+    // When editing, if initialValues.postId exists, fetch the post by id
+    const fetchSelectedPost = async () => {
+      if (initialValues?.postId) {
+        const post = await fetchPost({ patchId: initialValues.postId });
+        if (post) {
+          setSelectedPost(post);
+          setValue('postId', post.id, { shouldValidate: true });
+        }
+      }
+    };
+    void fetchSelectedPost();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPost, initialValues?.postId]);
+
   useEffect(() => {
     if (fields.length === 0) {
       append({ productId: '', name: '', keyword: '', quantity: 1 });
@@ -145,6 +167,17 @@ const CampaignForm = ({ mode, initialValues, campaignId }: CampaignFormProps) =>
     setValue(`products.${idx}.name`, product ? product.name : '');
   };
 
+  const isLoading = isCampaignLoading || isProductsLoading || isPostLoading;
+
+  useEffect(() => {
+    if (isLoading) {
+      openLoading();
+    } else {
+      closeLoading();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
+
   if (mode === 'edit' && !initialValues) {
     return (
       <div className='flex h-96 w-full items-center justify-center'>
@@ -156,38 +189,24 @@ const CampaignForm = ({ mode, initialValues, campaignId }: CampaignFormProps) =>
   const onSubmit = async (data: CampaignFormValues) => {
     openLoading();
     try {
-      const productIds = data.products.map((prod) => prod.productId);
-
-      const campaignRes = await requestCampaign({
-        data: {
-          name: data.name,
-          description: data.description ?? undefined,
-          status: 'inactive',
-          start_date: data.startDate,
-          end_date: data.endDate,
-          channels: data.channels,
-          post_id: channels.includes('facebook_comment') ? data.postId : undefined,
-        },
-        patchId: mode === 'edit' ? campaignId : undefined,
+      const payload = {
+        name: data.name,
+        description: data.description ?? undefined,
+        status: mode === 'edit' ? data.status : 'inactive',
+        start_date: data.startDate,
+        end_date: data.endDate,
+        channels: data.channels,
+        post_id: data.channels.includes('facebook_comment') ? data.postId : undefined,
+        products: data.products.map((prod) => ({
+          product_id: prod.productId,
+          keyword: prod.keyword,
+          quantity: prod.quantity,
+          status: mode === 'edit' ? data.status : 'inactive',
+        })),
+      };
+      await requestCampaignWithProducts({
+        data: payload,
       });
-
-      if (campaignRes?.id) {
-        await Promise.all(
-          data.products?.map((prod, i) =>
-            requestCampaignProduct({
-              data: {
-                campaign_id: campaignRes.id,
-                product_id: productIds[i],
-                keyword: prod.keyword,
-                quantity: prod.quantity,
-                status: 'inactive',
-              },
-              patchId: mode === 'edit' ? id : undefined,
-            })
-          ) ?? []
-        );
-      }
-      reset(defaultValues);
       router.push('/campaign');
     } finally {
       closeLoading();
@@ -209,6 +228,26 @@ const CampaignForm = ({ mode, initialValues, campaignId }: CampaignFormProps) =>
     >
       <div className='flex flex-col gap-6 rounded-xl bg-gray-200 px-6 pb-8 pt-4'>
         <h2 className='text-lg-semibold'>Campaign Details</h2>
+
+        {mode === 'edit' && (
+          <div className='flex items-center gap-4'>
+            <Label htmlFor='campaign-status'>Status</Label>
+            <FormController
+              control={control}
+              name='status'
+              render={({ field }) => (
+                <Switch
+                  checked={field.value === 'active'}
+                  id='campaign-status'
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked ? 'active' : 'inactive');
+                  }}
+                />
+              )}
+            />
+            <span>{watch('status') === 'active' ? 'Active' : 'Inactive'}</span>
+          </div>
+        )}
 
         <div className='flex min-w-[250px] flex-1 flex-col gap-1'>
           <Label

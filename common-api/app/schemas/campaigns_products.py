@@ -3,7 +3,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from app.schemas.campaign import Campaign
 from app.schemas.products import Product
 
 
@@ -35,10 +34,16 @@ class CampaignProductResponse(CampaignProductBase):
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
-    campaign: Campaign | None = None
     product: Product | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
 class CampaignProduct(CampaignProductResponse):
     pass
+
+
+class CampaignProductInput(BaseModel):
+    product_id: UUID
+    keyword: str
+    quantity: int = 0
+    status: str

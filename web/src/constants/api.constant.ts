@@ -11,6 +11,8 @@ export const API = {
     CLEAR: '/api/v1/notifications/clear',
   },
   CAMPAIGN: '/api/v1/campaigns',
+  CAMPAIGN_WITH_PRODUCTS_POST: '/api/v1/campaigns/with-products',
+  CAMPAIGN_WITH_PRODUCTS_PUT: (id: string) => `/api/v1/campaigns/with-products/${id}`,
   PRODUCTS: '/api/v1/products',
   CAMPAIGNS_PRODUCTS: '/api/v1/campaigns-products',
 };

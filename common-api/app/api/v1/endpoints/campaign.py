@@ -10,9 +10,17 @@ from app.api.dependencies.pagination import (
     get_pagination_params,
 )
 from app.db.models.campaign import Campaign as CampaignModel
+from app.db.models.campaigns_products import CampaignProduct
+from app.db.models.facebook_post import FacebookPost
 from app.db.repositories.campaign import campaign_repo
 from app.db.session import get_db
-from app.schemas.campaign import Campaign, CampaignCreate, CampaignUpdate
+from app.schemas.campaign import (
+    Campaign,
+    CampaignCreate,
+    CampaignUpdate,
+    CampaignWithProductsCreate,
+    CampaignWithProductsUpdate,
+)
 
 router = APIRouter()
 
@@ -23,7 +31,10 @@ def list_campaigns(
     pagination: PaginationParams = Depends(get_pagination_params),
 ) -> PaginationResponse[Campaign]:
     builder = PaginationBuilder(CampaignModel, db)
-    builder.query = builder.query.options(joinedload(CampaignModel.post))
+    builder.query = builder.query.options(
+        joinedload(CampaignModel.post).joinedload(FacebookPost.profile),
+        joinedload(CampaignModel.campaigns_products).joinedload(CampaignProduct.product),
+    )
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
@@ -40,7 +51,10 @@ def get_campaign(
 ) -> Campaign:
     campaign = (
         db.query(CampaignModel)
-        .options(joinedload(CampaignModel.post))
+        .options(
+            joinedload(CampaignModel.post).joinedload(FacebookPost.profile),
+            joinedload(CampaignModel.campaigns_products).joinedload(CampaignProduct.product),
+        )
         .filter(CampaignModel.id == campaign_id, CampaignModel.deleted_at.is_(None))
         .first()
     )
@@ -89,3 +103,40 @@ def delete_campaign(*, db: Session = Depends(get_db), campaign_id: UUID) -> Camp
     db.commit()
     db.refresh(db_obj)
     return db_obj
+
+
+@router.post(
+    "/with-products", response_model=Campaign, status_code=status.HTTP_201_CREATED
+)
+async def create_campaign_with_products(
+    campaign_in: CampaignWithProductsCreate,
+    db: Session = Depends(get_db),
+):
+    try:
+        return campaign_repo.create_campaign_with_products(db, campaign_in)
+    except HTTPException as e:
+        raise e from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=409, detail=str(e)
+        ) from e  # Conflict (e.g., duplicate)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error") from e
+
+
+@router.put("/with-products/{campaign_id}", response_model=Campaign)
+async def update_campaign_with_products(
+    campaign_id: UUID,
+    campaign_in: CampaignWithProductsUpdate,
+    db: Session = Depends(get_db),
+):
+    try:
+        return campaign_repo.update_campaign_with_products(db, campaign_id, campaign_in)
+    except HTTPException as e:
+        raise e from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=409, detail=str(e)
+        ) from e  # Conflict (e.g., duplicate or business logic error)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error") from e
