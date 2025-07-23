@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
 
 import ContentPagination from '@/components/content/pagination';
 import type { TableColumn } from '@/components/table';
@@ -161,7 +161,7 @@ const CampaignPage = () => {
           <Button
             size='sm'
             variant='outline'
-            onClick={() => (window.location.href = `/campaign/edit/${String(row.id)}`)}
+            onClick={() => (window.location.href = `/campaign/manage/${String(row.id)}`)}
           >
             <Edit className='size-4' />
           </Button>
@@ -189,7 +189,9 @@ const CampaignPage = () => {
           variant='outline'
           onClick={handleGoToCreateCampaign}
         >
-          <span className='text-base'>+ Create Campaign</span>
+          <div className='flex items-center gap-2 text-blue-700'>
+            <Plus className='size-4' /> Create Campaign
+          </div>
         </Button>
       </div>
       <div className='mt-4 flex h-full flex-1 flex-col gap-4 overflow-hidden'>

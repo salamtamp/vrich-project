@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Plus, Trash2 } from 'lucide-react';
 
 import ContentPagination from '@/components/content/pagination';
 import type { TableColumn } from '@/components/table';
@@ -143,7 +143,9 @@ const ProductPage = () => {
           variant='outline'
           onClick={handleGoToCreateProduct}
         >
-          <span className='text-base'>+ Create Product</span>
+          <div className='flex items-center gap-2 text-blue-700'>
+            <Plus className='size-4' /> Create Product
+          </div>
         </Button>
       </div>
       <div className='mt-4 flex flex-1 flex-col gap-4 overflow-hidden'>

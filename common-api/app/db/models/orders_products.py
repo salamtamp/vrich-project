@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -8,6 +8,11 @@ from app.db.session import Base
 
 class OrderProduct(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "orders_products"
+    __table_args__ = (
+        UniqueConstraint(
+            "order_id", "profile_id", "campaign_product_id", name="unique_order_product"
+        ),
+    )
     order_id = Column(
         UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
     )

@@ -12,7 +12,7 @@ import type { Campaign } from '@/types/api/campaign';
 
 import CampaignForm from '../../create/campaign-form';
 
-const EditCampaignPage = () => {
+const ManageCampaignPage = () => {
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const { data, isLoading, handleRequest } = useRequest<Campaign>({
@@ -61,7 +61,7 @@ const EditCampaignPage = () => {
     : undefined;
 
   return (
-    <FormPageWrapper title='Edit Campaign'>
+    <FormPageWrapper title='Manage Campaign'>
       <CampaignForm
         campaignId={data.id}
         initialPost={data.post}
@@ -72,4 +72,4 @@ const EditCampaignPage = () => {
   );
 };
 
-export default EditCampaignPage;
+export default ManageCampaignPage;

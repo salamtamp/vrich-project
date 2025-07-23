@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Text, text
+from sqlalchemy import Column, DateTime, ForeignKey, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -8,7 +8,12 @@ from app.db.session import Base
 
 class Order(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "orders"
-    code = Column(Text, nullable=False, unique=True)
+    __table_args__ = (
+        UniqueConstraint("profile_id", "campaign_id", name="unique_profile_campaign"),
+    )
+    code = Column(
+        Text, nullable=False, unique=True, server_default=text("generate_order_code()")
+    )
     profile_id = Column(
         UUID(as_uuid=True),
         ForeignKey("facebook_profiles.id", ondelete="CASCADE"),
@@ -20,7 +25,7 @@ class Order(Base, UUIDPrimaryKeyMixin):
         nullable=False,
     )
     status = Column(Text, nullable=False)
-    purchase_date = Column(DateTime(timezone=True), nullable=False)
+    purchase_date = Column(DateTime(timezone=True), nullable=True)
     shipping_date = Column(DateTime(timezone=True), nullable=True)
     delivery_date = Column(DateTime(timezone=True), nullable=True)
     note = Column(Text, nullable=True)

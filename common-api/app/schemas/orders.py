@@ -5,11 +5,11 @@ from pydantic import BaseModel, ConfigDict
 
 
 class OrderBase(BaseModel):
-    code: str
+    code: str | None = None
     profile_id: UUID
     campaign_id: UUID
     status: str
-    purchase_date: datetime
+    purchase_date: datetime | None = None
     shipping_date: datetime | None = None
     delivery_date: datetime | None = None
     note: str | None = None
