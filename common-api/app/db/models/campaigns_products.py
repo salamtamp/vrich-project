@@ -35,7 +35,7 @@ class CampaignProduct(Base, UUIDPrimaryKeyMixin):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
     campaign = relationship("Campaign", back_populates="campaigns_products")
     product = relationship("Product", back_populates="campaigns_products")
-    order_products = relationship("OrderProduct", back_populates="campaign_product")
+    orders_products = relationship("OrderProduct", back_populates="campaign_product")
 
     @property
     def campaign_name(self):

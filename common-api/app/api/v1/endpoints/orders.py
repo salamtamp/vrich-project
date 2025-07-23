@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, subqueryload
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -11,6 +11,7 @@ from app.api.dependencies.pagination import (
 )
 from app.db.models.orders import Order as OrderModel
 from app.db.repositories.orders.repo import order_repo
+from app.db.repositories.orders_products.repo import order_product_repo
 from app.db.session import get_db
 from app.schemas.orders import Order, OrderCreate, OrderUpdate
 
@@ -21,15 +22,24 @@ router = APIRouter()
 def list_orders(
     db: Session = Depends(get_db),
     pagination: PaginationParams = Depends(get_pagination_params),
+    campaign_id: UUID | None = None,
 ) -> PaginationResponse[Order]:
     builder = PaginationBuilder(OrderModel, db)
-    return (
-        builder.filter_deleted()
-        .date_range(pagination.since, pagination.until)
-        .search(pagination.search, pagination.search_by)
-        .order_by(pagination.order_by, pagination.order)
-        .paginate(pagination.limit, pagination.offset, serializer=Order)
+    builder.query = builder.query.options(
+        joinedload(OrderModel.profile),
+        joinedload(OrderModel.orders_products),
     )
+    builder = builder.filter_deleted()
+    builder = builder.date_range(pagination.since, pagination.until)
+    builder = builder.search(pagination.search, pagination.search_by)
+    builder = builder.order_by(pagination.order_by, pagination.order)
+    if campaign_id:
+        builder = builder.custom_filter(campaign_id=campaign_id)
+    print(
+        "[DEBUG] SQL Query:",
+        str(builder.query.statement.compile(compile_kwargs={"literal_binds": True})),
+    )
+    return builder.paginate(pagination.limit, pagination.offset, serializer=Order)
 
 
 @router.get("/{order_id}", response_model=Order)
@@ -37,7 +47,15 @@ def get_order(
     order_id: UUID,
     db: Session = Depends(get_db),
 ) -> Order:
-    order = db.query(OrderModel).filter(OrderModel.id == order_id).first()
+    order = (
+        db.query(OrderModel)
+        .options(
+            joinedload(OrderModel.profile),
+            subqueryload(OrderModel.orders_products).filter_by(deleted_at=None),
+        )
+        .filter(OrderModel.id == order_id)
+        .first()
+    )
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
@@ -45,7 +63,16 @@ def get_order(
 
 @router.post("/", response_model=Order, status_code=status.HTTP_201_CREATED)
 def create_order(*, db: Session = Depends(get_db), order_in: OrderCreate) -> Order:
-    return order_repo.create(db, obj_in=order_in)
+    # Create the order first (without products)
+    order_products_data = order_in.orders_products
+    order_data = order_in.model_copy(update={"orders_products": []})
+    order = order_repo.create(db, obj_in=order_data)
+    # Create related OrderProduct records
+    for op in order_products_data:
+        op_data = op.model_copy(update={"order_id": order.id})
+        order_product_repo.create(db, obj_in=op_data)
+    db.refresh(order)
+    return order
 
 
 @router.put("/{order_id}", response_model=Order)

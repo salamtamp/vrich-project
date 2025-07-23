@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { useParams, useRouter } from 'next/navigation';
 
@@ -103,15 +103,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
   });
   const { errors } = useFormState({ control });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (isLoading) {
-      openLoading();
-    } else {
-      closeLoading();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
 
   if (mode === 'edit' && !initialValues) {
     return (

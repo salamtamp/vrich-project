@@ -107,7 +107,7 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
 
   const productsList = productData?.docs ?? [];
 
-  const { handleRequest: fetchPost, isLoading: isPostLoading } = useRequest<FacebookPostResponse>({
+  const { handleRequest: fetchPost } = useRequest<FacebookPostResponse>({
     request: { url: API.POST, method: 'GET' },
   });
 
@@ -168,17 +168,6 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
     setValue(`products.${idx}.productId`, productId);
     setValue(`products.${idx}.name`, product ? product.name : '');
   };
-
-  const isLoading = isCampaignLoading || isProductsLoading || isPostLoading;
-
-  useEffect(() => {
-    if (isLoading) {
-      openLoading();
-    } else {
-      closeLoading();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
 
   if (mode === 'edit' && !initialValues) {
     return (

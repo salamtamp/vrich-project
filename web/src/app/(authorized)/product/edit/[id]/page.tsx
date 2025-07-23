@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 
 import { FormPageWrapper } from '@/components/FormPageWrapper';
 import { API } from '@/constants/api.constant';
-import { useLoading } from '@/contexts';
 import useRequest from '@/hooks/request/useRequest';
 import type { ProductResponse } from '@/types/api/product';
 
@@ -15,20 +14,10 @@ import ProductForm from '../../create/product-form';
 const EditProductPage = () => {
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const { data, isLoading, handleRequest } = useRequest<ProductResponse>({
+  const { data, handleRequest } = useRequest<ProductResponse>({
     request: { url: `${API.PRODUCTS}/${String(id)}`, method: 'GET' },
     defaultLoading: true,
   });
-  const { openLoading, closeLoading } = useLoading();
-
-  useEffect(() => {
-    if (isLoading) {
-      openLoading();
-    } else {
-      closeLoading();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
 
   useEffect(() => {
     void handleRequest();

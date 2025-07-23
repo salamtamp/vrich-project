@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import type { AxiosError, AxiosRequestConfig, AxiosResponseHeaders, RawAxiosResponseHeaders } from 'axios';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 
+import { useLoading } from '@/contexts';
 import axiosClient from '@/lib/axios/axiosClient';
 
 export type UseRequestProps<T> = {
@@ -36,6 +37,8 @@ const useRequest = <T, D = object>({ request, afterRequest, defaultLoading = fal
     error: null,
     isLoading: defaultLoading,
   });
+
+  const { openLoading, closeLoading } = useLoading();
 
   const { data, headers, error, isLoading } = requestState;
 
@@ -137,6 +140,15 @@ const useRequest = <T, D = object>({ request, afterRequest, defaultLoading = fal
     },
     [afterRequest, onRequest]
   );
+
+  useEffect(() => {
+    if (isLoading) {
+      openLoading();
+    } else {
+      closeLoading();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   return { data, error, headers, isLoading, handleRequest };
 };

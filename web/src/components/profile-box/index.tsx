@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, Edit2, Trash, X } from 'lucide-react';
 
 import { API } from '@/constants/api.constant';
-import { useLoading } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
@@ -40,9 +39,7 @@ const ProfileBox: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment',
   const { reset } = usePaginationContext();
   const { showToast } = useToast();
 
-  const { data: commentData, isLoading: commentLoading } = usePaginatedRequest<
-    PaginationResponse<FacebookCommentResponse>
-  >({
+  const { data: commentData } = usePaginatedRequest<PaginationResponse<FacebookCommentResponse>>({
     url: API.COMMENT,
     waiting: tab !== 'comment' && !!cardData?.id,
     defaultStartDate: dayjs().subtract(100, 'year'),
@@ -50,17 +47,13 @@ const ProfileBox: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment',
     requireFields: ['profile_id'],
   });
 
-  const { data: inboxData, isLoading: inboxLoading } = usePaginatedRequest<
-    PaginationResponse<FacebookInboxResponse>
-  >({
+  const { data: inboxData } = usePaginatedRequest<PaginationResponse<FacebookInboxResponse>>({
     url: API.INBOX,
     waiting: tab !== 'inbox' && !!cardData?.id,
     defaultStartDate: dayjs().subtract(100, 'year'),
     additionalParams: { profile_id: cardData?.id },
     requireFields: ['profile_id'],
   });
-
-  const { openLoading, closeLoading } = useLoading();
 
   const { handleRequest: updateProfile, isLoading: isUpdating } = useRequest<{ name: string }>({
     request: {
@@ -82,8 +75,6 @@ const ProfileBox: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment',
   const isSelectAll = allItemIds.length && selectedItems.length && allItemIds.length === selectedItems.length;
 
   const { profile_picture_url } = cardData ?? {};
-
-  const isLoading = commentLoading || inboxLoading;
 
   useEffect(() => {
     return () => {
@@ -107,15 +98,6 @@ const ProfileBox: React.FC<TextListProps> = ({ cardData, defaultTab = 'comment',
       }),
     [data?.docs]
   );
-
-  useEffect(() => {
-    if (isLoading) {
-      openLoading();
-    } else {
-      closeLoading();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
 
   return (
     <div className='flex h-[540px] w-full max-w-full flex-col sm:w-[400px] md:w-[660px]'>

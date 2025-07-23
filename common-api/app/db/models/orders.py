@@ -43,7 +43,7 @@ class Order(Base, UUIDPrimaryKeyMixin):
     profile = relationship("FacebookProfile", back_populates="orders")
     campaign = relationship("Campaign", back_populates="orders")
     payments = relationship("Payment", back_populates="order")
-    order_products = relationship("OrderProduct", back_populates="order")
+    orders_products = relationship("OrderProduct", back_populates="order")
     campaigns_notifications = relationship(
         "CampaignNotification", back_populates="order"
     )

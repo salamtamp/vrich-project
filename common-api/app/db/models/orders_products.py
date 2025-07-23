@@ -38,6 +38,6 @@ class OrderProduct(Base, UUIDPrimaryKeyMixin):
         server_default=text("CURRENT_TIMESTAMP"),
     )
     deleted_at = Column(DateTime(timezone=True), nullable=True)
-    order = relationship("Order", back_populates="order_products")
+    order = relationship("Order", back_populates="orders_products")
     profile = relationship("FacebookProfile")
-    campaign_product = relationship("CampaignProduct", back_populates="order_products")
+    campaign_product = relationship("CampaignProduct", back_populates="orders_products")

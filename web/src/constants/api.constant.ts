@@ -15,4 +15,5 @@ export const API = {
   CAMPAIGN_WITH_PRODUCTS_PUT: (id: string) => `/api/v1/campaigns/with-products/${id}`,
   PRODUCTS: '/api/v1/products',
   CAMPAIGNS_PRODUCTS: '/api/v1/campaigns-products',
+  ORDER: '/api/v1/orders',
 };
