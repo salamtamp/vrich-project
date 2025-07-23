@@ -1,0 +1,2 @@
+INSERT INTO public.campaigns (id,"name",status,created_at,updated_at,description,start_date,end_date,channels,deleted_at,post_id) VALUES
+	 ('d6a5ca33-5971-49de-8d66-07a4ef06721d','LIVE Facebook 20 Jul 2025','active','2025-07-23 06:40:10.489558','2025-07-23 06:40:23.076983','','2025-07-23 06:39:53.084','2025-07-24 06:39:53.084','{facebook_comment,facebook_inbox}',NULL,'22c6f569-688f-43e7-960c-7e58f144aea8');
