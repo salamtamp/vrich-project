@@ -135,7 +135,7 @@ const ProductPage = () => {
   ];
 
   return (
-    <Card className='flex h-fit max-h-full min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
+    <Card className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
       <div className='flex flex-row items-center justify-between p-0'>
         <CardTitle className='text-lg-semibold text-blue-700'>Products</CardTitle>
         <Button
