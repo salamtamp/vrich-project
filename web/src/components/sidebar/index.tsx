@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { usePathname, useRouter } from 'next/navigation';
 
-import { LeftColorIcon, VRichIcon, VRichSmallIcon } from '@public/assets/icon';
+import { LeftColorIcon, LogoIcon, LogoSmallIcon } from '@public/assets/icon';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
@@ -52,7 +52,7 @@ const Sidebar = () => {
                 isCollapse ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
               )}
             >
-              {isCollapse ? <VRichSmallIcon /> : null}
+              {isCollapse ? <LogoSmallIcon /> : null}
             </div>
             <div
               className={cn(
@@ -60,7 +60,7 @@ const Sidebar = () => {
                 !isCollapse ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
               )}
             >
-              {!isCollapse && <VRichIcon />}
+              {!isCollapse && <LogoIcon />}
             </div>
           </div>
           <button

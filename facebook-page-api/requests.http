@@ -63,7 +63,7 @@ Content-Type: application/json
 
 {
     "postIds": ["221760221538013_1023344559595544"],
-    "schedule": 300,
+    "schedule": 10,
     "triggerType": "interval"
 }
 

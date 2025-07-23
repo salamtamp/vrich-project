@@ -1,0 +1,2 @@
+INSERT INTO public.products (id,code,"name",description,quantity,unit,full_price,selling_price,"cost",profit,shipping_fee,note,keyword,product_category,product_type,color,"size",weight,created_at,updated_at,deleted_at) VALUES
+	 ('c13eb011-7acc-42db-bf16-c974de55b5d7','P1000001','ครายเบบี้ ฟิกเกอร์','ครายเบบี้ ฟิกเกอร์ ครายอิ้งอเกนคอลเลคชั่น กล่องจุ่ม',100,'กล่อง',599.00,499.00,342.75,156.25,156.25,'','cb1','Toys','กล่องจุ่ม','','',0.00,'2025-07-23 06:39:11.446421','2025-07-23 06:39:11.446421',NULL);

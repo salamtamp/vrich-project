@@ -3,6 +3,7 @@ import psycopg2.extras
 import time
 from typing import Optional, Dict, Any, List
 from .logging import log_message
+from psycopg2 import pool
 
 class Database:
     def __init__(self, host: str, port: int, user: str, password: str, database: str,
@@ -136,3 +137,18 @@ class Database:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
         self.close()
+
+class DatabasePool:
+    def __init__(self, minconn, maxconn, **db_params):
+        self.pool = psycopg2.pool.SimpleConnectionPool(
+            minconn, maxconn, cursor_factory=psycopg2.extras.RealDictCursor, **db_params
+        )
+
+    def get_conn(self):
+        return self.pool.getconn()
+
+    def put_conn(self, conn):
+        self.pool.putconn(conn)
+
+    def closeall(self):
+        self.pool.closeall()

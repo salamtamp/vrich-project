@@ -8,6 +8,7 @@ from typing import Dict, Any, List, Optional
 import httpx
 import json
 import logging
+import datetime
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -252,10 +253,16 @@ async def handle_webhook(request: Request):
 
         print("msg:", json.dumps(msg.model_dump(), indent=4))
 
+        # Convert msg.time (timestamp) to ISO 8601 string with timezone +0000
+        if msg.time:
+            created_time = datetime.datetime.fromtimestamp(msg.time).strftime("%Y-%m-%dT%H:%M:%S+0000")
+        else:
+            created_time = "0"
+
         processed_data = {
             "id": msg.messaging[0].message.mid or "unknown",
             "message": msg.messaging[0].message.text,
-            "created_time": msg.time or 0,
+            "created_time": created_time,
             "from_name": msg.messaging[0].sender.name if msg.messaging[0].sender.name else "UNKNOWN",
             "from_id": msg.messaging[0].sender.id if msg.messaging[0].sender.id else "0000000000000999",
             "page_id": msg.id or "unknown",
