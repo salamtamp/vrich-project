@@ -181,12 +181,16 @@ class FacebookCommentProcessor:
                 log_message("FacebookCommentProcessor", "error", f"Failed to create or fetch order for profile_id={profile_id}, campaign_id={campaign_id}")
                 return None, error
 
-            order_product_id, error = self._create_order_product(order_id, profile_id, campaign_product_id, quantity, max_quantity)
+            _, error = self._create_order_product(order_id, profile_id, campaign_product_id, quantity, max_quantity)
             if error:
+                if "exceeds max allowed" in str(error):
+                    log_message("FacebookCommentProcessor", "info", f"Order product quantity exceeds max allowed for order_id={order_id}")
+                    return order_id, None
+
                 log_message("FacebookCommentProcessor", "error", f"Failed to create order product for order_id={order_id}")
                 return None, error
 
-            campaign_product_id, error = self._deduct_campaign_product_quantity(campaign_product_id, quantity)
+            _, error = self._deduct_campaign_product_quantity(campaign_product_id, quantity)
             if error:
                 log_message("FacebookCommentProcessor", "error", f"Failed to deduct product quantity for campaign_product_id={campaign_product_id}")
                 return None, error
@@ -221,17 +225,28 @@ class FacebookCommentProcessor:
 
 
     def _create_order_product(self, order_id: str, profile_id: str, campaign_product_id: str, quantity: int, max_quantity: int) -> Tuple[Optional[str], Optional[Exception]]:
-        query = """
-            INSERT INTO orders_products (order_id, profile_id, campaign_product_id, quantity)
-            VALUES (%s, %s, %s, %s)
-            ON CONFLICT (order_id, profile_id, campaign_product_id)
-            DO UPDATE
-            SET quantity = orders_products.quantity + %s
-            WHERE orders_products.quantity + %s <= %s
-            RETURNING id;
+        select_query = """
+            SELECT quantity FROM orders_products
+            WHERE order_id = %s AND profile_id = %s AND campaign_product_id = %s
         """
         try:
-            order_product_id = self.database.execute_command(query, (order_id, profile_id, campaign_product_id, quantity, quantity, quantity, max_quantity))
+            result = self.database.execute_query(select_query, (order_id, profile_id, campaign_product_id))
+            current_quantity = result[0]["quantity"] if result else 0
+
+            if current_quantity + quantity > max_quantity:
+                error_msg = f"Order product quantity ({current_quantity} + {quantity}) exceeds max allowed ({max_quantity})"
+                log_message("FacebookCommentProcessor", "info", error_msg)
+                return None, Exception(error_msg)
+
+            query = """
+                INSERT INTO orders_products (order_id, profile_id, campaign_product_id, quantity)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (order_id, profile_id, campaign_product_id)
+                DO UPDATE
+                SET quantity = orders_products.quantity + %s
+                RETURNING id;
+            """
+            order_product_id = self.database.execute_command(query, (order_id, profile_id, campaign_product_id, quantity, quantity))
             return order_product_id, None
         except Exception as e:
             log_message("FacebookCommentProcessor", "error", f"Error creating order product: {e}")
