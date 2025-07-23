@@ -53,17 +53,24 @@ const ManageCampaignPage = () => {
     : undefined;
 
   return (
-    <FormPageWrapper title='Manage Campaign'>
+    <FormPageWrapper
+      className='flex h-full overflow-hidden'
+      title='Manage Campaign'
+    >
       <Tabs
-        className='w-full'
+        className='mb-1 mt-3 size-full'
         value={tab}
         onValueChange={setTab}
       >
-        <TabsList>
+        <TabsList className='bg-gray-200'>
           <TabsTrigger value='detail'>Detail</TabsTrigger>
           <TabsTrigger value='orders'>Orders</TabsTrigger>
         </TabsList>
-        <TabsContent value='detail'>
+        <TabsContent
+          className='overflow-scroll'
+          style={{ maxHeight: 'calc(100% - 120px)' }}
+          value='detail'
+        >
           <CampaignForm
             campaignId={data.id}
             initialPost={data.post}
@@ -71,7 +78,11 @@ const ManageCampaignPage = () => {
             mode='edit'
           />
         </TabsContent>
-        <TabsContent value='orders'>
+        <TabsContent
+          className='flex h-full flex-1'
+          style={{ maxHeight: 'calc(100% - 120px)' }}
+          value='orders'
+        >
           <OrderTab campaignId={data.id} />
         </TabsContent>
       </Tabs>

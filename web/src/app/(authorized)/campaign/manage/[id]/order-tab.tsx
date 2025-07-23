@@ -109,19 +109,18 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
   });
 
   return (
-    <div className='flex flex-col gap-4'>
-      <Table
-        bodyRowProps={{ className: 'bg-white hover:bg-gray-50 ' }}
-        columns={orderColumns}
-        data={orderData?.docs ?? []}
-        emptyStateComponent={<div>No orders found</div>}
-        isLoading={orderLoading}
-      />
-      <ContentPagination
-        className='mt-4'
-        limitOptions={[20, 40, 100, 200]}
-        total={orderData?.total ?? 0}
-      />
+    <div className='flex w-full flex-col gap-1 overflow-hidden'>
+      <div className='flex-1 overflow-scroll'>
+        <Table
+          bodyRowProps={{ className: 'bg-white hover:bg-gray-50' }}
+          columns={orderColumns}
+          data={orderData?.docs ?? []}
+          emptyStateComponent={<div>No orders found</div>}
+          isLoading={orderLoading}
+        />
+      </div>
+
+      <ContentPagination total={orderData?.total ?? 0} />
     </div>
   );
 };

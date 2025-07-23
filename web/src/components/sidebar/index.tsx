@@ -76,7 +76,7 @@ const Sidebar = () => {
             <LeftColorIcon />
           </button>
         </div>
-        <div className='mt-4 h-[2px] w-full rounded-lg bg-gray-300' />
+        <div className='mt-5 h-[2px] w-full rounded-lg bg-gray-300' />
 
         <div className={styles.menuContainer}>
           {sidebarConfig.map((item) => {
