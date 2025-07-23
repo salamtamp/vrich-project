@@ -154,7 +154,7 @@ class FacebookCommentProcessor:
                 cp.keyword, cp.id, cp.product_id, cp.campaign_id, cp.max_order_quantity as max_quantity
             FROM campaigns_products cp
             JOIN active_campaigns ac ON cp.campaign_id = ac.id
-            WHERE cp.keyword = %s AND cp.quantity > 0
+            WHERE cp.keyword = %s AND cp.quantity > 0 AND cp.status = 'active'
             LIMIT 1;
         """
         found = self.database.execute_query(query, (ACTIVE_STATUS, keyword))
