@@ -5,9 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Any, Optional, Tuple
 
-import httpx
 import uuid
-
+import httpx
 
 @dataclass
 class MatchingProduct:
@@ -19,6 +18,11 @@ class MatchingProduct:
     max_quantity: int = 100
 
 
+# Constants
+ACTIVE_STATUS = "active"
+PENDING_STATUS = "pending"
+DEFAULT_MAX_QUANTITY = 100
+
 class FacebookCommentProcessor:
     def __init__(self):
         self.database = Database(
@@ -28,8 +32,10 @@ class FacebookCommentProcessor:
             password=settings.DATABASE_PASSWORD,
             database=settings.DATABASE_NAME,
         )
-
         self.database.connect()
+
+    def close(self):
+        self.database.close()
 
     def _noti_facebook_comment(self, host: str, comment_id: str) -> Tuple[bool, Optional[Exception]]:
         """Send notification about Facebook comment to webhook endpoint."""
@@ -89,10 +95,10 @@ class FacebookCommentProcessor:
                 raise error
 
             if not matching_product:
-                log_message("FacebookCommentProcessor", "info", "No matching product found for comment message.")
-                return Exception("No matching product found for comment message.")
+                log_message("FacebookCommentProcessor", "info", f"No matching product found for comment message: {comment_data['message']}, skipped")
+                return None
 
-            order_id, error = self._create_order(
+            _, error = self._create_order(
                 profile_id,
                 matching_product.campaign_id,
                 matching_product.campaign_product_id,
@@ -111,77 +117,56 @@ class FacebookCommentProcessor:
             return e
 
 
-    def _get_profile_id(self, id: str, name: str) -> Tuple[str, Optional[Exception]]:
+    def _get_profile_id(self, id: str, name: str) -> Tuple[Optional[str], Optional[Exception]]:
         try:
-            query = """
-                SELECT id FROM facebook_profiles WHERE facebook_id = %s LIMIT 1
-            """
+            query = "SELECT id FROM facebook_profiles WHERE facebook_id = %s LIMIT 1"
             result = self.database.execute_query(query, (id,))
-
             if result:
                 return result[0]["id"], None
 
-            query = """
-                INSERT INTO facebook_profiles (type, facebook_id, name) VALUES (%s, %s, %s) RETURNING id
-            """
+            # Insert and return the new id directly
+            query = "INSERT INTO facebook_profiles (type, facebook_id, name) VALUES (%s, %s, %s) RETURNING id"
             result = self.database.execute_command(query, ("user", id, name))
-
-            # Get the newly created profile ID
-            query = """
-                SELECT id FROM facebook_profiles WHERE facebook_id = %s LIMIT 1
-            """
-            result = self.database.execute_query(query, (id,))
-
-            return result[0]["id"], None
+            if result and isinstance(result, list) and result[0].get("id"):
+                return result[0]["id"], None
+            else:
+                return None, Exception("Failed to insert new profile")
         except Exception as e:
-            log_message("FacebookCommentProcessor", "error", f"Error getting profile ID: {e}")
+            log_message("FacebookCommentProcessor", "error", f"Error getting profile ID for facebook_id={id}, name={name}: {e}")
             return None, e
 
 
-    def _get_post_id(self, id: str) -> Tuple[str, Optional[Exception]]:
-        query = """
-            SELECT id FROM facebook_posts WHERE post_id = %s LIMIT 1
-        """
+    def _get_post_id(self, id: str) -> Tuple[Optional[str], Optional[Exception]]:
+        query = "SELECT id FROM facebook_posts WHERE post_id = %s LIMIT 1"
         result = self.database.execute_query(query, (id,))
-
         if result:
             return result[0]["id"], None
-
-        return "", None
+        return None, None
 
 
     def _get_matching_products(self, message: str) -> Tuple[Optional[MatchingProduct], Optional[Exception]]:
         keyword = message.strip().lower()
-
-        query = """
+        query = f"""
             WITH active_campaigns AS (
-                SELECT id
-                FROM campaigns
-                WHERE status = 'active'
+                SELECT id FROM campaigns WHERE status = %s
             )
             SELECT
-                cp.keyword,
-                cp.id,
-                cp.product_id,
-                cp.campaign_id,
-                cp.max_order_quantity as max_quantity
+                cp.keyword, cp.id, cp.product_id, cp.campaign_id, cp.max_order_quantity as max_quantity
             FROM campaigns_products cp
             JOIN active_campaigns ac ON cp.campaign_id = ac.id
             WHERE cp.keyword = %s AND cp.quantity > 0
             LIMIT 1;
         """
-        found = self.database.execute_query(query, (keyword,))
-
+        found = self.database.execute_query(query, (ACTIVE_STATUS, keyword))
         if found:
             return MatchingProduct(
-              keyword=found[0]["keyword"],
-              campaign_product_id=found[0]["id"],
-              product_id=found[0]["product_id"],
-              campaign_id=found[0]["campaign_id"],
-              quantity=1,
-              max_quantity=found[0]["max_quantity"] or 100
+                keyword=found[0]["keyword"],
+                campaign_product_id=found[0]["id"],
+                product_id=found[0]["product_id"],
+                campaign_id=found[0]["campaign_id"],
+                quantity=1,
+                max_quantity=found[0]["max_quantity"] or DEFAULT_MAX_QUANTITY
             ), None
-
         return None, None
 
 
@@ -224,16 +209,14 @@ class FacebookCommentProcessor:
             UNION ALL
             SELECT id FROM orders WHERE profile_id = %s AND campaign_id = %s LIMIT 1
         """
-
         try:
             result = self.database.execute_query(
-                query, (profile_id, campaign_id, "pending", profile_id, campaign_id)
+                query, (profile_id, campaign_id, PENDING_STATUS, profile_id, campaign_id)
             )
             order_id = result[0]["id"] if result else None
             return order_id, None
-
         except Exception as e:
-            log_message("FacebookCommentProcessor", "error", f"Error creating/fetching pending order: {e}")
+            log_message("FacebookCommentProcessor", "error", f"Error creating/fetching pending order for profile_id={profile_id}, campaign_id={campaign_id}: {e}")
             return None, e
 
 
