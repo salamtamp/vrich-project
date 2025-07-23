@@ -15,5 +15,6 @@ export type CampaignFormValues = {
     name: string;
     keyword: string;
     quantity: number;
+    status?: CampaignStatus;
   }[];
 };

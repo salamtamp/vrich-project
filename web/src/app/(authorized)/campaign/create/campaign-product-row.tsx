@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import type { Product } from '@/types/api/product';
 
 import type { CampaignFormValues } from './campaign-types';
@@ -24,6 +25,7 @@ const CampaignProductRow = ({
   isLoading,
   products,
   setValue,
+  mode,
 }: {
   idx: number;
   control: Control<CampaignFormValues>;
@@ -35,6 +37,7 @@ const CampaignProductRow = ({
   isLoading: boolean;
   products: CampaignFormValues['products'];
   setValue: UseFormSetValue<CampaignFormValues>;
+  mode: 'create' | 'edit'; // <-- add mode type
 }) => {
   const selectedProduct = availableProducts.find((p) => p.id === products[idx]?.productId);
 
@@ -48,7 +51,7 @@ const CampaignProductRow = ({
     <div className='flex flex-col gap-2 rounded-lg border bg-white p-4 shadow-sm'>
       <div className='flex w-full items-center justify-between gap-4'>
         <div className='flex size-full flex-wrap items-start gap-4'>
-          <div className='min-w-[180px] flex-1'>
+          <div className='w-[220px]'>
             <FormController
               control={control}
               name={`products.${idx}.productId`}
@@ -111,7 +114,7 @@ const CampaignProductRow = ({
               )}
             />
           </div>
-          <div className='min-w-[100px] flex-1'>
+          <div className='w-[160px]'>
             <FormController
               control={control}
               name={`products.${idx}.quantity`}
@@ -138,6 +141,24 @@ const CampaignProductRow = ({
               <span className='text-xs text-gray-400'>Max: {selectedProduct.quantity}</span>
             ) : null}
           </div>
+          {mode === 'edit' && (
+            <div className='flex w-[60px] flex-col items-center justify-center gap-2'>
+              <Label htmlFor={`product-status-${idx}`}>Active</Label>
+              <FormController
+                control={control}
+                name={`products.${idx}.status`}
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value === 'active'}
+                    id={`product-status-${idx}`}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked ? 'active' : 'inactive');
+                    }}
+                  />
+                )}
+              />
+            </div>
+          )}
         </div>
         {!(
           products.length - 1 === idx &&

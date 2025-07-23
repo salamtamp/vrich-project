@@ -17,6 +17,7 @@ const CampaignProductList = ({
   availableProducts,
   products,
   setValue,
+  mode,
 }: {
   fields: (FieldArrayWithId<CampaignFormValues, 'products'> & { control: Control<CampaignFormValues> })[];
   selectedProductIds: string[];
@@ -27,6 +28,7 @@ const CampaignProductList = ({
   availableProducts: Product[];
   products: CampaignFormValues['products'];
   setValue: UseFormSetValue<CampaignFormValues>;
+  mode: 'create' | 'edit';
 }) => {
   return (
     <div className='flex flex-col gap-2'>
@@ -38,6 +40,7 @@ const CampaignProductList = ({
           control={field.control}
           idx={idx}
           isLoading={isLoading}
+          mode={mode}
           productRefs={productRefs}
           products={products}
           selectedProductIds={selectedProductIds}

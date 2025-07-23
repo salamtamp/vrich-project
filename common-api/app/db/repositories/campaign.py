@@ -84,6 +84,11 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
             campaign = self.create(db, obj_in=CampaignCreate(**campaign_data))
             for prod in campaign_in.products:
                 prod_data = prod.model_dump()
+                # Validate status
+                if prod_data.get("status") not in ("active", "inactive"):
+                    raise ValueError(
+                        f"Invalid product status: {prod_data.get('status')}"
+                    )
                 prod_data["campaign_id"] = campaign.id
                 try:
                     campaign_product_repo.create(
@@ -134,6 +139,11 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
                 # Add new products
                 for prod in campaign_in.products:
                     prod_data = prod.model_dump()
+                    # Validate status
+                    if prod_data.get("status") not in ("active", "inactive"):
+                        raise ValueError(
+                            f"Invalid product status: {prod_data.get('status')}"
+                        )
                     prod_data["campaign_id"] = campaign_id
                     try:
                         campaign_product_repo.create(

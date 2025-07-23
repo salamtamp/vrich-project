@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -12,7 +13,7 @@ class CampaignProductBase(BaseModel):
     keyword: str
     quantity: int = 0
     max_order_quantity: int | None = None
-    status: str
+    status: Literal['active', 'inactive']
 
 
 class CampaignProductCreate(CampaignProductBase):
@@ -25,7 +26,7 @@ class CampaignProductUpdate(BaseModel):
     keyword: str | None = None
     quantity: int | None = None
     max_order_quantity: int | None = None
-    status: str | None = None
+    status: Literal['active', 'inactive'] | None = None
     deleted_at: datetime | None = None
 
 
@@ -46,4 +47,4 @@ class CampaignProductInput(BaseModel):
     product_id: UUID
     keyword: str
     quantity: int = 0
-    status: str
+    status: Literal['active', 'inactive']

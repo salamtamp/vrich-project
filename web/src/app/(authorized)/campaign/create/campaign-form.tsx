@@ -54,6 +54,7 @@ const schema = yup.object({
         name: yup.string().required('Name is required'),
         keyword: yup.string().required('Keyword is required'),
         quantity: yup.number().min(1, 'Quantity must be at least 1').required('Quantity is required'),
+        status: yup.string().oneOf(['active', 'inactive']).optional(),
       })
     )
     .min(1, 'At least one product is required')
@@ -154,12 +155,12 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
 
   useEffect(() => {
     if (fields.length === 0) {
-      append({ productId: '', name: '', keyword: '', quantity: 1 });
+      append({ productId: '', name: '', keyword: '', quantity: 1, status: 'inactive' });
     }
   }, [fields.length, append]);
 
   const onAddProductRow = () => {
-    append({ productId: '', name: '', keyword: '', quantity: 1 });
+    append({ productId: '', name: '', keyword: '', quantity: 1, status: 'inactive' });
   };
 
   const onProductChange = (idx: number, productId: string) => {
@@ -202,7 +203,7 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
           product_id: prod.productId,
           keyword: prod.keyword,
           quantity: prod.quantity,
-          status: mode === 'edit' ? data.status : 'inactive',
+          status: prod.status ?? 'inactive',
         })),
       };
       await requestCampaignWithProducts({
@@ -232,7 +233,6 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
 
         {mode === 'edit' && (
           <div className='flex items-center gap-4'>
-            <Label htmlFor='campaign-status'>Status</Label>
             <FormController
               control={control}
               name='status'
@@ -471,6 +471,7 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
           availableProducts={productsList}
           fields={fieldsWithControl}
           isLoading={isCampaignLoading || isProductsLoading}
+          mode={mode}
           productRefs={productRefs}
           products={products}
           selectedProductIds={selectedProductIds}
