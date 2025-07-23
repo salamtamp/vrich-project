@@ -1,9 +1,9 @@
 export type TableColumn<T extends Record<string, unknown>> = {
   key: string;
   label: string;
+  width?: string | number; // Optional, can be percent string for proportional sizing
   render?: (row: T) => React.ReactNode;
   className?: string;
-  width?: string | number;
   align?: 'left' | 'center' | 'right';
   headerAlign?: 'left' | 'center' | 'right';
   bodyAlign?: 'left' | 'center' | 'right';

@@ -31,23 +31,27 @@ const orderColumns: TableColumn<Order>[] = [
     key: 'profile',
     label: 'Profile',
     align: 'center',
+    width: 200,
     render: (row) => (
-      <div className='flex items-center gap-2'>
-        <ImageWithFallback
-          alt={row.profile?.name ?? 'profile'}
-          className='border border-gray-200 bg-white object-cover'
-          size={32}
-          src={row.profile?.profile_picture_url}
-        />
-        <span>{row.profile?.name ?? '-'}</span>
+      <div className='flex max-w-full items-center justify-center gap-1 overflow-hidden'>
+        <div className='flex-1'>
+          <ImageWithFallback
+            alt={row.profile?.name ?? 'profile'}
+            className='border border-gray-200 bg-white object-cover'
+            size={32}
+            src={row.profile?.profile_picture_url}
+          />
+        </div>
+        <p className='truncate'>{row.profile?.name ?? '-'}</p>
       </div>
     ),
   },
-  { key: 'code', label: 'Order Code', bold: true },
+  { key: 'code', label: 'Order Code', bold: true, width: 140 },
   {
     key: 'status',
     label: 'Status',
     align: 'center',
+    width: 100,
     render: (row) => (
       <Badge className={STATUS_COLORS[row.status] || 'border-gray-200 bg-gray-100 text-gray-500'}>
         {row.status?.charAt(0)?.toUpperCase() + row.status?.slice(1)}
@@ -58,31 +62,36 @@ const orderColumns: TableColumn<Order>[] = [
     key: 'orders_products',
     label: 'Items',
     align: 'center',
+    width: 80,
     render: (row) => row.orders_products?.length ?? 0,
   },
   {
     key: 'purchase_date',
     label: 'Purchase Date',
     align: 'center',
+    width: 120,
     render: (row) => (row.purchase_date ? dayjs(row.purchase_date).format('YYYY-MM-DD') : '-'),
   },
   {
     key: 'shipping_date',
     label: 'Shipping Date',
     align: 'center',
+    width: 120,
     render: (row) => (row.shipping_date ? dayjs(row.shipping_date).format('YYYY-MM-DD') : '-'),
   },
   {
     key: 'delivery_date',
     label: 'Delivery Date',
     align: 'center',
+    width: 120,
     render: (row) => (row.delivery_date ? dayjs(row.delivery_date).format('YYYY-MM-DD') : '-'),
   },
-  { key: 'note', label: 'Note' },
+  { key: 'note', label: 'Note', width: 160 },
   {
     key: 'actions',
     label: 'Actions',
     align: 'center',
+    width: 80,
     render: (row) => (
       <div className='flex items-center justify-center gap-2'>
         <Button

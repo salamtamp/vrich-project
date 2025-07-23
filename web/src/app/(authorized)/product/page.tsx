@@ -80,29 +80,33 @@ const ProductPage = () => {
   };
 
   const columns: TableColumn<Product>[] = [
-    { key: 'code', label: 'Code', bold: true },
-    { key: 'name', label: 'Name' },
+    { key: 'code', label: 'Code', bold: true, width: 120 },
+    { key: 'name', label: 'Name', width: 180 },
     {
       key: 'quantity',
       label: 'Quantity',
       align: 'center',
+      width: 100,
       render: (row) => `${row.quantity} ${row.unit ?? ''}`.trim(),
     },
     {
       key: 'selling_price',
       label: 'Price',
       align: 'center',
+      width: 100,
       render: (row) => `${row.selling_price?.toFixed(2)}`,
     },
     {
       key: 'product_category',
       label: 'Category',
       align: 'center',
+      width: 140,
       render: (row) => row.product_category ?? '-',
     },
     {
       key: 'createdAt',
       label: 'Created',
+      width: 160,
       render: (row) => dayjs(row.created_at).format('YYYY-MM-DD HH:mm'),
       align: 'center',
     },
@@ -110,6 +114,7 @@ const ProductPage = () => {
       key: 'actions',
       label: 'Actions',
       align: 'center',
+      width: 100,
       render: (row) => (
         <div className='flex items-center justify-center gap-2'>
           <Button

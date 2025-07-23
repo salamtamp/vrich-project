@@ -14,6 +14,7 @@ type HeaderCellProps<T extends Record<string, unknown>> = {
   isSorted?: boolean;
   sortOrder?: 'asc' | 'desc';
   onSort?: (columnId: string) => void;
+  width?: string; // Add width prop
 };
 
 const HeaderCell = <T extends Record<string, unknown>>({
@@ -23,8 +24,10 @@ const HeaderCell = <T extends Record<string, unknown>>({
   isSorted,
   sortOrder,
   onSort,
+  width, // Accept width prop
 }: HeaderCellProps<T>) => {
-  const { key, label, sortable, className, width, align, headerAlign } = column;
+  const { key, label, sortable, className, headerAlign, align } = column;
+
   let sortIcon: React.ReactNode = null;
   if (sortable) {
     if (isSorted) {
@@ -33,16 +36,19 @@ const HeaderCell = <T extends Record<string, unknown>>({
       sortIcon = <ArrowUp className='size-4 opacity-20' />;
     }
   }
+
   let ariaSort: 'ascending' | 'descending' | 'none' = 'none';
   if (isSorted) {
     ariaSort = sortOrder === 'asc' ? 'ascending' : 'descending';
   }
+
   let roundedClass = '';
   if (index === 0) {
     roundedClass = 'rounded-tl-lg';
   } else if (index === lastIndex) {
     roundedClass = 'rounded-tr-lg';
   }
+
   return (
     <TableHead
       aria-sort={ariaSort}
@@ -51,13 +57,14 @@ const HeaderCell = <T extends Record<string, unknown>>({
         className,
         sortable && 'cursor-pointer select-none',
         roundedClass,
-        'bg-gray-200 hover:bg-gray-200'
+        'overflow-hidden bg-gray-200 hover:bg-gray-200'
       )}
-      style={
-        width
-          ? { maxWidth: width, minWidth: width, textAlign: headerAlign ?? align ?? 'left' }
-          : { textAlign: headerAlign ?? align ?? 'left' }
-      }
+      style={{
+        width: width ?? column.width,
+        minWidth: width ?? column.width,
+        maxWidth: width ?? column.width,
+        textAlign: headerAlign ?? align ?? 'left',
+      }}
       onClick={
         sortable && onSort
           ? () => {
@@ -67,7 +74,7 @@ const HeaderCell = <T extends Record<string, unknown>>({
       }
     >
       <span className='flex items-center gap-1'>
-        {label}
+        <span>{label}</span>
         {sortIcon}
       </span>
     </TableHead>

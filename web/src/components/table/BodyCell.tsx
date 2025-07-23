@@ -12,6 +12,7 @@ type BodyCellProps<T extends Record<string, unknown>> = {
   isLoading?: boolean;
   lastItem?: boolean;
   skeletonWidthPercent?: string;
+  width?: string; // Add width prop
 };
 
 function getNestedValue<T>(obj: T, path: string): unknown {
@@ -30,8 +31,10 @@ const BodyCell = <T extends Record<string, unknown>>({
   isLoading,
   lastItem,
   skeletonWidthPercent,
+  width, // Accept width prop
 }: BodyCellProps<T>) => {
-  const { render, key, className, width, align, bodyAlign, bold } = column;
+  const { render, key, className, bodyAlign, align, bold } = column;
+
   let content: React.ReactNode;
   if (render) {
     content = render(row);
@@ -45,19 +48,21 @@ const BodyCell = <T extends Record<string, unknown>>({
       content = '[object]';
     }
   }
+
   return (
     <TableCell
       className={twMerge(
-        'border-b border-gray-300',
+        'overflow-hidden border-b border-gray-300',
         className,
         bold && 'font-bold',
         lastItem && 'border-none'
       )}
-      style={
-        width
-          ? { maxWidth: width, minWidth: width, textAlign: bodyAlign ?? align ?? 'left' }
-          : { textAlign: bodyAlign ?? align ?? 'left' }
-      }
+      style={{
+        width: width ?? column.width,
+        minWidth: width ?? column.width,
+        maxWidth: width ?? column.width,
+        textAlign: bodyAlign ?? align ?? 'left',
+      }}
     >
       {isLoading ? (
         <div className='flex'>

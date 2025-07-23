@@ -62,7 +62,7 @@ const CampaignPage = () => {
                 void (async () => {
                   await handleDeleteRequest({ patchId: campaignId });
                   await handlePaginatedRequest();
-                  close(); // Close modal
+                  close();
                 })();
               }}
             >
@@ -83,10 +83,11 @@ const CampaignPage = () => {
   };
 
   const columns: TableColumn<TableRowType>[] = [
-    { key: 'name', label: 'Campaign', bold: true },
+    { key: 'name', label: 'Campaign', bold: true, width: 200 },
     {
       key: 'channels',
       label: 'Channels',
+      width: 140,
       render: (row) => (
         <span>
           {row.channels && row.channels.length > 0
@@ -106,6 +107,7 @@ const CampaignPage = () => {
     {
       key: 'keywords',
       label: 'Keywords',
+      width: 160,
       render: (row) => (
         <span>
           {row.campaigns_products && row.campaigns_products.length > 0
@@ -121,6 +123,7 @@ const CampaignPage = () => {
       key: 'status',
       label: 'Status',
       align: 'center',
+      width: 100,
       render: (row) => (
         <Badge
           variant={row.status === 'active' ? 'default' : 'secondary'}
@@ -137,18 +140,21 @@ const CampaignPage = () => {
     {
       key: 'start_date',
       label: 'Start Date',
+      width: 120,
       render: (row) => dayjs(row.start_date).format('YYYY-MM-DD'),
       align: 'center',
     },
     {
       key: 'end_date',
       label: 'End Date',
+      width: 120,
       render: (row) => dayjs(row.end_date).format('YYYY-MM-DD'),
       align: 'center',
     },
     {
       key: 'created_at',
       label: 'Created',
+      width: 160,
       render: (row) => dayjs(row.created_at).format('YYYY-MM-DD HH:mm'),
       align: 'center',
     },
@@ -156,6 +162,7 @@ const CampaignPage = () => {
       key: 'actions',
       label: 'Actions',
       align: 'center',
+      width: 120,
       render: (row) => (
         <div className='flex items-center justify-center gap-2'>
           <Button
