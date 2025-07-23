@@ -83,28 +83,28 @@ services:
   #     - database
   #     - queue
 
-  # facebook-comment-worker:
-  #   build:
-  #     context: ./facebook-comment-worker
-  #     dockerfile: Dockerfile
-  #   env_file:
-  #     - ./facebook-comment-worker/.env.docker
-  #   container_name: facebook-comment-worker
-  #   ports:
-  #     - "3004:3004"
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test:
-  #       ["CMD", "curl", "-f", "http://facebook-comment-worker:3004/healthcheck"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 5s
-  #   networks:
-  #     - local-network
-  #   depends_on:
-  #     - database
-  #     - queue
+  facebook-comment-worker:
+    build:
+      context: ./facebook-comment-worker
+      dockerfile: Dockerfile
+    env_file:
+      - ./facebook-comment-worker/.env.docker
+    container_name: facebook-comment-worker
+    ports:
+      - "3004:3004"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        ["CMD", "curl", "-f", "http://facebook-comment-worker:3004/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - local-network
+    depends_on:
+      - database
+      - queue
 
   # facebook-inbox-worker:
   #   build:

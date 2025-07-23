@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS orders (
     profile_id UUID NOT NULL,
     campaign_id UUID NOT NULL,
     status TEXT NOT NULL,
-    purchase_date TIMESTAMP NOT NULL,
+    purchase_date TIMESTAMP,
     shipping_date TIMESTAMP,
     delivery_date TIMESTAMP,
     note TEXT,

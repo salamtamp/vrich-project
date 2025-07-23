@@ -59,12 +59,11 @@ class QueueConsumer:
             """Callback function for processing messages."""
             try:
                 log_message("QueueConsumer", "debug", f"Processing message: {message.get('id', 'unknown')}")
-                success = self.facebook_comment_processor.process_facebook_comment(message)
+                error = self.facebook_comment_processor.process_facebook_comment(message)
 
-                if success:
-                    log_message("QueueConsumer", "debug", f"Message processed successfully: {message.get('id', 'unknown')}")
-                else:
-                    log_message("QueueConsumer", "error", f"Failed to process message: {message.get('id', 'unknown')}")
+                if error:
+                    log_message("QueueConsumer", "error", f"Failed to process message: {message.get('id', 'unknown')} with error: {error}")
+                    return
 
             except Exception as e:
                 log_message("QueueConsumer", "error", f"Error in message callback: {e}")

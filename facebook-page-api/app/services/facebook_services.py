@@ -1,7 +1,8 @@
-import logging
-import httpx
-from typing import Optional
 from app.utils.queue import Queue
+
+import httpx
+import json
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +101,8 @@ async def fetch_and_queue_comments_service(post_id: str, settings) -> bool:
                 }
 
                 comments.append(comment_data)
+
+            print("[comment] comments", json.dumps(comments, indent=4))
 
             if comments:
                 for comment in comments:

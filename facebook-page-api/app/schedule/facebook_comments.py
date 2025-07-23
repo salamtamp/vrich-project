@@ -1,4 +1,5 @@
 from app.core.config import get_settings
+from app.services.facebook_services import fetch_and_queue_comments_service
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -7,6 +8,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
+import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
@@ -155,9 +157,7 @@ class FacebookCommentsScheduler:
             logger.info(f"Starting scheduled comments fetch job for {len(post_ids)} posts")
             self.jobs_info["fetch_comments"]["last_run"] = datetime.now().isoformat()
 
-            from app.api.v1.endpoints.facebooks import fetch_and_queue_comments_service
 
-            import asyncio
 
             async def fetch_comments_async():
                 try:

@@ -1,13 +1,15 @@
-import logging
-from datetime import datetime
-from typing import Dict, List, Any, Optional, Union
+from app.core.config import get_settings
+from app.services.facebook_services import fetch_and_queue_posts_service
+from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from apscheduler.jobstores.memory import MemoryJobStore
-from apscheduler.executors.pool import ThreadPoolExecutor
+from datetime import datetime
+from typing import Dict, Any, Optional, Union
 
-from app.core.config import get_settings
+import asyncio
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -165,10 +167,6 @@ class FacebookPostsScheduler:
             page_id = self.jobs_info["fetch_posts"]["page_id"]
             logger.info(f"Starting scheduled post fetch job for page {page_id}")
             self.jobs_info["fetch_posts"]["last_run"] = datetime.now().isoformat()
-
-            from app.api.v1.endpoints.facebooks import fetch_and_queue_posts_service
-
-            import asyncio
 
             async def fetch_posts_async():
                 try:
