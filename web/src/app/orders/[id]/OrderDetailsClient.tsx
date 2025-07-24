@@ -240,12 +240,12 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
   };
 
   // Simulate 3rd-party upload
-  const mockUploadToThirdParty = async (file: File): Promise<string> => {
+  const mockUploadToThirdParty = async (_: File): Promise<string> => {
     // Simulate upload delay
     await new Promise((resolve) => setTimeout(resolve, 1200));
     // Return a fake URL (in real use, this would be the URL from the 3rd-party)
-    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    return `https://mock-cdn.example.com/payment-slips/${crypto.randomUUID()}.${ext}`;
+    // const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    return 'https://picsum.photos/200/300';
   };
 
   const handleUploadSlip = async () => {
