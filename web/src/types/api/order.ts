@@ -22,6 +22,16 @@ export const ORDER_STATUSES: OrderStatus[] = [
   'completed',
 ];
 
+export const ORDER_PROCESS_STATUSES: OrderStatus[] = [
+  'pending',
+  'confirmed',
+  'paid',
+  'approved',
+  'shipped',
+  'delivered',
+  'completed',
+];
+
 // Deprecated: Use FacebookProfileResponse instead for profile
 // export type OrderProfile = {
 //   id: string;

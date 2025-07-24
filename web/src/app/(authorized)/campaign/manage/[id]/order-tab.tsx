@@ -16,7 +16,7 @@ import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Order, OrderStatus } from '@/types/api/order';
-import { ORDER_STATUSES } from '@/types/api/order';
+import { ORDER_PROCESS_STATUSES } from '@/types/api/order';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'border-gray-200 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700',
@@ -68,9 +68,9 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
   };
 
   const getNextOrderStatus = (currentStatus: OrderStatus) => {
-    const idx = ORDER_STATUSES.indexOf(currentStatus);
-    if (idx !== -1 && idx < ORDER_STATUSES.length - 1) {
-      return ORDER_STATUSES[idx + 1];
+    const idx = ORDER_PROCESS_STATUSES.indexOf(currentStatus);
+    if (idx !== -1 && idx < ORDER_PROCESS_STATUSES.length - 1) {
+      return ORDER_PROCESS_STATUSES[idx + 1];
     }
     return undefined;
   };
@@ -205,7 +205,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       <div className='flex-1 overflow-scroll'>
         <Table
           bodyRowProps={{ className: 'bg-white hover:bg-gray-50' }}
-          checkboxDisabled={(row) => row.status === 'confirmed'}
+          checkboxDisabled={(row) => row.status === 'confirmed' || row.status === 'completed'}
           columns={orderColumns}
           data={orders}
           emptyStateComponent={<div>No orders found</div>}
