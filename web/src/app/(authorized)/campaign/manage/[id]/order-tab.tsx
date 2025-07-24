@@ -15,7 +15,8 @@ import useRequest from '@/hooks/request/useRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
-import type { Order } from '@/types/api/order';
+import type { Order, OrderStatus } from '@/types/api/order';
+import { ORDER_STATUSES } from '@/types/api/order';
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'border-gray-200 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700',
@@ -66,19 +67,37 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
     setSelectedOrderIds(checked ? allOrderIds : []);
   };
 
+  const getNextOrderStatus = (currentStatus: OrderStatus) => {
+    const idx = ORDER_STATUSES.indexOf(currentStatus);
+    if (idx !== -1 && idx < ORDER_STATUSES.length - 1) {
+      return ORDER_STATUSES[idx + 1];
+    }
+    return undefined;
+  };
+
   const handleApproveSelected = useMemo(
     () => async () => {
       if (selectedOrderIds.length === 0) {
         return;
       }
-      const idsToApprove = orders
-        .filter((order) => selectedOrderIds.includes(order.id) && order.status !== 'confirmed')
-        .map((order) => order.id);
-      try {
-        if (!!idsToApprove.length) {
-          await handleBatchStatusUpdate({ data: { ids: idsToApprove, status: 'confirmed' } });
-          setSelectedOrderIds([]);
+      const statusUpdates: Record<string, string[]> = {};
+      orders.forEach((order) => {
+        if (selectedOrderIds.includes(order.id)) {
+          const nextStatus = getNextOrderStatus(order.status);
+          if (nextStatus) {
+            if (!statusUpdates[nextStatus]) {
+              statusUpdates[nextStatus] = [];
+            }
+            statusUpdates[nextStatus].push(order.id);
+          }
         }
+      });
+      try {
+        const updatePromises = Object.entries(statusUpdates)
+          .filter(([, ids]) => ids.length)
+          .map(([status, ids]) => handleBatchStatusUpdate({ data: { ids, status } }));
+        await Promise.all(updatePromises);
+        setSelectedOrderIds([]);
       } catch {
         console.error('Failed to approve selected orders.');
       } finally {
@@ -186,6 +205,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       <div className='flex-1 overflow-scroll'>
         <Table
           bodyRowProps={{ className: 'bg-white hover:bg-gray-50' }}
+          checkboxDisabled={(row) => row.status === 'confirmed'}
           columns={orderColumns}
           data={orders}
           emptyStateComponent={<div>No orders found</div>}

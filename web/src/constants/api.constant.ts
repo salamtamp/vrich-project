@@ -16,4 +16,5 @@ export const API = {
   PRODUCTS: '/api/v1/products',
   CAMPAIGNS_PRODUCTS: '/api/v1/campaigns-products',
   ORDER: '/api/v1/orders',
+  PAYMENT: '/api/v1/payments',
 };

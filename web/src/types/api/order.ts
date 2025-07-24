@@ -43,12 +43,29 @@ export type OrderProduct = {
 
 export type Order = OrderResponse;
 
+export type Payment = {
+  id: string;
+  profile_id: string;
+  order_id: string;
+  payment_code: string;
+  payment_slip?: string | null;
+  payment_date?: string | null;
+  amount: number;
+  method: string;
+  status: string;
+  note?: string | null;
+  refund_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
+};
+
 export type OrderResponse = {
   id: string;
   code?: string;
   profile_id: string;
   campaign_id: string;
-  status: string;
+  status: OrderStatus;
   purchase_date?: string;
   shipping_date?: string;
   delivery_date?: string;
@@ -58,4 +75,5 @@ export type OrderResponse = {
   deleted_at?: string;
   profile?: FacebookProfile;
   orders_products: OrderProduct[];
+  payments: Payment[];
 };

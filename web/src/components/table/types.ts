@@ -28,4 +28,6 @@ export type TableProps<T extends Record<string, unknown>> = {
   rowIdKey?: string; // default: 'id'
   // Bulk approve
   onApproveSelected?: () => void;
+  // Per-row checkbox disabled
+  checkboxDisabled?: (row: T) => boolean;
 };

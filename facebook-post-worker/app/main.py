@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 
 settings = get_settings()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global queue_consumer
@@ -46,6 +47,7 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
+
 @app.get("/")
 def root_health_check():
     return JSONResponse(
@@ -54,6 +56,7 @@ def root_health_check():
         },
         status_code=200,
     )
+
 
 @app.get("/healthcheck")
 def health_check():
@@ -64,18 +67,28 @@ def health_check():
         status_code=200,
     )
 
+
 @app.post("/queue/start")
 def start_queue_consumer():
     global queue_consumer
     if queue_consumer and not queue_consumer.is_running:
         queue_consumer.start()
-        return JSONResponse(content={"message": "Queue consumer started"}, status_code=200)
-    return JSONResponse(content={"message": "Queue consumer already running"}, status_code=400)
+        return JSONResponse(
+            content={"message": "Queue consumer started"}, status_code=200
+        )
+    return JSONResponse(
+        content={"message": "Queue consumer already running"}, status_code=400
+    )
+
 
 @app.post("/queue/stop")
 def stop_queue_consumer():
     global queue_consumer
     if queue_consumer and queue_consumer.is_running:
         queue_consumer.stop()
-        return JSONResponse(content={"message": "Queue consumer stopped"}, status_code=200)
-    return JSONResponse(content={"message": "Queue consumer not running"}, status_code=400)
+        return JSONResponse(
+            content={"message": "Queue consumer stopped"}, status_code=200
+        )
+    return JSONResponse(
+        content={"message": "Queue consumer not running"}, status_code=400
+    )

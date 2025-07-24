@@ -39,6 +39,7 @@ def list_orders(
         joinedload(OrderModel.orders_products)
         .joinedload(OrderProduct.campaign_product)
         .joinedload(CampaignProduct.product),
+        joinedload(OrderModel.payments),  # Add this line to join payments
     )
     builder = builder.filter_deleted()
     builder = builder.date_range(pagination.since, pagination.until)
@@ -76,6 +77,7 @@ def get_order(
             joinedload(OrderModel.orders_products)
             .joinedload(OrderProduct.campaign_product)
             .joinedload(CampaignProduct.product),
+            joinedload(OrderModel.payments),  # Add this line to join payments
         )
         .filter(OrderModel.id == order_id)
         .first()

@@ -38,6 +38,7 @@ const Table = <T extends Record<string, unknown>>({
   onSelectAll,
   rowIdKey = 'id',
   onApproveSelected,
+  checkboxDisabled,
 }: TableProps<T> & {
   onClickRow?: (e: React.MouseEvent<HTMLTableRowElement>, row: T) => void;
   bodyRowProps?: React.HTMLAttributes<HTMLTableRowElement>;
@@ -49,6 +50,7 @@ const Table = <T extends Record<string, unknown>>({
   onSelectAll?: (checked: boolean) => void;
   rowIdKey?: string;
   onApproveSelected?: () => void;
+  checkboxDisabled?: (row: T) => boolean;
 }) => {
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLTableElement | null>(null);
@@ -254,7 +256,7 @@ const Table = <T extends Record<string, unknown>>({
             variant='outline'
             onClick={onApproveSelected}
           >
-            Approve
+            Next Process
           </Button>
         </div>
       ) : null}
@@ -305,15 +307,20 @@ const Table = <T extends Record<string, unknown>>({
                           maxWidth: columnWidths[0],
                         }}
                       >
-                        <Checkbox
-                          aria-label='Select row'
-                          checked={selectedRowIds.includes(String(row[rowIdKey]))}
-                          onCheckedChange={(checked) => {
-                            if (onSelectRow) {
-                              onSelectRow(String(row[rowIdKey]), !!checked);
-                            }
-                          }}
-                        />
+                        {!checkboxDisabled?.(row) ? (
+                          <Checkbox
+                            aria-label='Select row'
+                            checked={selectedRowIds.includes(String(row[rowIdKey]))}
+                            disabled={checkboxDisabled ? checkboxDisabled(row) : false}
+                            onCheckedChange={(checked) => {
+                              if (onSelectRow) {
+                                onSelectRow(String(row[rowIdKey]), !!checked);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <></>
+                        )}
                       </td>
                     );
                   }

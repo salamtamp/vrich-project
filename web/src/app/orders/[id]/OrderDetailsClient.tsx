@@ -27,19 +27,7 @@ import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
 import { cn } from '@/lib/utils';
-import type { Order } from '@/types/api/order';
-
-// Add Payment type for mock
-type Payment = {
-  id: string;
-  payment_slip: string | null;
-  payment_code: string;
-  amount: number;
-  method: string;
-  status: string;
-  order_id: string;
-  profile_id: string;
-};
+import type { Order, Payment } from '@/types/api/order';
 
 const STATUS_CONFIG = {
   pending: {
@@ -126,7 +114,11 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isSavingContact, setIsSavingContact] = useState(false);
   // Remove taxRate state
-  const [mockPayments, setMockPayments] = useState<Payment[]>([]);
+  // Initialize mockPayments with order.payments if available
+  const [mockPayments, setMockPayments] = useState<Payment[]>(() => {
+    // Try to get from SSR/initial order if available
+    return [];
+  });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [fileInput, setFileInput] = useState<File | null>(null);
@@ -140,6 +132,15 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
   } = useRequest<Order>({
     request: { url: `${API.ORDER}/${id}`, method: 'GET' },
     defaultLoading: true,
+  });
+
+  // Add a useRequest for updating order status
+  const { handleRequest: updateOrderStatus } = useRequest<Order>({
+    request: {
+      url: `${API.ORDER}/${id}`,
+      method: 'PUT',
+    },
+    defaultLoading: false,
   });
 
   useEffect(() => {
@@ -278,6 +279,8 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+      await updateOrderStatus({ data: { status: 'paid' } });
+      void handleRequest();
     } catch (err) {
       setUploadError((err as { message?: string })?.message ?? 'Upload failed');
     } finally {
@@ -893,32 +896,19 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
           <CardContent>
             {paymentSlipUrl ? (
               <div className='mb-4'>
-                <p className='mb-2 text-sm font-medium text-gray-700'>Current Payment Slip:</p>
-                {/* Show image or link depending on file type */}
-                {paymentSlipUrl.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                  <Image
-                    alt='Payment Slip'
-                    className='max-h-64 rounded-lg border border-gray-200 shadow-sm'
-                    height={240}
-                    src={paymentSlipUrl}
-                    width={320}
-                  />
-                ) : (
-                  <a
-                    className='text-blue-600 underline'
-                    href={paymentSlipUrl}
-                    rel='noopener noreferrer'
-                    target='_blank'
-                  >
-                    Download Payment Slip
-                  </a>
-                )}
+                <Image
+                  alt='Payment Slip'
+                  className='max-h-64 rounded-lg border border-gray-200 shadow-sm'
+                  height={240}
+                  src={paymentSlipUrl}
+                  width={320}
+                />
               </div>
             ) : (
               <p className='mb-4 text-sm text-gray-500'>No payment slip uploaded yet.</p>
             )}
             {/* Only allow upload if not admin */}
-            {!isAdmin && (
+            {!isAdmin && !paymentSlipUrl && (
               <div className='flex flex-col gap-2 md:flex-row md:items-center'>
                 <input
                   ref={fileInputRef}
