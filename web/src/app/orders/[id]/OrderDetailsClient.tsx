@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
+import { LogoSmallIcon } from '@public/assets/icon';
 import {
   Building2,
   Calendar,
@@ -74,13 +75,14 @@ const STATUS_CONFIG = {
     p: 'Completed',
     description: 'Order completed successfully',
   },
-};
+} as const;
 
-const formatDate = (date: string, includeTime = false) => {
+type StatusKey = keyof typeof STATUS_CONFIG;
+
+const formatDate = (date?: string, includeTime = false) => {
   if (!date) {
     return 'Not set';
   }
-
   return dayjs(date).format(includeTime ? 'MMMM D, YYYY [at] h:mm A' : 'MMMM D, YYYY');
 };
 
@@ -90,6 +92,9 @@ const formatCurrency = (amount: number) => {
     currency: 'USD',
   }).format(amount);
 };
+
+// Add a constant for tax rate
+const TAX_RATE = 0; // Set your default tax rate here (e.g., 0, 7, 8, etc.)
 
 const OrderDetailsClient = ({ id }: { id: string }) => {
   const [contactForm, setContactForm] = useState({
@@ -106,6 +111,7 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
 
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isSavingContact, setIsSavingContact] = useState(false);
+  // Remove taxRate state
 
   const {
     data: order,
@@ -152,7 +158,7 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
     try {
       // Add your API call to save contact here
       // await updateProfileContact(order.profile.id, contactForm);
-      console.log('Saving contact:', contactForm);
+      console.info('Saving contact:', contactForm);
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -223,7 +229,7 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
     shipping_date,
     delivery_date,
   } = order;
-  const statusConfig = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
+  const statusConfig = STATUS_CONFIG[status as StatusKey] ?? STATUS_CONFIG.pending;
   const StatusIcon = statusConfig.icon;
 
   // Calculations
@@ -237,7 +243,7 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
     const fee = op.campaign_product?.product?.shipping_fee ?? 0;
     return sum + fee * (op.quantity || 1);
   }, 0);
-  const tax = subtotal * 0.08; // 8% tax rate
+  const tax = subtotal * (TAX_RATE / 100);
   const grandTotal = subtotal + totalShipping + tax;
 
   return (
@@ -247,11 +253,12 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
         <div className='mx-auto max-w-4xl px-6 py-4'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center space-x-4'>
-              <div className='flex size-10 items-center justify-center rounded-lg bg-blue-600'>
-                <Receipt className='size-6 text-white' />
+              <div className='flex size-10 items-center justify-center rounded-lg bg-gray-300'>
+                {/* <Receipt className='size-6 text-white' /> */}
+                <LogoSmallIcon className='size-6' />
               </div>
               <div>
-                <h1 className='text-2xl font-bold text-gray-900'>Invoice</h1>
+                <h1 className='text-2xl font-bold text-gray-900'>Payment Information</h1>
                 <p className='text-sm text-gray-500'>Order #{code}</p>
               </div>
             </div>
@@ -279,8 +286,10 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
           </div>
         </div>
 
+        {/* Remove Tax Rate Input */}
+
         {/* AIRCommerce Payment Information - FIRST */}
-        <Card className='mb-8 border-0 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg backdrop-blur-sm'>
+        <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
           <CardHeader className='pb-4'>
             <CardTitle className='flex items-center text-xl text-gray-900'>
               <Building2 className='mr-2 size-5 text-green-600' />
@@ -298,16 +307,16 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
                   <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                     <div>
                       <p className='text-sm font-medium text-gray-700'>Bank:</p>
-                      <p className='text-lg font-bold text-green-700'>GSB (Government Savings Bank)</p>
+                      <p className='text-lg font-bold text-green-700'>TDB (Test Development Bank)</p>
                     </div>
                     <div>
                       <p className='text-sm font-medium text-gray-700'>Account Number:</p>
-                      <p className='font-mono text-lg font-bold text-green-700'>020-2-21873-613</p>
+                      <p className='font-mono text-lg font-bold text-green-700'>123-4-56789-123</p>
                     </div>
                   </div>
                   <div className='mt-3'>
                     <p className='text-sm font-medium text-gray-700'>Account Name:</p>
-                    <p className='text-lg font-bold text-green-700'>Mr. Narongphon Chaengsuwan</p>
+                    <p className='text-lg font-bold text-green-700'>Mr. FirstName LastName</p>
                   </div>
                 </div>
                 <div className='rounded-lg bg-blue-50 p-4'>
@@ -387,9 +396,9 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
         </Card>
 
         {/* Order Summary - THIRD */}
-        <Card className='mb-8 border-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg'>
+        <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
           <CardHeader className='pb-4'>
-            <CardTitle className='flex items-center text-xl'>
+            <CardTitle className='flex items-center text-xl text-gray-900'>
               <Receipt className='mr-2 size-5' />
               Order Summary
             </CardTitle>
@@ -397,30 +406,30 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
           <CardContent className='space-y-4'>
             <div className='space-y-3'>
               <div className='flex justify-between'>
-                <span className='text-blue-100'>Subtotal:</span>
-                <span className='font-semibold'>{formatCurrency(subtotal)}</span>
+                <span className='text-gray-700'>Subtotal:</span>
+                <span className='font-semibold text-gray-900'>{formatCurrency(subtotal)}</span>
               </div>
               <div className='flex justify-between'>
-                <span className='text-blue-100'>Shipping:</span>
-                <span className='font-semibold'>{formatCurrency(totalShipping)}</span>
+                <span className='text-gray-700'>Shipping:</span>
+                <span className='font-semibold text-gray-900'>{formatCurrency(totalShipping)}</span>
               </div>
               <div className='flex justify-between'>
-                <span className='text-blue-100'>Tax (8%):</span>
-                <span className='font-semibold'>{formatCurrency(tax)}</span>
+                <span className='text-gray-700'>Tax ({TAX_RATE}%):</span>
+                <span className='font-semibold text-gray-900'>{formatCurrency(tax)}</span>
               </div>
-              <hr className='border-blue-400' />
+              <hr className='border-gray-300' />
               <div className='flex justify-between text-lg'>
-                <span className='font-bold'>Grand Total:</span>
-                <span className='font-bold'>{formatCurrency(grandTotal)}</span>
+                <span className='font-bold text-gray-900'>Grand Total:</span>
+                <span className='font-bold text-gray-900'>{formatCurrency(grandTotal)}</span>
               </div>
             </div>
-            <div className='space-y-2 border-t border-blue-400 pt-4 text-sm'>
+            <div className='space-y-2 border-t border-gray-300 pt-4 text-sm'>
               <div className='flex justify-between'>
-                <span className='text-blue-100'>Total Items:</span>
+                <span className='text-gray-700'>Total Items:</span>
                 <span>{totalItems}</span>
               </div>
               <div className='flex justify-between'>
-                <span className='text-blue-100'>Total Quantity:</span>
+                <span className='text-gray-700'>Total Quantity:</span>
                 <span>{totalQuantity}</span>
               </div>
             </div>
@@ -448,7 +457,7 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders_products.map((op, idx) => {
+                  {orders_products.map((op) => {
                     const product = op.campaign_product?.product;
                     if (!product) {
                       return null;
@@ -521,7 +530,10 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
                     className='flex items-center gap-2'
                     disabled={isSavingContact}
                     size='sm'
-                    onClick={handleSaveContact}
+                    variant='outline'
+                    onClick={() => {
+                      void handleSaveContact();
+                    }}
                   >
                     <Save className='size-4' />
                     {isSavingContact ? 'Saving...' : 'Save'}
@@ -716,21 +728,27 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
                   { date: delivery_date, p: 'Delivery Date', icon: MapPin, color: 'text-green-600' },
                 ]
                   .filter((item) => item.date)
-                  .map((item, index) => {
+                  .map((item) => {
                     const Icon = item.icon;
+                    const { color } = item;
+                    const { p } = item;
+                    const { date } = item;
                     return (
                       <div
-                        key={index}
+                        key={crypto.randomUUID()}
                         className='flex items-center space-x-4 rounded-lg bg-gray-50 p-3'
                       >
                         <div
-                          className={`flex size-10 items-center justify-center rounded-full bg-white ${item.color}`}
+                          className={[
+                            'flex size-10 items-center justify-center rounded-full bg-white',
+                            color,
+                          ].join(' ')}
                         >
                           <Icon className='size-5' />
                         </div>
                         <div>
-                          <p className='font-medium text-gray-900'>{item.p}</p>
-                          <p className='text-sm text-gray-600'>{formatDate(item.date, true)}</p>
+                          <p className='font-medium text-gray-900'>{p}</p>
+                          <p className='text-sm text-gray-600'>{formatDate(date, true)}</p>
                         </div>
                       </div>
                     );

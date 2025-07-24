@@ -71,11 +71,11 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
         return;
       }
       const idsToApprove = orders
-        .filter((order) => selectedOrderIds.includes(order.id) && order.status !== 'approved')
+        .filter((order) => selectedOrderIds.includes(order.id) && order.status !== 'confirmed')
         .map((order) => order.id);
       try {
         if (!!idsToApprove.length) {
-          await handleBatchStatusUpdate({ data: { ids: idsToApprove, status: 'approved' } });
+          await handleBatchStatusUpdate({ data: { ids: idsToApprove, status: 'confirmed' } });
           setSelectedOrderIds([]);
         }
       } catch {
