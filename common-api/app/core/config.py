@@ -65,6 +65,11 @@ class Settings(BaseSettings):
         "FACEBOOK_SCHEDULER_BASE_URL", "http://localhost:3002"
     )
 
+    # Web Base URL
+    WEB_BASE_URL: str = os.getenv(
+        "WEB_BASE_URL", "http://localhost:3000"
+    )
+
     @property
     def allowed_hosts(self) -> list[str]:
         return [host.strip() for host in self.ALLOWED_HOSTS_RAW.split(",")]

@@ -22,6 +22,7 @@ from app.schemas.orders import (
     OrderCreate,
     OrderUpdate,
 )
+from app.services import facebook_scheduler
 
 router = APIRouter()
 
@@ -117,13 +118,26 @@ def batch_update_order_status(
     for order_id in request.ids:
         db_obj = db.query(OrderModel).filter(OrderModel.id == order_id).first()
         if db_obj:
+            prev_status = db_obj.status
             db_obj.status = request.status
             db.add(db_obj)
-            updated_orders.append(db_obj)
+            updated_orders.append((db_obj, prev_status))
     db.commit()
-    for order in updated_orders:
+    result_orders = []
+    for order, prev_status in updated_orders:
         db.refresh(order)
-    return updated_orders
+
+        if (
+            order.status == "confirmed"
+            and prev_status != "confirmed"
+            and order.profile
+            and getattr(order.profile, "facebook_id", None)
+        ):
+            facebook_scheduler.send_template_message(
+                order.profile.facebook_id, str(order.id)
+            )
+        result_orders.append(order)
+    return result_orders
 
 
 @router.put("/{order_id}", response_model=Order)
@@ -133,7 +147,19 @@ def update_order(
     db_obj = db.query(OrderModel).filter(OrderModel.id == order_id).first()
     if not db_obj:
         raise HTTPException(status_code=404, detail="Order not found")
-    return order_repo.update(db, db_obj=db_obj, obj_in=order_in)
+    prev_status = db_obj.status
+    updated_order = order_repo.update(db, db_obj=db_obj, obj_in=order_in)
+    # Send template message if status changed to confirmed
+    if (
+        order_in.status == "confirmed"
+        and prev_status != "confirmed"
+        and updated_order.profile
+        and getattr(updated_order.profile, "facebook_id", None)
+    ):
+        facebook_scheduler.send_template_message(
+            updated_order.profile.facebook_id, str(updated_order.id)
+        )
+    return updated_order
 
 
 @router.delete("/{order_id}", response_model=Order)
