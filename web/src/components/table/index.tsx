@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useRef } from 'react';
 
 import { twMerge } from 'tailwind-merge';
 
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table as ShadcnTable, TableBody, TableHeader, TableRow } from '@/components/ui/table';
 
 import BodyCell from './BodyCell';
@@ -31,28 +33,46 @@ const Table = <T extends Record<string, unknown>>({
   sortBy,
   sortOrder,
   onSort,
+  selectedRowIds = [],
+  onSelectRow,
+  onSelectAll,
+  rowIdKey = 'id',
+  onApproveSelected,
 }: TableProps<T> & {
   onClickRow?: (e: React.MouseEvent<HTMLTableRowElement>, row: T) => void;
   bodyRowProps?: React.HTMLAttributes<HTMLTableRowElement>;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   onSort?: (columnId: string) => void;
+  selectedRowIds?: string[];
+  onSelectRow?: (rowId: string, checked: boolean) => void;
+  onSelectAll?: (checked: boolean) => void;
+  rowIdKey?: string;
+  onApproveSelected?: () => void;
 }) => {
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLTableElement | null>(null);
   const bodyRef = useRef<HTMLTableElement | null>(null);
 
+  // Calculate columns with selection column if needed
+  const displayColumns = useMemo(() => {
+    if (onSelectRow) {
+      return [{ key: '__select__', label: '', width: 48 } as TableColumn<T>, ...columns];
+    }
+    return columns;
+  }, [columns, onSelectRow]);
+
   // Calculate column widths
   const columnWidths = useMemo(() => {
-    const totalColumns = columns.length;
-    return columns.map((column) => {
+    const totalColumns = displayColumns.length;
+    return displayColumns.map((column) => {
       if (typeof column.width === 'number') {
         return `${column.width * 0.8}px`;
       }
       // If no width specified, distribute equally
       return `${100 / totalColumns}%`;
     });
-  }, [columns]);
+  }, [displayColumns]);
 
   useEffect(() => {
     if (tableContainerRef.current) {
@@ -99,26 +119,50 @@ const Table = <T extends Record<string, unknown>>({
     }
   };
 
+  const isAllSelected = useMemo(() => {
+    if (!onSelectAll) {
+      return false;
+    }
+    return data.length > 0 && selectedRowIds.length === data.length;
+  }, [data.length, selectedRowIds.length, onSelectAll]);
+
   const tableHeader = useMemo(
     () => (
       <TableHeader>
         <TableRow>
-          {columns.map((column, cIndex) => (
-            <HeaderCell<T>
-              key={column.key}
-              column={column}
-              index={cIndex}
-              isSorted={sortBy === column.key}
-              lastIndex={columns.length - 1}
-              sortOrder={sortOrder}
-              width={columnWidths[cIndex]}
-              onSort={column.sortable ? onSort : undefined}
-            />
-          ))}
+          {displayColumns.map((column, cIndex) => {
+            if (column.key === '__select__') {
+              return (
+                <th
+                  key='__select__'
+                  className='overflow-hidden rounded-tl-md bg-gray-200 py-2'
+                  style={{ width: columnWidths[0], minWidth: columnWidths[0], maxWidth: columnWidths[0] }}
+                >
+                  <Checkbox
+                    aria-label='Select all'
+                    checked={isAllSelected}
+                    onCheckedChange={(checked) => onSelectAll?.(!!checked)}
+                  />
+                </th>
+              );
+            }
+            return (
+              <HeaderCell<T>
+                key={column.key}
+                column={column}
+                index={cIndex}
+                isSorted={sortBy === column.key}
+                lastIndex={displayColumns.length - 1}
+                sortOrder={sortOrder}
+                width={columnWidths[cIndex]}
+                onSort={column.sortable ? onSort : undefined}
+              />
+            );
+          })}
         </TableRow>
       </TableHeader>
     ),
-    [columns, sortBy, sortOrder, onSort, columnWidths]
+    [displayColumns, sortBy, sortOrder, onSort, columnWidths, isAllSelected, onSelectAll]
   );
 
   if (isLoading) {
@@ -150,21 +194,42 @@ const Table = <T extends Record<string, unknown>>({
                 .fill(null)
                 .map((_, rIndex) => (
                   <TableRow key={crypto.randomUUID()}>
-                    {columns.map((column, cIndex) => (
-                      <BodyCell
-                        key={crypto.randomUUID()}
-                        isLoading
-                        column={column}
-                        lastItem={rIndex === LOADING_ROWS_COUNT - 1}
-                        row={{} as T}
-                        width={columnWidths[cIndex]}
-                        skeletonWidthPercent={
-                          SKELETON_WIDTH_PATTERNS[rIndex % SKELETON_WIDTH_PATTERNS.length][
-                            cIndex % SKELETON_WIDTH_PATTERNS[0].length
-                          ] ?? '80%'
-                        }
-                      />
-                    ))}
+                    {displayColumns.map((column, cIndex) => {
+                      if (column.key === '__select__') {
+                        return (
+                          <td
+                            key={`__select__-skeleton-${crypto.randomUUID()}`}
+                            className='item overflow-hidden border-b border-gray-300 px-3'
+                            style={{
+                              width: columnWidths[0],
+                              minWidth: columnWidths[0],
+                              maxWidth: columnWidths[0],
+                            }}
+                          >
+                            <Checkbox
+                              disabled
+                              aria-label='Select row'
+                              checked={false}
+                            />
+                          </td>
+                        );
+                      }
+                      return (
+                        <BodyCell
+                          key={crypto.randomUUID()}
+                          isLoading
+                          column={column}
+                          lastItem={rIndex === LOADING_ROWS_COUNT - 1}
+                          row={{} as T}
+                          width={columnWidths[cIndex]}
+                          skeletonWidthPercent={
+                            SKELETON_WIDTH_PATTERNS[rIndex % SKELETON_WIDTH_PATTERNS.length][
+                              cIndex % SKELETON_WIDTH_PATTERNS[0].length
+                            ] ?? '80%'
+                          }
+                        />
+                      );
+                    })}
                   </TableRow>
                 ))}
             </TableBody>
@@ -182,6 +247,18 @@ const Table = <T extends Record<string, unknown>>({
 
   return (
     <div className='flex w-full flex-1 flex-col overflow-hidden rounded-md'>
+      {/* Approve Button */}
+      {onApproveSelected ? (
+        <div className='mb-2 flex justify-end'>
+          <Button
+            disabled={selectedRowIds.length === 0}
+            variant='outline'
+            onClick={onApproveSelected}
+          >
+            Approve
+          </Button>
+        </div>
+      ) : null}
       {/* Fixed Header */}
       <div className='border-b bg-white shadow-sm'>
         <ShadcnTable
@@ -192,7 +269,6 @@ const Table = <T extends Record<string, unknown>>({
           {tableHeader}
         </ShadcnTable>
       </div>
-
       {/* Scrollable Body */}
       <div
         ref={tableContainerRef}
@@ -218,15 +294,40 @@ const Table = <T extends Record<string, unknown>>({
                     : undefined
                 }
               >
-                {columns.map((column, cIndex) => (
-                  <BodyCell
-                    key={crypto.randomUUID()}
-                    column={column}
-                    lastItem={rowIdx === data.length - 1}
-                    row={row}
-                    width={columnWidths[cIndex]}
-                  />
-                ))}
+                {displayColumns.map((column, cIndex) => {
+                  if (column.key === '__select__') {
+                    return (
+                      <td
+                        key={String(row[rowIdKey])}
+                        className='overflow-hidden border-b border-gray-300 px-4'
+                        style={{
+                          width: columnWidths[0],
+                          minWidth: columnWidths[0],
+                          maxWidth: columnWidths[0],
+                        }}
+                      >
+                        <Checkbox
+                          aria-label='Select row'
+                          checked={selectedRowIds.includes(String(row[rowIdKey]))}
+                          onCheckedChange={(checked) => {
+                            if (onSelectRow) {
+                              onSelectRow(String(row[rowIdKey]), !!checked);
+                            }
+                          }}
+                        />
+                      </td>
+                    );
+                  }
+                  return (
+                    <BodyCell
+                      key={crypto.randomUUID()}
+                      column={column}
+                      lastItem={rowIdx === data.length - 1}
+                      row={row}
+                      width={columnWidths[cIndex]}
+                    />
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>

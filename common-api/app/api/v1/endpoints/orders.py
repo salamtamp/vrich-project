@@ -15,7 +15,12 @@ from app.db.models.orders_products import OrderProduct
 from app.db.repositories.orders.repo import order_repo
 from app.db.repositories.orders_products.repo import order_product_repo
 from app.db.session import get_db
-from app.schemas.orders import Order, OrderCreate, OrderUpdate
+from app.schemas.orders import (
+    BatchOrderStatusUpdateRequest,
+    Order,
+    OrderCreate,
+    OrderUpdate,
+)
 
 router = APIRouter()
 
@@ -66,16 +71,32 @@ def get_order(
 
 @router.post("/", response_model=Order, status_code=status.HTTP_201_CREATED)
 def create_order(*, db: Session = Depends(get_db), order_in: OrderCreate) -> Order:
-    # Create the order first (without products)
     order_products_data = order_in.orders_products
     order_data = order_in.model_copy(update={"orders_products": []})
     order = order_repo.create(db, obj_in=order_data)
-    # Create related OrderProduct records
     for op in order_products_data:
         op_data = op.model_copy(update={"order_id": order.id})
         order_product_repo.create(db, obj_in=op_data)
     db.refresh(order)
     return order
+
+
+@router.put("/batch-update-status", response_model=list[Order])
+def batch_update_order_status(
+    request: BatchOrderStatusUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    updated_orders = []
+    for order_id in request.ids:
+        db_obj = db.query(OrderModel).filter(OrderModel.id == order_id).first()
+        if db_obj:
+            db_obj.status = request.status
+            db.add(db_obj)
+            updated_orders.append(db_obj)
+    db.commit()
+    for order in updated_orders:
+        db.refresh(order)
+    return updated_orders
 
 
 @router.put("/{order_id}", response_model=Order)

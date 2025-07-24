@@ -58,3 +58,8 @@ class OrderResponse(OrderBase):
 
 class Order(OrderResponse):
     pass
+
+
+class BatchOrderStatusUpdateRequest(BaseModel):
+    ids: list[UUID]
+    status: OrderStatus

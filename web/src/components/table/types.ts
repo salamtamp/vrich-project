@@ -21,4 +21,11 @@ export type TableProps<T extends Record<string, unknown>> = {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   onSort?: (columnId: string) => void;
+  // Selection features
+  selectedRowIds?: string[];
+  onSelectRow?: (rowId: string, checked: boolean) => void;
+  onSelectAll?: (checked: boolean) => void;
+  rowIdKey?: string; // default: 'id'
+  // Bulk approve
+  onApproveSelected?: () => void;
 };

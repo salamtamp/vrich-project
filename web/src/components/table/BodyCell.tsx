@@ -67,7 +67,7 @@ const BodyCell = <T extends Record<string, unknown>>({
       {isLoading ? (
         <div className='flex'>
           <div
-            className='inline-block h-4 animate-pulse rounded-lg bg-muted'
+            className='bg-loading-container h-4 rounded-lg bg-muted'
             style={{ width: skeletonWidthPercent ?? '80%' }}
           />
         </div>

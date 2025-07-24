@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Eye } from 'lucide-react';
 
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
-import { ImageWithFallback } from '@/hooks/useImageFallback';
+import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Order } from '@/types/api/order';
@@ -26,25 +26,15 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-900',
 };
 
+const getOrderRowId = (row: Order) => String(row.id);
+
 const orderColumns: TableColumn<Order>[] = [
   {
     key: 'profile',
     label: 'Profile',
-    align: 'center',
+    align: 'left',
     width: 200,
-    render: (row) => (
-      <div className='flex max-w-full items-center justify-center gap-1 overflow-hidden'>
-        <div className='flex-1'>
-          <ImageWithFallback
-            alt={row.profile?.name ?? 'profile'}
-            className='border border-gray-200 bg-white object-cover'
-            size={32}
-            src={row.profile?.profile_picture_url}
-          />
-        </div>
-        <p className='truncate'>{row.profile?.name ?? '-'}</p>
-      </div>
-    ),
+    render: (row) => <p className='truncate'>{row.profile?.name ?? '-'}</p>,
   },
   { key: 'code', label: 'Order Code', bold: true, width: 140 },
   {
@@ -122,7 +112,11 @@ const orderColumns: TableColumn<Order>[] = [
 type OrderTabProps = { campaignId: string };
 
 const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
-  const { data: orderData, isLoading: orderLoading } = usePaginatedRequest<PaginationResponse<Order>>({
+  const {
+    data: orderData,
+    isLoading: orderLoading,
+    handleRequest: handleOrderRequest,
+  } = usePaginatedRequest<PaginationResponse<Order>>({
     url: API.ORDER,
     orderBy: 'created_at',
     defaultStartDate: dayjs().subtract(50, 'years'),
@@ -130,18 +124,66 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
     requireFields: ['campaign_id'],
   });
 
+  const { handleRequest: handleBatchStatusUpdate, isLoading: isBatchUpdating } = useRequest({
+    request: {
+      url: `${API.ORDER}/batch-update-status`,
+      method: 'PUT',
+    },
+  });
+
+  // Selection state
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+  const orders = useMemo(() => orderData?.docs ?? [], [orderData]);
+  const allOrderIds = useMemo(() => orders.map((row) => getOrderRowId(row)), [orders]);
+
+  const handleSelectRow = (rowId: string, checked: boolean) => {
+    setSelectedOrderIds((prev) => (checked ? [...prev, rowId] : prev.filter((id) => id !== rowId)));
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedOrderIds(checked ? allOrderIds : []);
+  };
+
+  const handleApproveSelected = useMemo(
+    () => async () => {
+      if (selectedOrderIds.length === 0) {
+        return;
+      }
+      const idsToApprove = orders
+        .filter((order) => selectedOrderIds.includes(order.id) && order.status !== 'approved')
+        .map((order) => order.id);
+      try {
+        if (!!idsToApprove.length) {
+          await handleBatchStatusUpdate({ data: { ids: idsToApprove, status: 'approved' } });
+          setSelectedOrderIds([]);
+        }
+      } catch {
+        console.error('Failed to approve selected orders.');
+      } finally {
+        void handleOrderRequest();
+      }
+    },
+    [handleBatchStatusUpdate, handleOrderRequest, selectedOrderIds, orders]
+  );
+
   return (
     <div className='flex w-full flex-col gap-1 overflow-hidden'>
       <div className='flex-1 overflow-scroll'>
         <Table
           bodyRowProps={{ className: 'bg-white hover:bg-gray-50' }}
           columns={orderColumns}
-          data={orderData?.docs ?? []}
+          data={orders}
           emptyStateComponent={<div>No orders found</div>}
-          isLoading={orderLoading}
+          isLoading={orderLoading || isBatchUpdating}
+          rowIdKey='id'
+          selectedRowIds={selectedOrderIds}
+          onSelectAll={handleSelectAll}
+          onSelectRow={handleSelectRow}
+          onApproveSelected={() => {
+            void handleApproveSelected();
+          }}
         />
       </div>
-
       <ContentPagination total={orderData?.total ?? 0} />
     </div>
   );
