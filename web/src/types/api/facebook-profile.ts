@@ -1,8 +1,11 @@
+import type { FacebookProfileContact } from './facebook-profile-contact';
+
 export type FacebookProfile = {
   facebook_id: string;
   type: 'page' | 'user';
   name: string;
   profile_picture_url: string;
+  profile_contact?: FacebookProfileContact;
 };
 
 export type FacebookProfileUpdate = Partial<FacebookProfile> & {

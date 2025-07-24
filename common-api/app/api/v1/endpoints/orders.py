@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session, joinedload, subqueryload
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -10,6 +10,7 @@ from app.api.dependencies.pagination import (
     get_pagination_params,
 )
 from app.db.models.campaigns_products import CampaignProduct
+from app.db.models.facebook_profile import FacebookProfile
 from app.db.models.orders import Order as OrderModel
 from app.db.models.orders_products import OrderProduct
 from app.db.repositories.orders.repo import order_repo
@@ -33,10 +34,10 @@ def list_orders(
 ) -> PaginationResponse[Order]:
     builder = PaginationBuilder(OrderModel, db)
     builder.query = builder.query.options(
-        joinedload(OrderModel.profile),
+        joinedload(OrderModel.profile).joinedload(FacebookProfile.profiles_contacts),
         joinedload(OrderModel.orders_products)
-            .joinedload(OrderProduct.campaign_product)
-            .joinedload(CampaignProduct.product),
+        .joinedload(OrderProduct.campaign_product)
+        .joinedload(CampaignProduct.product),
     )
     builder = builder.filter_deleted()
     builder = builder.date_range(pagination.since, pagination.until)
@@ -44,7 +45,21 @@ def list_orders(
     builder = builder.order_by(pagination.order_by, pagination.order)
     if campaign_id:
         builder = builder.custom_filter(campaign_id=campaign_id)
-    return builder.paginate(pagination.limit, pagination.offset, serializer=Order)
+    page = builder.paginate(pagination.limit, pagination.offset)
+    # Attach latest (not deleted) profile_contact to each order
+    for order in page.docs:
+        profile_contacts = (
+            order.profile.profiles_contacts
+            if order.profile and hasattr(order.profile, "profiles_contacts")
+            else []
+        )
+        latest_contact = None
+        if profile_contacts:
+            not_deleted = [c for c in profile_contacts if c.deleted_at is None]
+            if not_deleted:
+                latest_contact = max(not_deleted, key=lambda c: c.created_at)
+        order.profile_contact = latest_contact
+    return page
 
 
 @router.get("/{order_id}", response_model=Order)
@@ -55,17 +70,30 @@ def get_order(
     order = (
         db.query(OrderModel)
         .options(
-            joinedload(OrderModel.profile),
-            subqueryload(OrderModel.orders_products)
-                .filter_by(deleted_at=None)
-                .joinedload(OrderProduct.campaign_product)
-                .joinedload(CampaignProduct.product),
+            joinedload(OrderModel.profile).joinedload(
+                FacebookProfile.profiles_contacts
+            ),
+            joinedload(OrderModel.orders_products)
+            .joinedload(OrderProduct.campaign_product)
+            .joinedload(CampaignProduct.product),
         )
         .filter(OrderModel.id == order_id)
         .first()
     )
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
+    # Attach latest (not deleted) profile_contact
+    profile_contacts = (
+        order.profile.profiles_contacts
+        if order.profile and hasattr(order.profile, "profiles_contacts")
+        else []
+    )
+    latest_contact = None
+    if profile_contacts:
+        not_deleted = [c for c in profile_contacts if c.deleted_at is None]
+        if not_deleted:
+            latest_contact = max(not_deleted, key=lambda c: c.created_at)
+    order.profile_contact = latest_contact
     return order
 
 

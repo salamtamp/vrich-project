@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 from app.schemas.facebook_profile import FacebookProfile
 from app.schemas.orders_products import OrderProduct, OrderProductCreate
+from app.schemas.profiles_contacts import ProfileContact
 
 OrderStatus = Literal[
     "pending",
@@ -52,6 +53,7 @@ class OrderResponse(OrderBase):
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
     profile: FacebookProfile | None = None
+    profile_contact: ProfileContact | None = None
     orders_products: list[OrderProduct] = []
     model_config = ConfigDict(from_attributes=True)
 

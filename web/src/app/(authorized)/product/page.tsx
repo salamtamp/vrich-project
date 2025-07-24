@@ -120,7 +120,9 @@ const ProductPage = () => {
           <Button
             size='sm'
             variant='outline'
-            onClick={() => (window.location.href = `/product/edit/${row.id}`)}
+            onClick={() => {
+              router.push(`/product/edit/${row.id}`);
+            }}
           >
             <Edit className='size-4' />
           </Button>

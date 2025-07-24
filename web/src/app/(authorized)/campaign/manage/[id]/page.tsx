@@ -69,7 +69,7 @@ const ManageCampaignPage = () => {
         </TabsList>
         <TabsContent
           className='overflow-scroll'
-          style={{ maxHeight: 'calc(100% - 120px)' }}
+          style={{ maxHeight: 'calc(100% - 40px)' }}
           value='detail'
         >
           <CampaignForm
@@ -81,7 +81,7 @@ const ManageCampaignPage = () => {
         </TabsContent>
         <TabsContent
           className='flex h-full flex-1'
-          style={{ maxHeight: 'calc(100% - 120px)' }}
+          style={{ maxHeight: 'calc(100% - 60px)' }}
           value='orders'
         >
           <OrderTab campaignId={data.id} />

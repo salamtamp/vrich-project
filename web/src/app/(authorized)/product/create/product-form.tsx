@@ -230,7 +230,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
       {/* Section 2: Pricing & Inventory */}
       <div className='flex flex-col gap-6 rounded-xl bg-gray-200 px-6 pb-8 pt-4'>
         <h2 className='text-lg-semibold'>Pricing & Inventory</h2>
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
           <div className='flex flex-col gap-1'>
             <Label htmlFor='quantity'>Quantity</Label>
             <FormController
@@ -240,6 +240,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 <Input
                   id='quantity'
                   min='0'
+                  step='1'
                   type='number'
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
@@ -267,27 +268,6 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               )}
             />
           </div>
-          <div className='flex flex-col gap-1'>
-            <Label htmlFor='weight'>Weight</Label>
-            <FormController
-              control={control}
-              name='weight'
-              render={({ field }) => (
-                <Input
-                  id='weight'
-                  min='0'
-                  step='0.01'
-                  type='number'
-                  {...field}
-                  className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
-                  onChange={(e) => {
-                    field.onChange(Number(e.target.value));
-                  }}
-                />
-              )}
-            />
-            {errors?.weight ? <div className='mt-1 text-xs text-red-500'>{errors.weight.message}</div> : null}
-          </div>
         </div>
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
           <div className='flex flex-col gap-1'>
@@ -299,7 +279,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 <Input
                   id='full_price'
                   min='0'
-                  step='0.01'
+                  step='1'
                   type='number'
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
@@ -322,7 +302,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 <Input
                   id='selling_price'
                   min='0'
-                  step='0.01'
+                  step='1'
                   type='number'
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
@@ -347,7 +327,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 <Input
                   id='cost'
                   min='0'
-                  step='0.01'
+                  step='1'
                   type='number'
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
@@ -368,7 +348,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
                 <Input
                   id='shipping_fee'
                   min='0'
-                  step='0.01'
+                  step='1'
                   type='number'
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
@@ -459,7 +439,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               <Input
                 id='weight'
                 min='0'
-                step='0.01'
+                step='1'
                 type='number'
                 {...field}
                 className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'

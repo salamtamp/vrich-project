@@ -1,4 +1,5 @@
 import type { CampaignsProduct } from './campaigns_products';
+import type { FacebookProfile } from './facebook-profile';
 
 export type OrderStatus =
   | 'pending'
@@ -21,11 +22,12 @@ export const ORDER_STATUSES: OrderStatus[] = [
   'completed',
 ];
 
-export type OrderProfile = {
-  id: string;
-  name: string;
-  profile_picture_url?: string;
-};
+// Deprecated: Use FacebookProfileResponse instead for profile
+// export type OrderProfile = {
+//   id: string;
+//   name: string;
+//   profile_picture_url?: string;
+// };
 
 export type OrderProduct = {
   id: string;
@@ -39,12 +41,14 @@ export type OrderProduct = {
   campaign_product?: CampaignsProduct | null;
 };
 
-export type Order = {
+export type Order = OrderResponse;
+
+export type OrderResponse = {
   id: string;
   code?: string;
   profile_id: string;
   campaign_id: string;
-  status: OrderStatus;
+  status: string;
   purchase_date?: string;
   shipping_date?: string;
   delivery_date?: string;
@@ -52,8 +56,6 @@ export type Order = {
   created_at: string;
   updated_at?: string;
   deleted_at?: string;
-  profile?: OrderProfile | null;
+  profile?: FacebookProfile;
   orders_products: OrderProduct[];
 };
-
-export type OrderResponse = Order;

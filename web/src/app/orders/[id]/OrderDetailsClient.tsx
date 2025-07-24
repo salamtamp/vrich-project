@@ -1,0 +1,761 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+
+import {
+  Building2,
+  Calendar,
+  Clock,
+  CreditCard,
+  Edit3,
+  MapPin,
+  Package,
+  Receipt,
+  Save,
+  User,
+  X,
+} from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { API } from '@/constants/api.constant';
+import useRequest from '@/hooks/request/useRequest';
+import dayjs from '@/lib/dayjs';
+import type { Order } from '@/types/api/order';
+
+const STATUS_CONFIG = {
+  pending: {
+    color: 'bg-gray-100 text-gray-800 border-gray-200',
+    icon: Clock,
+    p: 'Pending',
+    description: 'Order is being processed',
+  },
+  confirmed: {
+    color: 'bg-blue-100 text-blue-800 border-blue-200',
+    icon: Receipt,
+    p: 'Confirmed',
+    description: 'Order has been confirmed',
+  },
+  paid: {
+    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    icon: CreditCard,
+    p: 'Paid',
+    description: 'Payment received',
+  },
+  approved: {
+    color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    icon: Receipt,
+    p: 'Approved',
+    description: 'Order approved for processing',
+  },
+  shipped: {
+    color: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    icon: Package,
+    p: 'Shipped',
+    description: 'Order is on the way',
+  },
+  delivered: {
+    color: 'bg-green-100 text-green-800 border-green-200',
+    icon: MapPin,
+    p: 'Delivered',
+    description: 'Order successfully delivered',
+  },
+  cancelled: {
+    color: 'bg-red-100 text-red-800 border-red-200',
+    icon: Clock,
+    p: 'Cancelled',
+    description: 'Order has been cancelled',
+  },
+  completed: {
+    color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    icon: Receipt,
+    p: 'Completed',
+    description: 'Order completed successfully',
+  },
+};
+
+const formatDate = (date: string, includeTime = false) => {
+  if (!date) {
+    return 'Not set';
+  }
+
+  return dayjs(date).format(includeTime ? 'MMMM D, YYYY [at] h:mm A' : 'MMMM D, YYYY');
+};
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+};
+
+const OrderDetailsClient = ({ id }: { id: string }) => {
+  const [contactForm, setContactForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    postal_code: '',
+    city: '',
+    country: '',
+    note: '',
+  });
+
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [isSavingContact, setIsSavingContact] = useState(false);
+
+  const {
+    data: order,
+    error,
+    handleRequest,
+    isLoading,
+  } = useRequest<Order>({
+    request: { url: `${API.ORDER}/${id}`, method: 'GET' },
+    defaultLoading: true,
+  });
+
+  useEffect(() => {
+    void handleRequest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // Auto-fill contact form if profile_contact exists
+  useEffect(() => {
+    if (order?.profile?.profile_contact) {
+      const contact = order.profile.profile_contact;
+      setContactForm({
+        first_name: contact.first_name || '',
+        last_name: contact.last_name || '',
+        email: contact.email || '',
+        phone: contact.phone || '',
+        address: contact.address || '',
+        postal_code: contact.postal_code ?? '',
+        city: contact.city ?? '',
+        country: contact.country ?? '',
+        note: contact.note ?? '',
+      });
+    }
+  }, [order]);
+
+  const handleContactInputChange = (field: string, value: string) => {
+    setContactForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveContact = async () => {
+    setIsSavingContact(true);
+    try {
+      // Add your API call to save contact here
+      // await updateProfileContact(order.profile.id, contactForm);
+      console.log('Saving contact:', contactForm);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      setIsEditingContact(false);
+    } catch (error) {
+      console.error('Error saving contact:', error);
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset form to original values
+    if (order?.profile?.profile_contact) {
+      const contact = order.profile.profile_contact;
+      setContactForm({
+        first_name: contact.first_name || '',
+        last_name: contact.last_name || '',
+        email: contact.email || '',
+        phone: contact.phone || '',
+        address: contact.address || '',
+        postal_code: contact.postal_code ?? '',
+        city: contact.city ?? '',
+        country: contact.country ?? '',
+        note: contact.note ?? '',
+      });
+    }
+    setIsEditingContact(false);
+  };
+
+  if (isLoading) {
+    return <></>;
+  }
+
+  if (error) {
+    return (
+      <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100'>
+        <div className='text-center'>
+          <div className='mb-4 text-6xl'>⚠️</div>
+          <h2 className='mb-2 text-2xl font-bold text-red-600'>Error Loading Order</h2>
+          <p className='text-gray-600'>Failed to load order details. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100'>
+        <div className='text-center'>
+          <div className='mb-4 text-6xl'>📋</div>
+          <h2 className='mb-2 text-2xl font-bold text-gray-800'>Order Not Found</h2>
+          <p className='text-gray-600'>The requested order could not be found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const {
+    code,
+    status,
+    created_at,
+    profile,
+    orders_products,
+    note,
+    purchase_date,
+    shipping_date,
+    delivery_date,
+  } = order;
+  const statusConfig = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
+  const StatusIcon = statusConfig.icon;
+
+  // Calculations
+  const totalItems = orders_products.length;
+  const totalQuantity = orders_products.reduce((sum, op) => sum + (op.quantity || 0), 0);
+  const subtotal = orders_products.reduce((sum, op) => {
+    const price = op.campaign_product?.product?.selling_price ?? 0;
+    return sum + price * (op.quantity || 1);
+  }, 0);
+  const totalShipping = orders_products.reduce((sum, op) => {
+    const fee = op.campaign_product?.product?.shipping_fee ?? 0;
+    return sum + fee * (op.quantity || 1);
+  }, 0);
+  const tax = subtotal * 0.08; // 8% tax rate
+  const grandTotal = subtotal + totalShipping + tax;
+
+  return (
+    <div className='flex h-full flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50'>
+      {/* Header */}
+      <div className='border-b border-gray-200 bg-white shadow-sm'>
+        <div className='mx-auto max-w-4xl px-6 py-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-4'>
+              <div className='flex size-10 items-center justify-center rounded-lg bg-blue-600'>
+                <Receipt className='size-6 text-white' />
+              </div>
+              <div>
+                <h1 className='text-2xl font-bold text-gray-900'>Invoice</h1>
+                <p className='text-sm text-gray-500'>Order #{code}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className='mx-auto max-w-4xl flex-1 overflow-y-scroll px-6 py-8'>
+        {/* Status Banner */}
+        <div className={`mb-8 rounded-xl border-2 p-6 ${statusConfig.color} backdrop-blur-sm`}>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-4'>
+              <div className='flex size-12 items-center justify-center rounded-full bg-white/50'>
+                <StatusIcon className='size-6' />
+              </div>
+              <div>
+                <h2 className='text-xl font-bold'>{statusConfig.p}</h2>
+                <p className='text-sm opacity-80'>{statusConfig.description}</p>
+              </div>
+            </div>
+            <div className='text-right'>
+              <p className='text-sm opacity-80'>Last Updated</p>
+              <p className='font-semibold'>{formatDate(order.updated_at, true)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* AIRCommerce Payment Information - FIRST */}
+        <Card className='mb-8 border-0 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg backdrop-blur-sm'>
+          <CardHeader className='pb-4'>
+            <CardTitle className='flex items-center text-xl text-gray-900'>
+              <Building2 className='mr-2 size-5 text-green-600' />
+              AIRCommerce - Payment Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='rounded-lg bg-white/80 p-6 shadow-sm'>
+              <div className='mb-4 text-center'>
+                <h3 className='text-lg font-bold text-gray-900'>Thank you for your order!</h3>
+                <p className='text-sm text-gray-600'>Please transfer the payment to the account below</p>
+              </div>
+              <div className='space-y-4'>
+                <div className='rounded-lg bg-green-50 p-4'>
+                  <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+                    <div>
+                      <p className='text-sm font-medium text-gray-700'>Bank:</p>
+                      <p className='text-lg font-bold text-green-700'>GSB (Government Savings Bank)</p>
+                    </div>
+                    <div>
+                      <p className='text-sm font-medium text-gray-700'>Account Number:</p>
+                      <p className='font-mono text-lg font-bold text-green-700'>020-2-21873-613</p>
+                    </div>
+                  </div>
+                  <div className='mt-3'>
+                    <p className='text-sm font-medium text-gray-700'>Account Name:</p>
+                    <p className='text-lg font-bold text-green-700'>Mr. Narongphon Chaengsuwan</p>
+                  </div>
+                </div>
+                <div className='rounded-lg bg-blue-50 p-4'>
+                  <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+                    <div>
+                      <p className='text-sm font-medium text-gray-700'>Total Amount:</p>
+                      <p className='text-2xl font-bold text-blue-700'>{formatCurrency(grandTotal)}</p>
+                    </div>
+                    <div>
+                      <p className='text-sm font-medium text-gray-700'>Order Code:</p>
+                      <p className='font-mono text-lg font-bold text-blue-700'>#{code}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className='rounded-lg bg-yellow-50 p-4'>
+                  <h4 className='mb-2 font-semibold text-yellow-800'>Payment Instructions:</h4>
+                  <ul className='space-y-1 text-sm text-yellow-700'>
+                    <li>• Transfer the exact amount shown above</li>
+                    <li>• Include your order code (#{code}) in the transfer reference</li>
+                    <li>• Take a screenshot of the transfer confirmation</li>
+                    <li>• Send the screenshot to our customer service</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Customer & Order Information - SECOND */}
+        <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
+          <CardHeader className='pb-4'>
+            <CardTitle className='flex items-center text-xl text-gray-900'>
+              <User className='mr-2 size-5 text-blue-600' />
+              Customer & Order Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className='space-y-4'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+              <div className='space-y-3'>
+                <h4 className='border-b border-gray-200 pb-1 font-semibold text-gray-900'>
+                  Customer Details
+                </h4>
+                <div className='space-y-2 text-sm'>
+                  <div>
+                    <span className='text-gray-600'>Name:</span>{' '}
+                    <span className='font-medium'>{profile?.name ?? 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className='text-gray-600'>Facebook ID:</span>{' '}
+                    <span className='rounded bg-gray-100 px-2 py-1 font-mono text-xs'>
+                      {profile?.facebook_id ?? 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className='space-y-3'>
+                <h4 className='border-b border-gray-200 pb-1 font-semibold text-gray-900'>Order Details</h4>
+                <div className='space-y-2 text-sm'>
+                  <div>
+                    <span className='text-gray-600'>Order Date:</span>{' '}
+                    <span className='font-medium'>{formatDate(created_at)}</span>
+                  </div>
+                  <div>
+                    <span className='text-gray-600'>Purchase Date:</span>{' '}
+                    <span className='font-medium'>{formatDate(purchase_date)}</span>
+                  </div>
+                  <div>
+                    <span className='text-gray-600'>Items:</span>{' '}
+                    <span className='font-medium'>
+                      {totalItems} products ({totalQuantity} qty)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Order Summary - THIRD */}
+        <Card className='mb-8 border-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg'>
+          <CardHeader className='pb-4'>
+            <CardTitle className='flex items-center text-xl'>
+              <Receipt className='mr-2 size-5' />
+              Order Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className='space-y-4'>
+            <div className='space-y-3'>
+              <div className='flex justify-between'>
+                <span className='text-blue-100'>Subtotal:</span>
+                <span className='font-semibold'>{formatCurrency(subtotal)}</span>
+              </div>
+              <div className='flex justify-between'>
+                <span className='text-blue-100'>Shipping:</span>
+                <span className='font-semibold'>{formatCurrency(totalShipping)}</span>
+              </div>
+              <div className='flex justify-between'>
+                <span className='text-blue-100'>Tax (8%):</span>
+                <span className='font-semibold'>{formatCurrency(tax)}</span>
+              </div>
+              <hr className='border-blue-400' />
+              <div className='flex justify-between text-lg'>
+                <span className='font-bold'>Grand Total:</span>
+                <span className='font-bold'>{formatCurrency(grandTotal)}</span>
+              </div>
+            </div>
+            <div className='space-y-2 border-t border-blue-400 pt-4 text-sm'>
+              <div className='flex justify-between'>
+                <span className='text-blue-100'>Total Items:</span>
+                <span>{totalItems}</span>
+              </div>
+              <div className='flex justify-between'>
+                <span className='text-blue-100'>Total Quantity:</span>
+                <span>{totalQuantity}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Order Items - FOURTH */}
+        <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
+          <CardHeader className='pb-4'>
+            <CardTitle className='flex items-center text-xl text-gray-900'>
+              <Package className='mr-2 size-5 text-blue-600' />
+              Order Items
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='overflow-x-auto'>
+              <table className='w-full'>
+                <thead>
+                  <tr className='border-b-2 border-gray-200'>
+                    <th className='px-2 py-3 text-left font-semibold text-gray-900'>Product</th>
+                    <th className='px-2 py-3 text-center font-semibold text-gray-900'>Qty</th>
+                    <th className='px-2 py-3 text-right font-semibold text-gray-900'>Unit Price</th>
+                    <th className='px-2 py-3 text-right font-semibold text-gray-900'>Shipping</th>
+                    <th className='px-2 py-3 text-right font-semibold text-gray-900'>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders_products.map((op, idx) => {
+                    const product = op.campaign_product?.product;
+                    if (!product) {
+                      return null;
+                    }
+                    const price = product.selling_price || 0;
+                    const shipping = product.shipping_fee || 0;
+                    const lineTotal = (price + shipping) * (op.quantity || 1);
+                    return (
+                      <tr
+                        key={op.id}
+                        className='border-b border-gray-100 transition-colors hover:bg-gray-50/50'
+                      >
+                        <td className='px-2 py-4'>
+                          <div className='flex items-center space-x-3'>
+                            <div>
+                              <p className='font-medium text-gray-900'>{product.name}</p>
+                              <p className='text-sm text-gray-500'>Code: {product.code}</p>
+                              {op.campaign_product?.keyword ? (
+                                <span className='mt-1 inline-block rounded bg-blue-100 px-2 py-1 text-xs text-blue-800'>
+                                  {op.campaign_product.keyword}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </td>
+                        <td className='px-2 py-4 text-center'>
+                          <span className='inline-block rounded-full bg-gray-100 px-3 py-1 text-sm font-medium'>
+                            {op.quantity}
+                          </span>
+                        </td>
+                        <td className='px-2 py-4 text-right font-medium'>{formatCurrency(price)}</td>
+                        <td className='px-2 py-4 text-right text-sm text-gray-600'>
+                          {formatCurrency(shipping)}
+                        </td>
+                        <td className='px-2 py-4 text-right font-bold text-gray-900'>
+                          {formatCurrency(lineTotal)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contact & Shipping Information - FIFTH */}
+        <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
+          <CardHeader className='pb-4'>
+            <div className='flex items-center justify-between'>
+              <CardTitle className='flex items-center text-xl text-gray-900'>
+                <MapPin className='mr-2 size-5 text-blue-600' />
+                Contact & Shipping Information
+              </CardTitle>
+              {!isEditingContact ? (
+                <Button
+                  className='flex items-center gap-2'
+                  size='sm'
+                  variant='outline'
+                  onClick={() => {
+                    setIsEditingContact(true);
+                  }}
+                >
+                  <Edit3 className='size-4' />
+                  Edit
+                </Button>
+              ) : (
+                <div className='flex gap-2'>
+                  <Button
+                    className='flex items-center gap-2'
+                    disabled={isSavingContact}
+                    size='sm'
+                    onClick={handleSaveContact}
+                  >
+                    <Save className='size-4' />
+                    {isSavingContact ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button
+                    className='flex items-center gap-2'
+                    size='sm'
+                    variant='outline'
+                    onClick={handleCancelEdit}
+                  >
+                    <X className='size-4' />
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!isEditingContact ? (
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <div className='space-y-3'>
+                  <div>
+                    <p className='text-sm font-medium text-gray-700'>First Name:</p>
+                    <p className='text-gray-900'>{contactForm.first_name || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className='text-sm font-medium text-gray-700'>Last Name:</p>
+                    <p className='text-gray-900'>{contactForm.last_name || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className='text-sm font-medium text-gray-700'>Email:</p>
+                    <p className='text-gray-900'>{contactForm.email || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className='text-sm font-medium text-gray-700'>Phone:</p>
+                    <p className='text-gray-900'>{contactForm.phone || 'Not provided'}</p>
+                  </div>
+                </div>
+                <div className='space-y-3'>
+                  <div>
+                    <p className='text-sm font-medium text-gray-700'>City:</p>
+                    <p className='text-gray-900'>{contactForm.city || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className='text-sm font-medium text-gray-700'>Postal Code:</p>
+                    <p className='text-gray-900'>{contactForm.postal_code || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className='text-sm font-medium text-gray-700'>Country:</p>
+                    <p className='text-gray-900'>{contactForm.country || 'Not provided'}</p>
+                  </div>
+                </div>
+                {contactForm.address ? (
+                  <div className='md:col-span-2'>
+                    <p className='text-sm font-medium text-gray-700'>Address:</p>
+                    <p className='rounded-lg bg-gray-50 p-3 text-gray-900'>{contactForm.address}</p>
+                  </div>
+                ) : null}
+                {contactForm.note ? (
+                  <div className='md:col-span-2'>
+                    <p className='text-sm font-medium text-gray-700'>Note:</p>
+                    <p className='rounded-lg bg-gray-50 p-3 text-gray-900'>{contactForm.note}</p>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className='space-y-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                  <div>
+                    <p className='mb-1 block text-sm font-medium text-gray-700'>First Name</p>
+                    <Input
+                      placeholder='Enter first name'
+                      value={contactForm.first_name}
+                      onChange={(e) => {
+                        handleContactInputChange('first_name', e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className='mb-1 block text-sm font-medium text-gray-700'>Last Name</p>
+                    <Input
+                      placeholder='Enter last name'
+                      value={contactForm.last_name}
+                      onChange={(e) => {
+                        handleContactInputChange('last_name', e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className='mb-1 block text-sm font-medium text-gray-700'>Email</p>
+                    <Input
+                      placeholder='Enter email address'
+                      type='email'
+                      value={contactForm.email}
+                      onChange={(e) => {
+                        handleContactInputChange('email', e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className='mb-1 block text-sm font-medium text-gray-700'>Phone</p>
+                    <Input
+                      placeholder='Enter phone number'
+                      value={contactForm.phone}
+                      onChange={(e) => {
+                        handleContactInputChange('phone', e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className='mb-1 block text-sm font-medium text-gray-700'>City</p>
+                    <Input
+                      placeholder='Enter city'
+                      value={contactForm.city}
+                      onChange={(e) => {
+                        handleContactInputChange('city', e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <p className='mb-1 block text-sm font-medium text-gray-700'>Postal Code</p>
+                    <Input
+                      placeholder='Enter postal code'
+                      value={contactForm.postal_code}
+                      onChange={(e) => {
+                        handleContactInputChange('postal_code', e.target.value);
+                      }}
+                    />
+                  </div>
+                  <div className='md:col-span-2'>
+                    <p className='mb-1 block text-sm font-medium text-gray-700'>Country</p>
+                    <Input
+                      placeholder='Enter country'
+                      value={contactForm.country}
+                      onChange={(e) => {
+                        handleContactInputChange('country', e.target.value);
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <p className='mb-1 block text-sm font-medium text-gray-700'>Address</p>
+                  <Textarea
+                    placeholder='Enter full address'
+                    rows={3}
+                    value={contactForm.address}
+                    onChange={(e) => {
+                      handleContactInputChange('address', e.target.value);
+                    }}
+                  />
+                </div>
+                <div>
+                  <p className='mb-1 block text-sm font-medium text-gray-700'>Note</p>
+                  <Textarea
+                    placeholder='Enter any additional notes'
+                    rows={2}
+                    value={contactForm.note}
+                    onChange={(e) => {
+                      handleContactInputChange('note', e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Order Timeline (if any) */}
+        {purchase_date || shipping_date || delivery_date ? (
+          <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
+            <CardHeader className='pb-4'>
+              <CardTitle className='flex items-center text-xl text-gray-900'>
+                <Calendar className='mr-2 size-5 text-blue-600' />
+                Order Timeline
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='space-y-4'>
+                {[
+                  {
+                    date: purchase_date,
+                    p: 'Purchase Date',
+                    icon: CreditCard,
+                    color: 'text-blue-600',
+                  },
+                  {
+                    date: shipping_date,
+                    p: 'Shipping Date',
+                    icon: Package,
+                    color: 'text-orange-600',
+                  },
+                  { date: delivery_date, p: 'Delivery Date', icon: MapPin, color: 'text-green-600' },
+                ]
+                  .filter((item) => item.date)
+                  .map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                      <div
+                        key={index}
+                        className='flex items-center space-x-4 rounded-lg bg-gray-50 p-3'
+                      >
+                        <div
+                          className={`flex size-10 items-center justify-center rounded-full bg-white ${item.color}`}
+                        >
+                          <Icon className='size-5' />
+                        </div>
+                        <div>
+                          <p className='font-medium text-gray-900'>{item.p}</p>
+                          <p className='text-sm text-gray-600'>{formatDate(item.date, true)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {/* Notes */}
+        {note ? (
+          <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
+            <CardHeader className='pb-4'>
+              <CardTitle className='text-xl text-gray-900'>Special Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='rounded-r-lg border-l-4 border-blue-400 bg-blue-50 p-4'>
+                <p className='whitespace-pre-line text-gray-700'>{note}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+export default OrderDetailsClient;

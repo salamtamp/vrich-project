@@ -8,7 +8,7 @@ from app.db.models.campaign import Campaign
 from app.db.repositories.campaigns_products.repo import campaign_product_repo
 from app.db.repositories.crud.base import CRUDBase
 from app.db.repositories.facebook_post.repo import facebook_post_repo
-from app.schemas.campaign import CampaignCreate, CampaignUpdate
+from app.schemas.campaign import CampaignCreate, CampaignProduct, CampaignUpdate
 from app.schemas.campaigns_products import CampaignProductCreate
 
 
@@ -130,31 +130,37 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
             )
             if channels is not None and "facebook_comment" not in channels:
                 campaign.post_id = None
-            # Replace products if provided
             if campaign_in.products is not None:
-                # Delete old products
-                db.query(CampaignProduct).filter(
-                    CampaignProduct.campaign_id == campaign_id
-                ).delete()
-                # Add new products
+                existing_products = (
+                    db.query(CampaignProduct)
+                    .filter(CampaignProduct.campaign_id == campaign_id)
+                    .all()
+                )
+                existing_products_map = {
+                    str(p.product_id): p for p in existing_products
+                }
+
                 for prod in campaign_in.products:
                     prod_data = prod.model_dump()
-                    # Validate status
                     if prod_data.get("status") not in ("active", "inactive"):
                         raise ValueError(
                             f"Invalid product status: {prod_data.get('status')}"
                         )
                     prod_data["campaign_id"] = campaign_id
-                    try:
+                    product_id_str = str(prod.product_id)
+                    if product_id_str in existing_products_map:
+                        db_obj = existing_products_map[product_id_str]
+                        campaign_product_repo.update(
+                            db, db_obj=db_obj, obj_in=prod_data
+                        )
+                    else:
                         campaign_product_repo.create(
                             db, obj_in=CampaignProductCreate(**prod_data)
                         )
-                    except Exception as prod_err:
-                        print(
-                            f"Failed to update campaign product: {prod_data}, "
-                            f"error: {prod_err}"
-                        )
-                        raise prod_err from prod_err
+                incoming_product_ids = {str(p.product_id) for p in campaign_in.products}
+                for product_id_str, db_obj in existing_products_map.items():
+                    if product_id_str not in incoming_product_ids:
+                        db.delete(db_obj)
             db.commit()
             db.refresh(campaign)
             return campaign

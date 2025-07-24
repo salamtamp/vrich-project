@@ -2,6 +2,8 @@
 
 import React, { useMemo, useState } from 'react';
 
+import { useRouter } from 'next/navigation';
+
 import { Eye } from 'lucide-react';
 
 import ContentPagination from '@/components/content/pagination';
@@ -27,91 +29,10 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const getOrderRowId = (row: Order) => String(row.id);
-
-const orderColumns: TableColumn<Order>[] = [
-  {
-    key: 'profile',
-    label: 'Profile',
-    align: 'left',
-    width: 200,
-    render: (row) => <p className='truncate'>{row.profile?.name ?? '-'}</p>,
-  },
-  { key: 'code', label: 'Order Code', bold: true, width: 140 },
-  {
-    key: 'status',
-    label: 'Status',
-    align: 'center',
-    width: 100,
-    render: (row) => (
-      <Badge className={STATUS_COLORS[row.status] || 'border-gray-200 bg-gray-100 text-gray-500'}>
-        {row.status?.charAt(0)?.toUpperCase() + row.status?.slice(1)}
-      </Badge>
-    ),
-  },
-  {
-    key: 'orders_products',
-    label: 'Items',
-    align: 'center',
-    width: 80,
-    render: (row) => row.orders_products?.length ?? 0,
-  },
-  {
-    key: 'total_selling_price',
-    label: 'Total Price',
-    align: 'center',
-    width: 120,
-    render: (row) => {
-      const total =
-        row.orders_products?.reduce((sum, op) => {
-          const price = op.campaign_product?.product?.selling_price ?? 0;
-          return sum + price * (op.quantity ?? 1);
-        }, 0) ?? 0;
-      return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    },
-  },
-  {
-    key: 'purchase_date',
-    label: 'Purchase Date',
-    align: 'center',
-    width: 120,
-    render: (row) => (row.purchase_date ? dayjs(row.purchase_date).format('YYYY-MM-DD') : '-'),
-  },
-  {
-    key: 'shipping_date',
-    label: 'Shipping Date',
-    align: 'center',
-    width: 120,
-    render: (row) => (row.shipping_date ? dayjs(row.shipping_date).format('YYYY-MM-DD') : '-'),
-  },
-  {
-    key: 'delivery_date',
-    label: 'Delivery Date',
-    align: 'center',
-    width: 120,
-    render: (row) => (row.delivery_date ? dayjs(row.delivery_date).format('YYYY-MM-DD') : '-'),
-  },
-  {
-    key: 'actions',
-    label: 'Actions',
-    align: 'center',
-    width: 80,
-    render: (row) => (
-      <div className='flex items-center justify-center gap-2'>
-        <Button
-          size='sm'
-          variant='outline'
-          onClick={() => window.open(`/order/${row.id}`, '_blank')}
-        >
-          <Eye className='size-4' />
-        </Button>
-      </div>
-    ),
-  },
-];
-
 type OrderTabProps = { campaignId: string };
 
 const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
+  const router = useRouter();
   const {
     data: orderData,
     isLoading: orderLoading,
@@ -165,6 +86,89 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
     },
     [handleBatchStatusUpdate, handleOrderRequest, selectedOrderIds, orders]
   );
+
+  const orderColumns: TableColumn<Order>[] = [
+    {
+      key: 'profile',
+      label: 'Profile',
+      align: 'left',
+      width: 200,
+      render: (row) => <p className='truncate'>{row.profile?.name ?? '-'} </p>,
+    },
+    { key: 'code', label: 'Order Code', bold: true, width: 140 },
+    {
+      key: 'status',
+      label: 'Status',
+      align: 'center',
+      width: 100,
+      render: (row) => (
+        <Badge className={STATUS_COLORS[row.status] || 'border-gray-200 bg-gray-100 text-gray-500'}>
+          {row.status?.charAt(0)?.toUpperCase() + row.status?.slice(1)}
+        </Badge>
+      ),
+    },
+    {
+      key: 'orders_products',
+      label: 'Items',
+      align: 'center',
+      width: 80,
+      render: (row) => row.orders_products?.length ?? 0,
+    },
+    {
+      key: 'total_selling_price',
+      label: 'Total Price',
+      align: 'center',
+      width: 120,
+      render: (row) => {
+        const total =
+          row.orders_products?.reduce((sum, op) => {
+            const price = op.campaign_product?.product?.selling_price ?? 0;
+            return sum + price * (op.quantity ?? 1);
+          }, 0) ?? 0;
+        return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      },
+    },
+    {
+      key: 'purchase_date',
+      label: 'Purchase Date',
+      align: 'center',
+      width: 120,
+      render: (row) => (row.purchase_date ? dayjs(row.purchase_date).format('YYYY-MM-DD') : '-'),
+    },
+    {
+      key: 'shipping_date',
+      label: 'Shipping Date',
+      align: 'center',
+      width: 120,
+      render: (row) => (row.shipping_date ? dayjs(row.shipping_date).format('YYYY-MM-DD') : '-'),
+    },
+    {
+      key: 'delivery_date',
+      label: 'Delivery Date',
+      align: 'center',
+      width: 120,
+      render: (row) => (row.delivery_date ? dayjs(row.delivery_date).format('YYYY-MM-DD') : '-'),
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      align: 'center',
+      width: 80,
+      render: (row) => (
+        <div className='flex items-center justify-center gap-2'>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => {
+              router.push(`/orders/${row.id}`);
+            }}
+          >
+            <Eye className='size-4' />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className='flex w-full flex-col gap-1 overflow-hidden'>

@@ -127,6 +127,7 @@ const CampaignProductRow = ({
                     max={selectedProduct?.quantity ?? undefined}
                     min={1}
                     name={field.name}
+                    step='1'
                     type='number'
                     value={
                       typeof field.value === 'number' || typeof field.value === 'string' ? field.value : 1
