@@ -13,6 +13,7 @@ type ModalProps = {
   content: ReactNode;
   key: string;
   onClose?: (() => void) | null;
+  className?: string;
 };
 
 type ModalConfig = Omit<ModalProps, 'key'> & { key?: string };
@@ -65,7 +66,7 @@ export const ModalProvider: FC<NextJSChildren> = ({ children }) => {
     <ModalContext.Provider value={contextValue}>
       {Children.toArray(
         modalConfigs.map((modalConfig, index) => {
-          const { content, ...rest } = modalConfig;
+          const { content, className, ...rest } = modalConfig;
           const isLastModal = index === modalConfigs.length - 1;
           const handleClose = () => {
             if (rest?.onClose) {
@@ -82,6 +83,7 @@ export const ModalProvider: FC<NextJSChildren> = ({ children }) => {
             <Modal
               {...rest}
               key={modalConfig.key}
+              className={className}
               isOpen={isLastModal}
               onClose={handleClose}
             >

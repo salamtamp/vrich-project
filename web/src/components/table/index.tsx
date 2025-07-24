@@ -54,7 +54,6 @@ const Table = <T extends Record<string, unknown>>({
   const headerRef = useRef<HTMLTableElement | null>(null);
   const bodyRef = useRef<HTMLTableElement | null>(null);
 
-  // Calculate columns with selection column if needed
   const displayColumns = useMemo(() => {
     if (onSelectRow) {
       return [{ key: '__select__', label: '', width: 48 } as TableColumn<T>, ...columns];
@@ -62,7 +61,6 @@ const Table = <T extends Record<string, unknown>>({
     return columns;
   }, [columns, onSelectRow]);
 
-  // Calculate column widths
   const columnWidths = useMemo(() => {
     const totalColumns = displayColumns.length;
     return displayColumns.map((column) => {
@@ -251,6 +249,7 @@ const Table = <T extends Record<string, unknown>>({
       {onApproveSelected ? (
         <div className='mb-2 flex justify-end'>
           <Button
+            className='border-green-200 bg-green-100 text-green-800 hover:bg-green-200'
             disabled={selectedRowIds.length === 0}
             variant='outline'
             onClick={onApproveSelected}

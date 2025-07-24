@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 
+import Image from 'next/image';
+
 import { LogoSmallIcon } from '@public/assets/icon';
 import {
   Building2,
@@ -24,7 +26,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
+import { cn } from '@/lib/utils';
 import type { Order } from '@/types/api/order';
+
+// Add Payment type for mock
+type Payment = {
+  id: string;
+  payment_slip: string | null;
+  payment_code: string;
+  amount: number;
+  method: string;
+  status: string;
+  order_id: string;
+  profile_id: string;
+};
 
 const STATUS_CONFIG = {
   pending: {
@@ -93,10 +108,9 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Add a constant for tax rate
-const TAX_RATE = 0; // Set your default tax rate here (e.g., 0, 7, 8, etc.)
+const TAX_RATE = 0;
 
-const OrderDetailsClient = ({ id }: { id: string }) => {
+const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boolean }) => {
   const [contactForm, setContactForm] = useState({
     first_name: '',
     last_name: '',
@@ -112,6 +126,11 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isSavingContact, setIsSavingContact] = useState(false);
   // Remove taxRate state
+  const [mockPayments, setMockPayments] = useState<Payment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [fileInput, setFileInput] = useState<File | null>(null);
+  const [fileInputRef] = useState(() => React.createRef<HTMLInputElement>());
 
   const {
     data: order,
@@ -156,8 +175,6 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
   const handleSaveContact = async () => {
     setIsSavingContact(true);
     try {
-      // Add your API call to save contact here
-      // await updateProfileContact(order.profile.id, contactForm);
       console.info('Saving contact:', contactForm);
 
       // Simulate API call
@@ -188,6 +205,84 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
       });
     }
     setIsEditingContact(false);
+  };
+
+  // --- Payment slip logic ---
+  // Use mockPayments if available, otherwise fallback to order.payments (if backend provides)
+  let payments: Payment[] = [];
+  if (mockPayments.length > 0) {
+    payments = mockPayments;
+  } else if (
+    order &&
+    typeof order === 'object' &&
+    'payments' in order &&
+    Array.isArray((order as { payments?: Payment[] }).payments)
+  ) {
+    const { payments: orderPayments } = order as { payments: Payment[] };
+    payments = orderPayments;
+  }
+  const payment = payments?.[0] ?? null;
+  const paymentSlipUrl = payment?.payment_slip ?? '';
+
+  // Use useRequest for upload simulation
+  const { handleRequest: uploadPaymentSlip } = useRequest<Payment>({
+    request: {
+      url: '/api/v1/payments',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    },
+    defaultLoading: false,
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setFileInput(file);
+  };
+
+  // Simulate 3rd-party upload
+  const mockUploadToThirdParty = async (file: File): Promise<string> => {
+    // Simulate upload delay
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    // Return a fake URL (in real use, this would be the URL from the 3rd-party)
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    return `https://mock-cdn.example.com/payment-slips/${crypto.randomUUID()}.${ext}`;
+  };
+
+  const handleUploadSlip = async () => {
+    if (!order) {
+      return;
+    }
+    if (!fileInput) {
+      setUploadError('Please select a file to upload.');
+      return;
+    }
+    setUploading(true);
+    setUploadError(null);
+    try {
+      // 1. Upload to 3rd-party (mocked)
+      const slipUrl = await mockUploadToThirdParty(fileInput);
+      // 2. Save to backend (mocked)
+      const mockPayment: Payment = {
+        id: crypto.randomUUID(),
+        payment_slip: slipUrl,
+        payment_code: payment?.payment_code ?? 'MOCK-CODE',
+        amount: payment?.amount ?? 0,
+        method: payment?.method ?? 'bank_transfer',
+        status: payment?.status ?? 'pending',
+        order_id: order.id,
+        profile_id: order.profile_id,
+      };
+      await uploadPaymentSlip({ data: mockPayment });
+      setMockPayments([mockPayment]);
+      setFileInput(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      setUploadError((err as { message?: string })?.message ?? 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (isLoading) {
@@ -247,103 +342,114 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
   const grandTotal = subtotal + totalShipping + tax;
 
   return (
-    <div className='flex h-full flex-col overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50'>
+    <div
+      className={cn(
+        'flex h-full flex-col overflow-hidden',
+        !isAdmin && 'bg-gradient-to-br from-blue-50 via-white to-indigo-50'
+      )}
+    >
       {/* Header */}
-      <div className='border-b border-gray-200 bg-white shadow-sm'>
-        <div className='mx-auto max-w-4xl px-6 py-4'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center space-x-4'>
-              <div className='flex size-10 items-center justify-center rounded-lg bg-gray-300'>
-                {/* <Receipt className='size-6 text-white' /> */}
-                <LogoSmallIcon className='size-6' />
-              </div>
-              <div>
-                <h1 className='text-2xl font-bold text-gray-900'>Payment Information</h1>
-                <p className='text-sm text-gray-500'>Order #{code}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {!isAdmin ? (
+        <div className='border-b border-gray-200 bg-white shadow-sm'>
+          <div className='mx-auto max-w-4xl px-6 py-4'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-4'>
+                <div className='flex size-10 items-center justify-center rounded-lg bg-gray-300'>
+                  <LogoSmallIcon className='size-6' />
+                </div>
 
-      <div className='mx-auto max-w-4xl flex-1 overflow-y-scroll px-6 py-8'>
-        {/* Status Banner */}
-        <div className={`mb-8 rounded-xl border-2 p-6 ${statusConfig.color} backdrop-blur-sm`}>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center space-x-4'>
-              <div className='flex size-12 items-center justify-center rounded-full bg-white/50'>
-                <StatusIcon className='size-6' />
+                <div>
+                  <h1 className='text-2xl font-bold text-gray-900'>Payment Information</h1>
+                  <p className='text-sm text-gray-500'>Order #{code}</p>
+                </div>
               </div>
-              <div>
-                <h2 className='text-xl font-bold'>{statusConfig.p}</h2>
-                <p className='text-sm opacity-80'>{statusConfig.description}</p>
-              </div>
-            </div>
-            <div className='text-right'>
-              <p className='text-sm opacity-80'>Last Updated</p>
-              <p className='font-semibold'>{formatDate(order.updated_at, true)}</p>
             </div>
           </div>
         </div>
+      ) : null}
+
+      <div className={cn('mx-auto max-w-4xl flex-1 overflow-y-scroll', !isAdmin && 'px-6 py-8')}>
+        {/* Status Banner */}
+        {!isAdmin ? (
+          <div className={`mb-8 rounded-xl border-2 p-6 ${statusConfig.color} backdrop-blur-sm`}>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center space-x-4'>
+                <div className='flex size-12 items-center justify-center rounded-full bg-white/50'>
+                  <StatusIcon className='size-6' />
+                </div>
+                <div>
+                  <h2 className='text-xl font-bold'>{statusConfig.p}</h2>
+                  <p className='text-sm opacity-80'>{statusConfig.description}</p>
+                </div>
+              </div>
+              <div className='text-right'>
+                <p className='text-sm opacity-80'>Last Updated</p>
+                <p className='font-semibold'>{formatDate(order.updated_at, true)}</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {/* Remove Tax Rate Input */}
 
         {/* AIRCommerce Payment Information - FIRST */}
-        <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
-          <CardHeader className='pb-4'>
-            <CardTitle className='flex items-center text-xl text-gray-900'>
-              <Building2 className='mr-2 size-5 text-green-600' />
-              AIRCommerce - Payment Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className='rounded-lg bg-white/80 p-6 shadow-sm'>
-              <div className='mb-4 text-center'>
-                <h3 className='text-lg font-bold text-gray-900'>Thank you for your order!</h3>
-                <p className='text-sm text-gray-600'>Please transfer the payment to the account below</p>
+        {!isAdmin ? (
+          <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
+            <CardHeader className='pb-4'>
+              <CardTitle className='flex items-center text-xl text-gray-900'>
+                <Building2 className='mr-2 size-5 text-green-600' />
+                AIRCommerce - Payment Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className='rounded-lg bg-white/80 p-6 shadow-sm'>
+                <div className='mb-4 text-center'>
+                  <h3 className='text-lg font-bold text-gray-900'>Thank you for your order!</h3>
+                  <p className='text-sm text-gray-600'>Please transfer the payment to the account below</p>
+                </div>
+                <div className='space-y-4'>
+                  <div className='rounded-lg bg-green-50 p-4'>
+                    <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+                      <div>
+                        <p className='text-sm font-medium text-gray-700'>Bank:</p>
+                        <p className='text-lg font-bold text-green-700'>TDB (Test Development Bank)</p>
+                      </div>
+                      <div>
+                        <p className='text-sm font-medium text-gray-700'>Account Number:</p>
+                        <p className='font-mono text-lg font-bold text-green-700'>123-4-56789-123</p>
+                      </div>
+                    </div>
+                    <div className='mt-3'>
+                      <p className='text-sm font-medium text-gray-700'>Account Name:</p>
+                      <p className='text-lg font-bold text-green-700'>Mr. FirstName LastName</p>
+                    </div>
+                  </div>
+                  <div className='rounded-lg bg-blue-50 p-4'>
+                    <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
+                      <div>
+                        <p className='text-sm font-medium text-gray-700'>Total Amount:</p>
+                        <p className='text-2xl font-bold text-blue-700'>{formatCurrency(grandTotal)}</p>
+                      </div>
+                      <div>
+                        <p className='text-sm font-medium text-gray-700'>Order Code:</p>
+                        <p className='font-mono text-lg font-bold text-blue-700'>#{code}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='rounded-lg bg-yellow-50 p-4'>
+                    <h4 className='mb-2 font-semibold text-yellow-800'>Payment Instructions:</h4>
+                    <ul className='space-y-1 text-sm text-yellow-700'>
+                      <li>• Transfer the exact amount shown above</li>
+                      <li>• Include your order code (#{code}) in the transfer reference</li>
+                      <li>• Take a screenshot of the transfer confirmation</li>
+                      <li>• Send the screenshot to our customer service</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
-              <div className='space-y-4'>
-                <div className='rounded-lg bg-green-50 p-4'>
-                  <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                    <div>
-                      <p className='text-sm font-medium text-gray-700'>Bank:</p>
-                      <p className='text-lg font-bold text-green-700'>TDB (Test Development Bank)</p>
-                    </div>
-                    <div>
-                      <p className='text-sm font-medium text-gray-700'>Account Number:</p>
-                      <p className='font-mono text-lg font-bold text-green-700'>123-4-56789-123</p>
-                    </div>
-                  </div>
-                  <div className='mt-3'>
-                    <p className='text-sm font-medium text-gray-700'>Account Name:</p>
-                    <p className='text-lg font-bold text-green-700'>Mr. FirstName LastName</p>
-                  </div>
-                </div>
-                <div className='rounded-lg bg-blue-50 p-4'>
-                  <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                    <div>
-                      <p className='text-sm font-medium text-gray-700'>Total Amount:</p>
-                      <p className='text-2xl font-bold text-blue-700'>{formatCurrency(grandTotal)}</p>
-                    </div>
-                    <div>
-                      <p className='text-sm font-medium text-gray-700'>Order Code:</p>
-                      <p className='font-mono text-lg font-bold text-blue-700'>#{code}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className='rounded-lg bg-yellow-50 p-4'>
-                  <h4 className='mb-2 font-semibold text-yellow-800'>Payment Instructions:</h4>
-                  <ul className='space-y-1 text-sm text-yellow-700'>
-                    <li>• Transfer the exact amount shown above</li>
-                    <li>• Include your order code (#{code}) in the transfer reference</li>
-                    <li>• Take a screenshot of the transfer confirmation</li>
-                    <li>• Send the screenshot to our customer service</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : null}
 
         {/* Customer & Order Information - SECOND */}
         <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
@@ -513,17 +619,21 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
                 Contact & Shipping Information
               </CardTitle>
               {!isEditingContact ? (
-                <Button
-                  className='flex items-center gap-2'
-                  size='sm'
-                  variant='outline'
-                  onClick={() => {
-                    setIsEditingContact(true);
-                  }}
-                >
-                  <Edit3 className='size-4' />
-                  Edit
-                </Button>
+                <>
+                  {!isAdmin && (
+                    <Button
+                      className='flex items-center gap-2'
+                      size='sm'
+                      variant='outline'
+                      onClick={() => {
+                        setIsEditingContact(true);
+                      }}
+                    >
+                      <Edit3 className='size-4' />
+                      Edit
+                    </Button>
+                  )}
+                </>
               ) : (
                 <div className='flex gap-2'>
                   <Button
@@ -771,6 +881,68 @@ const OrderDetailsClient = ({ id }: { id: string }) => {
             </CardContent>
           </Card>
         ) : null}
+
+        {/* Payment Slip Upload Section */}
+        <Card className='mb-8 border-0 bg-white/80 shadow-lg backdrop-blur-sm'>
+          <CardHeader className='pb-4'>
+            <CardTitle className='flex items-center text-xl text-gray-900'>
+              <CreditCard className='mr-2 size-5 text-blue-600' />
+              Payment Slip
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {paymentSlipUrl ? (
+              <div className='mb-4'>
+                <p className='mb-2 text-sm font-medium text-gray-700'>Current Payment Slip:</p>
+                {/* Show image or link depending on file type */}
+                {paymentSlipUrl.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+                  <Image
+                    alt='Payment Slip'
+                    className='max-h-64 rounded-lg border border-gray-200 shadow-sm'
+                    height={240}
+                    src={paymentSlipUrl}
+                    width={320}
+                  />
+                ) : (
+                  <a
+                    className='text-blue-600 underline'
+                    href={paymentSlipUrl}
+                    rel='noopener noreferrer'
+                    target='_blank'
+                  >
+                    Download Payment Slip
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className='mb-4 text-sm text-gray-500'>No payment slip uploaded yet.</p>
+            )}
+            {/* Only allow upload if not admin */}
+            {!isAdmin && (
+              <div className='flex flex-col gap-2 md:flex-row md:items-center'>
+                <input
+                  ref={fileInputRef}
+                  accept='image/*,application/pdf'
+                  className='mb-2 flex-1 rounded border border-gray-300 px-3 py-2 text-base md:mb-0'
+                  disabled={uploading}
+                  type='file'
+                  onChange={handleFileChange}
+                />
+                <Button
+                  className='ml-0 md:ml-4'
+                  disabled={uploading || !fileInput}
+                  variant='outline'
+                  onClick={() => {
+                    void handleUploadSlip();
+                  }}
+                >
+                  {uploading ? 'Uploading...' : 'Upload Payment Slip'}
+                </Button>
+              </div>
+            )}
+            {uploadError ? <p className='mt-2 text-sm text-red-600'>{uploadError}</p> : null}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

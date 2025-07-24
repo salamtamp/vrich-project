@@ -45,8 +45,7 @@ def list_orders(
     builder = builder.order_by(pagination.order_by, pagination.order)
     if campaign_id:
         builder = builder.custom_filter(campaign_id=campaign_id)
-    page = builder.paginate(pagination.limit, pagination.offset)
-    # Attach latest (not deleted) profile_contact to each order
+    page = builder.paginate(pagination.limit, pagination.offset, serializer=Order)
     for order in page.docs:
         profile_contacts = (
             order.profile.profiles_contacts

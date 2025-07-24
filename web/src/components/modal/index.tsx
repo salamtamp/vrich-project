@@ -15,6 +15,7 @@ type ModalProps = {
   title?: string;
   hideTitle?: boolean;
   closeOnOutsideClick?: boolean;
+  className?: string;
 };
 
 const Modal: FC<ModalProps> = ({
@@ -25,6 +26,7 @@ const Modal: FC<ModalProps> = ({
   title = 'Dialog',
   hideTitle = true,
   closeOnOutsideClick = true,
+  className,
 }) => {
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -41,7 +43,10 @@ const Modal: FC<ModalProps> = ({
       onOpenChange={handleOpenChange}
     >
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
-      <DialogContent data-testid='modal-container'>
+      <DialogContent
+        className={className}
+        data-testid='modal-container'
+      >
         {hideTitle ? (
           <VisuallyHidden>
             <DialogTitle>{title}</DialogTitle>

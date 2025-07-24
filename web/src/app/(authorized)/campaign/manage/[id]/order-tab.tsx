@@ -2,10 +2,9 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { useRouter } from 'next/navigation';
-
 import { Eye } from 'lucide-react';
 
+import OrderDetailsClient from '@/app/orders/[id]/OrderDetailsClient';
 import ContentPagination from '@/components/content/pagination';
 import Table, { type TableColumn } from '@/components/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
+import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Order } from '@/types/api/order';
@@ -32,7 +32,6 @@ const getOrderRowId = (row: Order) => String(row.id);
 type OrderTabProps = { campaignId: string };
 
 const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
-  const router = useRouter();
   const {
     data: orderData,
     isLoading: orderLoading,
@@ -51,6 +50,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       method: 'PUT',
     },
   });
+
+  const modal = useModalContext();
 
   // Selection state
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
@@ -100,7 +101,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       key: 'status',
       label: 'Status',
       align: 'center',
-      width: 100,
+      width: 120,
       render: (row) => (
         <Badge className={STATUS_COLORS[row.status] || 'border-gray-200 bg-gray-100 text-gray-500'}>
           {row.status?.charAt(0)?.toUpperCase() + row.status?.slice(1)}
@@ -160,7 +161,17 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
             size='sm'
             variant='outline'
             onClick={() => {
-              router.push(`/orders/${row.id}`);
+              modal.open({
+                content: (
+                  <div className='flex max-h-[600px]'>
+                    <OrderDetailsClient
+                      isAdmin
+                      id={row.id}
+                    />
+                  </div>
+                ),
+                className: 'bg-gray-200',
+              });
             }}
           >
             <Eye className='size-4' />
