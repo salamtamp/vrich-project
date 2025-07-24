@@ -1,6 +1,8 @@
 import type { Campaign } from './campaign';
 import type { Product } from './product';
 
+export type CampaignStatus = 'active' | 'inactive';
+
 export type CampaignsProduct = {
   id: string;
   campaign_id: string;
@@ -8,7 +10,7 @@ export type CampaignsProduct = {
   keyword: string;
   quantity: number;
   max_order_quantity?: number;
-  status: string;
+  status: CampaignStatus;
   created_at: string;
   updated_at?: string;
   deleted_at?: string;

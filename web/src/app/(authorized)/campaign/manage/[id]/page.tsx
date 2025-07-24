@@ -48,6 +48,7 @@ const ManageCampaignPage = () => {
             name: cp.product?.name ?? '',
             keyword: cp.keyword,
             quantity: cp.quantity,
+            status: cp.status ?? 'inactive',
           })) ?? [],
       }
     : undefined;

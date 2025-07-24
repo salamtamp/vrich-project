@@ -1,3 +1,5 @@
+import type { CampaignsProduct } from './campaigns_products';
+
 export type OrderStatus =
   | 'pending'
   | 'confirmed'
@@ -34,6 +36,7 @@ export type OrderProduct = {
   created_at: string;
   updated_at?: string;
   deleted_at?: string | null;
+  campaign_product?: CampaignsProduct | null;
 };
 
 export type Order = {

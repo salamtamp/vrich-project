@@ -9,7 +9,9 @@ from app.api.dependencies.pagination import (
     PaginationResponse,
     get_pagination_params,
 )
+from app.db.models.campaigns_products import CampaignProduct
 from app.db.models.orders import Order as OrderModel
+from app.db.models.orders_products import OrderProduct
 from app.db.repositories.orders.repo import order_repo
 from app.db.repositories.orders_products.repo import order_product_repo
 from app.db.session import get_db
@@ -27,7 +29,9 @@ def list_orders(
     builder = PaginationBuilder(OrderModel, db)
     builder.query = builder.query.options(
         joinedload(OrderModel.profile),
-        joinedload(OrderModel.orders_products),
+        joinedload(OrderModel.orders_products)
+            .joinedload(OrderProduct.campaign_product)
+            .joinedload(CampaignProduct.product),
     )
     builder = builder.filter_deleted()
     builder = builder.date_range(pagination.since, pagination.until)
@@ -35,10 +39,6 @@ def list_orders(
     builder = builder.order_by(pagination.order_by, pagination.order)
     if campaign_id:
         builder = builder.custom_filter(campaign_id=campaign_id)
-    print(
-        "[DEBUG] SQL Query:",
-        str(builder.query.statement.compile(compile_kwargs={"literal_binds": True})),
-    )
     return builder.paginate(pagination.limit, pagination.offset, serializer=Order)
 
 
@@ -51,7 +51,10 @@ def get_order(
         db.query(OrderModel)
         .options(
             joinedload(OrderModel.profile),
-            subqueryload(OrderModel.orders_products).filter_by(deleted_at=None),
+            subqueryload(OrderModel.orders_products)
+                .filter_by(deleted_at=None)
+                .joinedload(OrderProduct.campaign_product)
+                .joinedload(CampaignProduct.product),
         )
         .filter(OrderModel.id == order_id)
         .first()

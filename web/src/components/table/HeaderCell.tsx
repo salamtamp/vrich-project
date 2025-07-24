@@ -57,7 +57,7 @@ const HeaderCell = <T extends Record<string, unknown>>({
         className,
         sortable && 'cursor-pointer select-none',
         roundedClass,
-        'overflow-hidden bg-gray-200 hover:bg-gray-200'
+        'overflow-hidden bg-gray-200 py-2 hover:bg-gray-200'
       )}
       style={{
         width: width ?? column.width,

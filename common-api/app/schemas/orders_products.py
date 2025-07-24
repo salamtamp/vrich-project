@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.campaigns_products import CampaignProduct
+
 
 class OrderProductBase(BaseModel):
     order_id: UUID
@@ -28,8 +30,11 @@ class OrderProductResponse(OrderProductBase):
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None
+    campaign_product: CampaignProduct | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
 class OrderProduct(OrderProductResponse):
     pass
+
+OrderProductResponse.model_rebuild()

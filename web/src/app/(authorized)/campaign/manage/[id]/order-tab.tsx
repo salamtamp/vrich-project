@@ -66,6 +66,20 @@ const orderColumns: TableColumn<Order>[] = [
     render: (row) => row.orders_products?.length ?? 0,
   },
   {
+    key: 'total_selling_price',
+    label: 'Total Price',
+    align: 'center',
+    width: 120,
+    render: (row) => {
+      const total =
+        row.orders_products?.reduce((sum, op) => {
+          const price = op.campaign_product?.product?.selling_price ?? 0;
+          return sum + price * (op.quantity ?? 1);
+        }, 0) ?? 0;
+      return total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+  },
+  {
     key: 'purchase_date',
     label: 'Purchase Date',
     align: 'center',
@@ -86,7 +100,6 @@ const orderColumns: TableColumn<Order>[] = [
     width: 120,
     render: (row) => (row.delivery_date ? dayjs(row.delivery_date).format('YYYY-MM-DD') : '-'),
   },
-  { key: 'note', label: 'Note', width: 160 },
   {
     key: 'actions',
     label: 'Actions',
