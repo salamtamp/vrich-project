@@ -59,6 +59,10 @@ const useRequest = <T, D = object>({ request, afterRequest, defaultLoading = fal
           ...(updateRequest?.headers ?? {}),
         };
 
+        if (!isFormData) {
+          requestHeaders['Content-Type'] = 'application/json';
+        }
+
         if (session?.accessToken) {
           requestHeaders.Authorization = `Bearer ${session.accessToken}`;
         }
@@ -85,6 +89,20 @@ const useRequest = <T, D = object>({ request, afterRequest, defaultLoading = fal
             ? (updateRequest?.data ?? request.data)
             : { ...request.data, ...(updateRequest?.data ?? {}) },
         };
+
+        // Debug logging
+        console.info('=== USEREQUEST DEBUG ===');
+        console.info('isFormData:', isFormData);
+        console.info('requestUrl:', requestUrl);
+        console.info('requestHeaders:', requestHeaders);
+        console.info('updatedRequest.data:', updatedRequest.data);
+        if (updatedRequest.data instanceof FormData) {
+          console.info('FormData entries in useRequest:');
+          for (const [key, value] of updatedRequest.data.entries()) {
+            console.info(`${key}:`, value);
+          }
+        }
+        console.info('=== USEREQUEST DEBUG END ===');
 
         const response = await axiosClient<T>(updatedRequest);
 

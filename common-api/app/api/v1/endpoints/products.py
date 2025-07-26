@@ -6,6 +6,7 @@ from fastapi import (
     File,
     Form,
     HTTPException,
+    Request,
     Response,
     UploadFile,
     status,
@@ -93,8 +94,27 @@ async def upload_excel_products(
     file: UploadFile = File(...),
     skip_rows: int = Form(0),
     batch_size: int = Form(100),
+    request: Request,
 ) -> ExcelUploadResponse:
     """Upload products from Excel file."""
+    
+    # Backend debugging
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info("=== BACKEND DEBUG START ===")
+    logger.info(f"Received file: {file}")
+    logger.info(f"File filename: {file.filename}")
+    logger.info(f"File content_type: {file.content_type}")
+    logger.info(f"File size: {file.size if hasattr(file, 'size') else 'unknown'}")
+    logger.info(f"Skip rows: {skip_rows}")
+    logger.info(f"Batch size: {batch_size}")
+    
+    # Log request details
+    logger.info(f"Request method: {request.method}")
+    logger.info(f"Request URL: {request.url}")
+    logger.info("=== BACKEND DEBUG END ===")
+    
     if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
         raise HTTPException(
             status_code=400, detail="File must be an Excel file (.xlsx or .xls)"
@@ -102,6 +122,7 @@ async def upload_excel_products(
 
     try:
         file_content = await file.read()
+        logger.info(f"File content length: {len(file_content)} bytes")
 
         config = ExcelUploadConfig(
             skip_rows=skip_rows,
@@ -120,8 +141,10 @@ async def upload_excel_products(
         
         return result
     except ValueError as e:
+        logger.error(f"ValueError in upload: {e}")
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
+        logger.error(f"Exception in upload: {e}")
         raise HTTPException(
             status_code=500, detail=f"Internal server error: {e!s}"
         ) from e
