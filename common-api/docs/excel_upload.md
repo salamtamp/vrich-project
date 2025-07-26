@@ -62,7 +62,7 @@ GET /api/v1/products/upload-excel/config
   "columns": [
     {
       "column": "Code",
-      "validate": "required",
+      "validation": "required",
       "format": null,
       "db_field": "code",
       "default_value": null
@@ -95,7 +95,7 @@ Each column can be configured with the following properties:
 ### ColumnConfig Properties
 
 - `column`: Excel column name (string)
-- `validate`: Validation level ("required" | "optional")
+- `validation`: Validation level ("required" | "optional")
 - `format`: Format function name (string, optional)
 - `db_field`: Database field name (string)
 - `default_value`: Default value if field is empty (any)
@@ -188,12 +188,12 @@ curl -X POST "http://localhost:8000/api/v1/products/upload-excel" \
     "columns": [
       {
         "column": "Product Code",
-        "validate": "required",
+        "validation": "required",
         "db_field": "code"
       },
       {
         "column": "Product Name",
-        "validate": "required",
+        "validation": "required",
         "db_field": "name"
       }
     ],

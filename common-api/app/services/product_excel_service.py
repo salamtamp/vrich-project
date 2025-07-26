@@ -1,7 +1,6 @@
 import logging
 from collections.abc import Callable
 
-import pandas as pd
 from sqlalchemy.orm import Session
 
 from app.db.models.products import Product
@@ -34,71 +33,75 @@ class ProductExcelService:
         """Get default column configuration for product Excel upload."""
         return ExcelUploadConfig(
             columns=[
-                ColumnConfig(column="Code", validate="required", db_field="code"),
-                ColumnConfig(column="Name", validate="required", db_field="name"),
+                ColumnConfig(column="Code", validation="required", db_field="code"),
+                ColumnConfig(column="Name", validation="required", db_field="name"),
                 ColumnConfig(
-                    column="Description", validate="optional", db_field="description"
+                    column="Description", validation="optional", db_field="description"
                 ),
                 ColumnConfig(
                     column="Quantity",
-                    validate="optional",
+                    validation="optional",
                     format="to_int",
                     db_field="quantity",
                     default_value=0,
                 ),
-                ColumnConfig(column="Unit", validate="optional", db_field="unit"),
+                ColumnConfig(column="Unit", validation="optional", db_field="unit"),
                 ColumnConfig(
                     column="Full Price",
-                    validate="optional",
+                    validation="optional",
                     format="to_float",
                     db_field="full_price",
                     default_value=0.0,
                 ),
                 ColumnConfig(
                     column="Selling Price",
-                    validate="optional",
+                    validation="optional",
                     format="to_float",
                     db_field="selling_price",
                     default_value=0.0,
                 ),
                 ColumnConfig(
                     column="Cost",
-                    validate="optional",
+                    validation="optional",
                     format="to_float",
                     db_field="cost",
                     default_value=0.0,
                 ),
                 ColumnConfig(
                     column="Shipping Fee",
-                    validate="optional",
+                    validation="optional",
                     format="to_float",
                     db_field="shipping_fee",
                     default_value=0.0,
                 ),
-                ColumnConfig(column="Note", validate="optional", db_field="note"),
+                ColumnConfig(column="Note", validation="optional", db_field="note"),
                 ColumnConfig(
-                    column="Type", validate="optional", db_field="product_type"
+                    column="Type", validation="optional", db_field="product_type"
                 ),
                 ColumnConfig(
-                    column="Category", validate="optional", db_field="product_category"
+                    column="Category",
+                    validation="optional",
+                    db_field="product_category"
                 ),
-                ColumnConfig(column="Color", validate="optional", db_field="color"),
-                ColumnConfig(column="Size", validate="optional", db_field="size"),
+                ColumnConfig(column="Color", validation="optional", db_field="color"),
+                ColumnConfig(column="Size", validation="optional", db_field="size"),
                 ColumnConfig(
                     column="Weight",
-                    validate="optional",
+                    validation="optional",
                     format="to_float",
                     db_field="weight",
                     default_value=0.0,
                 ),
                 ColumnConfig(
-                    column="Default Keyword", validate="optional", db_field="keyword"
+                    column="Default Keyword", validation="optional", db_field="keyword"
                 ),
             ]
         )
 
     def generate_excel_template(self, config: ExcelUploadConfig | None = None) -> bytes:
         """Generate Excel template file with configured columns."""
+        import pandas as pd
+
         if config is None:
             config = self.get_default_config()
 
@@ -169,8 +172,10 @@ class ProductExcelService:
 
     def read_excel_file(
         self, file_content: bytes, config: ExcelUploadConfig
-    ) -> pd.DataFrame:
+    ):
         """Read Excel file and return DataFrame."""
+        import pandas as pd
+
         try:
             from io import BytesIO
             df = pd.read_excel(BytesIO(file_content), engine="openpyxl")
@@ -187,8 +192,10 @@ class ProductExcelService:
             logger.error(f"Error reading Excel file: {e}")
             raise ValueError(f"Failed to read Excel file: {e!s}") from e
 
-    def validate_row(self, row: pd.Series, config: ExcelUploadConfig) -> list[str]:
+    def validate_row(self, row, config: ExcelUploadConfig) -> list[str]:
         """Validate a single row against the configuration."""
+        import pandas as pd
+
         errors = []
 
         for col_config in config.columns:
@@ -197,7 +204,7 @@ class ProductExcelService:
 
             # Check required fields
             if (
-                col_config.validate == "required"
+                col_config.validation == "required"
                 and (pd.isna(value) or str(value).strip() == "")
             ):
                 errors.append(f"Required field '{column_name}' is missing or empty")
@@ -217,9 +224,11 @@ class ProductExcelService:
         return errors
 
     def row_to_product_create(
-        self, row: pd.Series, config: ExcelUploadConfig
+        self, row, config: ExcelUploadConfig
     ) -> ProductCreate:
         """Convert a DataFrame row to ProductCreate object."""
+        import pandas as pd
+
         product_data = {}
 
         for col_config in config.columns:
@@ -252,6 +261,7 @@ class ProductExcelService:
         config: ExcelUploadConfig | None = None
     ) -> ExcelUploadResponse:
         """Process Excel file upload and import products."""
+
         if config is None:
             config = self.get_default_config()
 

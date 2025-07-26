@@ -23,18 +23,18 @@ class TestProductExcelService:
     def sample_config(self):
         return ExcelUploadConfig(
             columns=[
-                ColumnConfig(column="Code", validate="required", db_field="code"),
-                ColumnConfig(column="Name", validate="required", db_field="name"),
+                ColumnConfig(column="Code", validation="required", db_field="code"),
+                ColumnConfig(column="Name", validation="required", db_field="name"),
                 ColumnConfig(
                     column="Quantity",
-                    validate="optional",
+                    validation="optional",
                     format="to_int",
                     db_field="quantity",
                     default_value=0,
                 ),
                 ColumnConfig(
                     column="Price",
-                    validate="optional",
+                    validation="optional",
                     format="to_float",
                     db_field="selling_price",
                     default_value=0.0,

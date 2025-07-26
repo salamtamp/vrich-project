@@ -63,7 +63,7 @@ class Product(ProductResponse):
 # Excel Upload Schemas
 class ColumnConfig(BaseModel):
     column: str
-    validate: Literal["required", "optional"] = "optional"
+    validation: Literal["required", "optional"] = "optional"
     format: str | None = None  # Function name as string
     db_field: str
     default_value: Any = None
