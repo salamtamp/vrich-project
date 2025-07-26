@@ -84,7 +84,14 @@ const ProductPage = () => {
 
   const columns: TableColumn<Product>[] = [
     { key: 'code', label: 'Code', bold: true, width: 120 },
-    { key: 'name', label: 'Name', width: 180 },
+    {
+      key: 'name',
+      label: 'Name',
+      width: 180,
+      render: (row) => {
+        return <div className='line-clamp-2'>{row.name}</div>;
+      },
+    },
     {
       key: 'quantity',
       label: 'Quantity',

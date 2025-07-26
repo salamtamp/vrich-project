@@ -83,7 +83,15 @@ const CampaignPage = () => {
   };
 
   const columns: TableColumn<TableRowType>[] = [
-    { key: 'name', label: 'Campaign', bold: true, width: 200 },
+    {
+      key: 'name',
+      label: 'Campaign',
+      bold: true,
+      width: 200,
+      render: (row) => {
+        return <div className='line-clamp-2'>{row.name}</div>;
+      },
+    },
     {
       key: 'channels',
       label: 'Channels',
@@ -129,7 +137,7 @@ const CampaignPage = () => {
           variant={row.status === 'active' ? 'default' : 'secondary'}
           className={
             row.status === 'active'
-              ? 'border-emerald-200 bg-emerald-100 text-emerald-700'
+              ? 'border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-100'
               : 'border-gray-200 bg-gray-100 text-gray-500'
           }
         >

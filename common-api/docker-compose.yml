@@ -17,7 +17,7 @@ services:
 
       # Security
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
-      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
 
       # CORS
       ALLOWED_HOSTS_RAW: ${ALLOWED_HOSTS_RAW:-localhost,127.0.0.1,0.0.0.0}

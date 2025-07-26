@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "REPLACE_ME")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 86400)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 10080)
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
 
     # File Upload

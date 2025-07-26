@@ -123,7 +123,7 @@ const Sidebar = () => {
       </div>
       <div className={styles.navBarContainer}>
         <div className='mt-6 h-[2px] w-full rounded-lg bg-gray-300' />
-        <div className={cn('flex flex-col px-3')}>
+        <div className={cn('flex flex-col px-3 pb-4')}>
           <button
             type='button'
             className={cn(
