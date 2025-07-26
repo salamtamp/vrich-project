@@ -9,6 +9,7 @@ import Table, { type TableColumn } from '@/components/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
+import { getStatusIcon, STATUS_COLORS, STATUS_LABELS } from '@/constants/order-status';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
@@ -209,10 +210,13 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
             {Object.entries(data.summary.order_status_breakdown).map(([status, count]) => (
               <Badge
                 key={`${status}-${crypto.randomUUID()}`}
-                className='text-sm'
+                className={`text-sm ${STATUS_COLORS[status] || ''}`}
                 variant='secondary'
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)}: {count}
+                <span className='inline-flex items-center gap-1'>
+                  {getStatusIcon(status)}
+                  {STATUS_LABELS[status] || status.charAt(0).toUpperCase() + status.slice(1)}: {count}
+                </span>
               </Badge>
             ))}
           </div>

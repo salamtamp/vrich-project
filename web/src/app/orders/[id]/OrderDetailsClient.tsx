@@ -8,7 +8,6 @@ import { LogoSmallIcon } from '@public/assets/icon';
 import {
   Building2,
   Calendar,
-  Clock,
   CreditCard,
   Edit3,
   MapPin,
@@ -24,63 +23,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
+import { getStatusIcon, STATUS_COLORS, STATUS_LABELS } from '@/constants/order-status';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
 import { cn } from '@/lib/utils';
 import type { Order, Payment } from '@/types/api/order';
-
-const STATUS_CONFIG = {
-  pending: {
-    color: 'bg-gray-100 text-gray-800 border-gray-200',
-    icon: Clock,
-    p: 'Pending',
-    description: 'Order is being processed',
-  },
-  confirmed: {
-    color: 'bg-blue-100 text-blue-800 border-blue-200',
-    icon: Receipt,
-    p: 'Confirmed',
-    description: 'Order has been confirmed',
-  },
-  paid: {
-    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    icon: CreditCard,
-    p: 'Paid',
-    description: 'Payment received',
-  },
-  approved: {
-    color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    icon: Receipt,
-    p: 'Approved',
-    description: 'Order approved for processing',
-  },
-  shipped: {
-    color: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-    icon: Package,
-    p: 'Shipped',
-    description: 'Order is on the way',
-  },
-  delivered: {
-    color: 'bg-green-100 text-green-800 border-green-200',
-    icon: MapPin,
-    p: 'Delivered',
-    description: 'Order successfully delivered',
-  },
-  cancelled: {
-    color: 'bg-red-100 text-red-800 border-red-200',
-    icon: Clock,
-    p: 'Cancelled',
-    description: 'Order has been cancelled',
-  },
-  completed: {
-    color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    icon: Receipt,
-    p: 'Completed',
-    description: 'Order completed successfully',
-  },
-} as const;
-
-type StatusKey = keyof typeof STATUS_CONFIG;
 
 const formatDate = (date?: string, includeTime = false) => {
   if (!date) {
@@ -327,8 +274,6 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
     shipping_date,
     delivery_date,
   } = order;
-  const statusConfig = STATUS_CONFIG[status as StatusKey] ?? STATUS_CONFIG.pending;
-  const StatusIcon = statusConfig.icon;
 
   // Calculations
   const totalItems = orders_products.length;
@@ -374,15 +319,19 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
       <div className={cn('mx-auto max-w-4xl flex-1 overflow-y-scroll', !isAdmin && 'px-6 py-8')}>
         {/* Status Banner */}
         {!isAdmin ? (
-          <div className={`mb-8 rounded-xl border-2 p-6 ${statusConfig.color} backdrop-blur-sm`}>
+          <div
+            className={`mb-8 rounded-xl border-2 p-6 ${STATUS_COLORS[status] || STATUS_COLORS.pending} backdrop-blur-sm`}
+          >
             <div className='flex items-center justify-between'>
               <div className='flex items-center space-x-4'>
-                <div className='flex size-12 items-center justify-center rounded-full bg-white/50'>
-                  <StatusIcon className='size-6' />
+                <div
+                  className={`flex size-12 items-center justify-center rounded-full border ${STATUS_COLORS[status]} bg-white`}
+                >
+                  {getStatusIcon(status)}
                 </div>
                 <div>
-                  <h2 className='text-xl font-bold'>{statusConfig.p}</h2>
-                  <p className='text-sm opacity-80'>{statusConfig.description}</p>
+                  <h2 className='text-xl font-bold'>{STATUS_LABELS[status] || status}</h2>
+                  <p className='text-sm opacity-80'>{STATUS_LABELS[status] || status}</p>
                 </div>
               </div>
               <div className='text-right'>

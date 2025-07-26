@@ -24,6 +24,7 @@ const config: Config = {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/screens/**/*.{js,ts,jsx,tsx,mdx}',
     './src/contexts/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/constants/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {

@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { CheckCircle, Clock, DollarSign, Eye, Package, Star, ThumbsUp, Truck, XCircle } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 import OrderDetailsClient from '@/app/orders/[id]/OrderDetailsClient';
 import ContentPagination from '@/components/content/pagination';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { API } from '@/constants/api.constant';
+import { getStatusIcon, STATUS_COLORS, STATUS_LABELS } from '@/constants/order-status';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
@@ -19,67 +20,28 @@ import type { PaginationResponse } from '@/types/api/api-response';
 import type { Order, OrderStatus } from '@/types/api/order';
 import { ORDER_PROCESS_STATUSES, ORDER_STATUSES } from '@/types/api/order';
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'border-gray-200 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700',
-  confirmed: 'border-blue-200 bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-900',
-  paid: 'border-yellow-200 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-900',
-  approved: 'border-indigo-200 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 hover:text-indigo-900',
-  shipped: 'border-cyan-200 bg-cyan-100 text-cyan-700 hover:bg-cyan-200 hover:text-cyan-900',
-  delivered: 'border-green-200 bg-green-100 text-green-700 hover:bg-green-200 hover:text-green-900',
-  cancelled: 'border-red-200 bg-red-100 text-red-700 hover:bg-red-200 hover:text-red-900',
-  completed: 'border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-900',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirm',
-  paid: 'Paid',
-  approved: 'Approve',
-  shipped: 'Ship',
-  delivered: 'Deliver',
-  cancelled: 'Cancel',
-  completed: 'Complete',
-};
-
 const getOrderRowId = (row: Order) => String(row.id);
 type OrderTabProps = { campaignId: string };
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'confirmed':
-      return <ThumbsUp className='size-4' />;
-    case 'paid':
-      return <DollarSign className='size-4' />;
-    case 'approved':
-      return <CheckCircle className='size-4' />;
-    case 'shipped':
-      return <Truck className='size-4' />;
-    case 'delivered':
-      return <Package className='size-4' />;
-    case 'cancelled':
-      return <XCircle className='size-4' />;
-    case 'completed':
-      return <Star className='size-4' />;
-    default:
-      return <Clock className='size-4' />;
-  }
-};
 
 const StatusLegend = () => (
   <div className='mb-4 rounded-lg border bg-white p-4'>
     <h3 className='mb-3 text-sm font-semibold text-gray-700'>Order Status</h3>
     <div className='grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8'>
-      {ORDER_STATUSES.map((status) => (
-        <div
-          key={status}
-          className='flex items-center gap-2'
-        >
-          <Badge className={STATUS_COLORS[status] || 'border-gray-200 bg-gray-100 text-gray-500'}>
-            {getStatusIcon(status)}
-          </Badge>
-          <span className='text-xs text-gray-600'>{STATUS_LABELS[status] || status}</span>
-        </div>
-      ))}
+      {ORDER_STATUSES.map((status) => {
+        return (
+          <div
+            key={status}
+            className='flex items-center gap-2'
+          >
+            <Badge className={STATUS_COLORS[status] || 'border-gray-200 bg-gray-100'}>
+              <span className='inline-flex items-center gap-1'>
+                {getStatusIcon(status)}
+                {STATUS_LABELS[status] || status}
+              </span>
+            </Badge>
+          </div>
+        );
+      })}
     </div>
   </div>
 );
@@ -185,24 +147,6 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
     setSelectedOrderIds([]);
   };
 
-  const getButtonColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'border-blue-200 bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'paid':
-        return 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'approved':
-        return 'border-indigo-200 bg-indigo-100 text-indigo-800 hover:bg-indigo-200';
-      case 'shipped':
-        return 'border-cyan-200 bg-cyan-100 text-cyan-800 hover:bg-cyan-200';
-      case 'delivered':
-        return 'border-green-200 bg-green-100 text-green-800 hover:bg-green-200';
-      case 'completed':
-        return 'border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200';
-      default:
-        return 'border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200';
-    }
-  };
   const hindButton = selectedStatus === 'confirmed' || selectedStatus === 'completed';
 
   const orderColumns: TableColumn<Order>[] = [
@@ -281,7 +225,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
             getNextOrderStatus(row.status) &&
             !hindButtonByData ? (
               <Button
-                className={getButtonColor(getNextOrderStatus(row.status) ?? '')}
+                className={STATUS_COLORS[getNextOrderStatus(row.status) ?? '']}
                 disabled={isBatchUpdating}
                 size='sm'
                 variant='outline'
@@ -375,7 +319,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
         {onApproveSelected && approveButtonLabel && !hindButton && nextStatus ? (
           <div className='mb-2 flex justify-end'>
             <Button
-              className={getButtonColor(nextStatus)}
+              className={STATUS_COLORS[getNextOrderStatus(nextStatus) ?? '']}
               disabled={selectedOrderIds.length === 0}
               variant='outline'
               onClick={onApproveSelected}
