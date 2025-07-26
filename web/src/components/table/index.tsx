@@ -64,7 +64,7 @@ const Table = <T extends Record<string, unknown>>({
     const totalColumns = displayColumns.length;
     return displayColumns.map((column) => {
       if (typeof column.width === 'number') {
-        return `${column.width * 0.8}px`;
+        return `${column.width * 0.7}px`;
       }
       // If no width specified, distribute equally
       return `${100 / totalColumns}%`;

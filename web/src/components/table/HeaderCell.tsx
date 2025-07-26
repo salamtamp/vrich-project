@@ -7,6 +7,18 @@ import { TableHead } from '@/components/ui/table';
 
 import type { TableColumn } from './types';
 
+const getJustifyContent = (headerAlign?: string): string => {
+  switch (headerAlign) {
+    case 'center':
+      return 'center';
+    case 'right':
+      return 'flex-end';
+    case undefined:
+    default:
+      return 'flex-start';
+  }
+};
+
 type HeaderCellProps<T extends Record<string, unknown>> = {
   index: number;
   lastIndex: number;
@@ -26,7 +38,7 @@ const HeaderCell = <T extends Record<string, unknown>>({
   onSort,
   width, // Accept width prop
 }: HeaderCellProps<T>) => {
-  const { key, label, sortable, className, headerAlign, align } = column;
+  const { key, label, sortable, className, headerAlign } = column;
 
   let sortIcon: React.ReactNode = null;
   if (sortable) {
@@ -63,7 +75,6 @@ const HeaderCell = <T extends Record<string, unknown>>({
         width: width ?? column.width,
         minWidth: width ?? column.width,
         maxWidth: width ?? column.width,
-        textAlign: headerAlign ?? align ?? 'left',
       }}
       onClick={
         sortable && onSort
@@ -73,7 +84,12 @@ const HeaderCell = <T extends Record<string, unknown>>({
           : undefined
       }
     >
-      <span className='flex items-center gap-1'>
+      <span
+        className='flex items-center gap-1'
+        style={{
+          justifyContent: getJustifyContent(headerAlign),
+        }}
+      >
         <span>{label}</span>
         {sortIcon}
       </span>

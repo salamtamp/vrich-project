@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 
-import { Eye } from 'lucide-react';
+import { CheckCircle, Clock, DollarSign, Eye, Package, Star, ThumbsUp, Truck, XCircle } from 'lucide-react';
 
 import OrderDetailsClient from '@/app/orders/[id]/OrderDetailsClient';
 import ContentPagination from '@/components/content/pagination';
@@ -30,8 +30,59 @@ const STATUS_COLORS: Record<string, string> = {
   completed: 'border-emerald-200 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 hover:text-emerald-900',
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  confirmed: 'Confirm',
+  paid: 'Paid',
+  approved: 'Approve',
+  shipped: 'Ship',
+  delivered: 'Deliver',
+  cancelled: 'Cancel',
+  completed: 'Complete',
+};
+
 const getOrderRowId = (row: Order) => String(row.id);
 type OrderTabProps = { campaignId: string };
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'confirmed':
+      return <ThumbsUp className='size-4' />;
+    case 'paid':
+      return <DollarSign className='size-4' />;
+    case 'approved':
+      return <CheckCircle className='size-4' />;
+    case 'shipped':
+      return <Truck className='size-4' />;
+    case 'delivered':
+      return <Package className='size-4' />;
+    case 'cancelled':
+      return <XCircle className='size-4' />;
+    case 'completed':
+      return <Star className='size-4' />;
+    default:
+      return <Clock className='size-4' />;
+  }
+};
+
+const StatusLegend = () => (
+  <div className='mb-4 rounded-lg border bg-white p-4'>
+    <h3 className='mb-3 text-sm font-semibold text-gray-700'>Order Status</h3>
+    <div className='grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8'>
+      {ORDER_STATUSES.map((status) => (
+        <div
+          key={status}
+          className='flex items-center gap-2'
+        >
+          <Badge className={STATUS_COLORS[status] || 'border-gray-200 bg-gray-100 text-gray-500'}>
+            {getStatusIcon(status)}
+          </Badge>
+          <span className='text-xs text-gray-600'>{STATUS_LABELS[status] || status}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -112,10 +163,47 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
     [handleBatchStatusUpdate, handleOrderRequest, selectedOrderIds, selectedStatus, canBatchApprove]
   );
 
+  const handleSingleStatusUpdate = useMemo(
+    () => async (orderId: string, currentStatus: OrderStatus) => {
+      const nextStatus = getNextOrderStatus(currentStatus);
+      if (!nextStatus) {
+        return;
+      }
+      try {
+        await handleBatchStatusUpdate({ data: { ids: [orderId], status: nextStatus } });
+      } catch {
+        console.error('Failed to update order status.');
+      } finally {
+        void handleOrderRequest();
+      }
+    },
+    [handleBatchStatusUpdate, handleOrderRequest]
+  );
+
   const handleStatusFilterChange = (value: string) => {
     setSelectedStatus(value);
     setSelectedOrderIds([]);
   };
+
+  const getButtonColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'border-blue-200 bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'paid':
+        return 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      case 'approved':
+        return 'border-indigo-200 bg-indigo-100 text-indigo-800 hover:bg-indigo-200';
+      case 'shipped':
+        return 'border-cyan-200 bg-cyan-100 text-cyan-800 hover:bg-cyan-200';
+      case 'delivered':
+        return 'border-green-200 bg-green-100 text-green-800 hover:bg-green-200';
+      case 'completed':
+        return 'border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200';
+      default:
+        return 'border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
+  };
+  const hindButton = selectedStatus === 'confirmed' || selectedStatus === 'completed';
 
   const orderColumns: TableColumn<Order>[] = [
     {
@@ -133,7 +221,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       width: 120,
       render: (row) => (
         <Badge className={STATUS_COLORS[row.status] || 'border-gray-200 bg-gray-100 text-gray-500'}>
-          {row.status?.charAt(0)?.toUpperCase() + row.status?.slice(1)}
+          {STATUS_LABELS[row.status] || row.status}
         </Badge>
       ),
     },
@@ -183,30 +271,52 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       key: 'actions',
       label: 'Actions',
       align: 'center',
-      width: 80,
-      render: (row) => (
-        <div className='flex items-center justify-center gap-2'>
-          <Button
-            size='sm'
-            variant='outline'
-            onClick={() => {
-              modal.open({
-                content: (
-                  <div className='flex max-h-[600px]'>
-                    <OrderDetailsClient
-                      isAdmin
-                      id={row.id}
-                    />
-                  </div>
-                ),
-                className: 'bg-gray-200',
-              });
-            }}
-          >
-            <Eye className='size-4' />
-          </Button>
-        </div>
-      ),
+      headerAlign: 'center',
+      width: 180,
+      render: (row) => {
+        const hindButtonByData = row.status === 'confirmed' || row.status === 'completed';
+        return (
+          <div className='flex items-center justify-center gap-2'>
+            {ORDER_PROCESS_STATUSES.includes(row.status) &&
+            getNextOrderStatus(row.status) &&
+            !hindButtonByData ? (
+              <Button
+                className={getButtonColor(getNextOrderStatus(row.status) ?? '')}
+                disabled={isBatchUpdating}
+                size='sm'
+                variant='outline'
+                onClick={() => {
+                  const nextStatus = getNextOrderStatus(row.status);
+                  if (nextStatus) {
+                    void handleSingleStatusUpdate(row.id, row.status);
+                  }
+                }}
+              >
+                {getStatusIcon(getNextOrderStatus(row.status) ?? '')}
+              </Button>
+            ) : null}
+            <Button
+              size='sm'
+              variant='outline'
+              onClick={() => {
+                modal.open({
+                  content: (
+                    <div className='flex max-h-[600px]'>
+                      <OrderDetailsClient
+                        isAdmin
+                        id={row.id}
+                      />
+                    </div>
+                  ),
+                  className: 'bg-gray-200',
+                });
+              }}
+            >
+              <Eye className='size-4' />
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -219,33 +329,12 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
   const nextStatus = selectedStatus !== 'all' ? getNextOrderStatus(selectedStatus as OrderStatus) : undefined;
 
   const approveButtonLabel =
-    canBatchApprove && nextStatus ? nextStatus.charAt(0).toUpperCase() + nextStatus.slice(1) : undefined;
-
-  const getButtonColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'border-blue-200 bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'paid':
-        return 'border-yellow-200 bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'approved':
-        return 'border-indigo-200 bg-indigo-100 text-indigo-800 hover:bg-indigo-200';
-      case 'shipped':
-        return 'border-cyan-200 bg-cyan-100 text-cyan-800 hover:bg-cyan-200';
-      case 'delivered':
-        return 'border-green-200 bg-green-100 text-green-800 hover:bg-green-200';
-      case 'completed':
-        return 'border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-200';
-      default:
-        return 'border-gray-200 bg-gray-100 text-gray-800 hover:bg-gray-200';
-    }
-  };
-
-  const hindButton = selectedStatus === 'confirmed' || selectedStatus === 'completed';
+    canBatchApprove && nextStatus ? STATUS_LABELS[nextStatus] || nextStatus : undefined;
 
   return (
     <div className='flex size-full flex-col gap-1 overflow-hidden'>
-      {/* Status Filter */}
-      <div className='my-2 flex items-center justify-between gap-4 rounded-lg border-b bg-gray-100 px-4 py-2'>
+      <StatusLegend />
+      <div className='mb-2 flex items-center justify-between gap-4'>
         <div className='flex items-center gap-4'>
           <Select
             value={selectedStatus}
@@ -254,7 +343,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
             <SelectTrigger className='w-[180px]'>
               <SelectValue>
                 {selectedStatus && selectedStatus !== 'all'
-                  ? selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)
+                  ? STATUS_LABELS[selectedStatus] || selectedStatus
                   : 'All Status'}
               </SelectValue>
             </SelectTrigger>
@@ -265,7 +354,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
                   key={status}
                   value={status}
                 >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                  {STATUS_LABELS[status] || status}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -291,7 +380,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
               variant='outline'
               onClick={onApproveSelected}
             >
-              {approveButtonLabel}
+              {getStatusIcon(nextStatus)}
+              <span className='ml-2'>{approveButtonLabel}</span>
             </Button>
           </div>
         ) : null}
