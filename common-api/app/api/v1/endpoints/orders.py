@@ -136,7 +136,20 @@ def batch_update_order_status(
             and getattr(order.profile, "facebook_id", None)
         ):
             facebook_scheduler.send_template_message(
-                order.profile.facebook_id, str(order.id)
+                order.profile.facebook_id,
+                str(order.id),
+                template_text="กดปุ่มด้านล่างเพื่อดูออเดอร์/แจ้งโอนเงิน",
+            )
+        if (
+            order.status == "approved"
+            and prev_status != "approved"
+            and order.profile
+            and getattr(order.profile, "facebook_id", None)
+        ):
+            facebook_scheduler.send_template_message(
+                order.profile.facebook_id,
+                str(order.id),
+                template_text="ออเดอร์ของคุณได้รับการอนุมัติแล้ว กรุณาตรวจสอบรายละเอียด",
             )
         result_orders.append(order)
     return result_orders
@@ -159,7 +172,21 @@ def update_order(
         and getattr(updated_order.profile, "facebook_id", None)
     ):
         facebook_scheduler.send_template_message(
-            updated_order.profile.facebook_id, str(updated_order.id)
+            updated_order.profile.facebook_id,
+            str(updated_order.id),
+            template_text="กดปุ่มด้านล่างเพื่อดูออเดอร์/แจ้งโอนเงิน",
+        )
+    # Send template message if status changed to approved
+    if (
+        order_in.status == "approved"
+        and prev_status != "approved"
+        and updated_order.profile
+        and getattr(updated_order.profile, "facebook_id", None)
+    ):
+        facebook_scheduler.send_template_message(
+            updated_order.profile.facebook_id,
+            str(updated_order.id),
+            template_text="ออเดอร์ของคุณได้รับการอนุมัติแล้ว กรุณาตรวจสอบรายละเอียด",
         )
     return updated_order
 

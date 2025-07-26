@@ -81,14 +81,14 @@ def stop_comments_scheduler(post_ids: list[str]) -> bool:
         return False
 
 
-def send_template_message(recipient_id: str, order_id: str) -> bool:
+def send_template_message(recipient_id: str, order_id: str, template_text: str) -> bool:
     url = f"{SCHEDULER_BASE_URL}/api/v1/messengers/send-template-message"
     web_url = f"{WEB_BASE_URL}/orders/{order_id}"
     payload = {
         "recipient_id": recipient_id,
         "template": {
             "template_type": "button",
-            "text": "กดปุ่มด้านล่างเพื่อดูออเดอร์/แจ้งโอนเงิน",
+            "text": template_text,
             "buttons": [{"type": "web_url", "url": web_url, "title": "ดูออเดอร์"}],
         },
     }
