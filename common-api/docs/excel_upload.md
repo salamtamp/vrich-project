@@ -26,6 +26,26 @@ The Excel upload feature allows users to bulk import products from Excel files (
 - Supported formats: `.xlsx`, `.xls`
 - The system uses OpenPyXL engine for reading Excel files
 
+### Header Structure
+The system supports flexible header structures:
+
+1. **Single Header Row**: Standard Excel with one header row
+2. **Multiple Header Rows**: Headers in row 1, additional rows in row 2+ (skipped)
+
+**Example Structure:**
+```
+Row 1: Code | Name | Description | Quantity | Unit | Full Price | ... (headers)
+Row 2: PROD001 | Product 1 | Description 1 | 100 | pcs | 599.00 | ... (data)
+Row 3: PROD002 | Product 2 | Description 2 | 200 | pcs | 699.00 | ... (data)
+```
+
+**With skip_rows=1:**
+```
+Row 1: Code | Name | Description | Quantity | Unit | Full Price | ... (headers)
+Row 2: [SKIPPED] | [SKIPPED] | [SKIPPED] | [SKIPPED] | [SKIPPED] | [SKIPPED] | ... (skipped)
+Row 3: PROD001 | Product 1 | Description 1 | 100 | pcs | 599.00 | ... (data)
+```
+
 ## API Endpoints
 
 ### 1. Upload Excel File
@@ -35,7 +55,6 @@ POST /api/v1/products/upload-excel
 
 **Parameters:**
 - `file`: Excel file (.xlsx, .xls) - **Required**
-- `skip_header`: Boolean - **Optional** (default: `false`)
 - `skip_rows`: Integer - **Optional** (default: `0`)
 - `batch_size`: Integer - **Optional** (default: `100`)
 
@@ -47,7 +66,6 @@ curl -X POST "http://localhost:8000/api/v1/products/upload-excel" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@products.xlsx" \
   -F "skip_rows=1" \
-  -F "skip_header=true" \
   -F "batch_size=50"
 ```
 
@@ -95,22 +113,21 @@ GET /api/v1/products/upload-excel/config
   "columns": [
     {
       "column": "Code",
-      "validation": "required",
+      "validation": "required,unique",
       "format": null,
       "db_field": "code",
       "default_value": null
     },
     {
       "column": "Name",
-      "validation": "required",
+      "validation": "required,min_length:2",
       "format": null,
       "db_field": "name",
       "default_value": null
     }
   ],
-  "skip_header": true,
-  "skip_rows": 0,
-  "batch_size": 100
+  "skip_rows": null,
+  "batch_size": null
 }
 ```
 
@@ -136,9 +153,13 @@ POST /api/v1/products/upload-excel/config
 The `ExcelUploadConfig` now supports flexible configuration where all fields are optional:
 
 - `columns`: List of column configurations (optional, uses default if not provided)
-- `skip_header`: Whether to skip the first row as header (optional, defaults to `true`)
 - `skip_rows`: Number of additional rows to skip after header (optional, defaults to `0`)
 - `batch_size`: Number of rows to process in each batch (optional, defaults to `100`)
+
+**How it works:**
+1. The first row is always used as column headers
+2. Additional rows specified by `skip_rows` are skipped after the header row
+3. Validation rules work with the column names from the first row
 
 **Examples:**
 
@@ -160,8 +181,7 @@ The `ExcelUploadConfig` now supports flexible configuration where all fields are
    ```json
    {
      "skip_rows": 1,
-     "batch_size": 50,
-     "skip_header": false
+     "batch_size": 50
    }
    ```
 

@@ -51,56 +51,56 @@ class TestProductExcelService:
         assert any(col.column == "Name" for col in config.columns)
 
     def test_read_excel_file(self, service, sample_config):
-        # Create sample Excel data with headers
-        data = {
-            "Code": ["PROD001", "PROD002"],
-            "Name": ["Product 1", "Product 2"],
-            "Quantity": [10, 20],
-            "Price": [100.50, 200.75]
-        }
+        # Create sample Excel data with headers as first row
+        data = [
+            ["Code", "Name", "Quantity", "Price"],  # Headers
+            ["PROD001", "Product 1", 10, 100.50],   # Data row 1
+            ["PROD002", "Product 2", 20, 200.75]    # Data row 2
+        ]
         df = pd.DataFrame(data)
 
         # Save to bytes
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False)
+            df.to_excel(writer, index=False, header=False)
         output.seek(0)
         file_content = output.getvalue()
 
         # Test reading
         result_df = service.read_excel_file(file_content, sample_config)
-        # With skip_header=False, we get 2 data rows
+        # Now we always use first row as headers, so we get 2 data rows
         assert len(result_df) == 2
         assert "Code" in result_df.columns
         assert "Name" in result_df.columns
+        assert result_df.iloc[0]["Code"] == "PROD001"
+        assert result_df.iloc[1]["Code"] == "PROD002"
 
     def test_read_excel_file_with_skip_rows(self, service, sample_config):
-        # Create sample Excel data with English headers, Thai headers, and data
-        data = {
-            "Code": ["Code", "รหัสสินค้า", "PROD001", "PROD002"],
-            "Name": ["Name", "ชื่อสินค้า", "Product 1", "Product 2"],
-            "Quantity": ["Quantity", "จำนวน", "10", "20"],
-            "Price": ["Price", "ราคา", "100.50", "200.75"]
-        }
+        # Create sample Excel data with headers and data
+        data = [
+            ["Code", "Name", "Quantity", "Price"],  # Headers
+            ["SKIP1", "Skip1", "1", "1.00"],       # Row to skip
+            ["PROD001", "Product 1", 10, 100.50],   # Data row 1
+            ["PROD002", "Product 2", 20, 200.75]    # Data row 2
+        ]
         df = pd.DataFrame(data)
 
         # Save to bytes
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, sheet_name="TestSheet", index=False)
+            df.to_excel(writer, sheet_name="TestSheet", index=False, header=False)
         output.seek(0)
         file_content = output.getvalue()
 
-        # Test reading with skip_header=True and skip_rows=1 (skip Thai header row)
+        # Test reading with skip_rows=1 (skip one row)
         config_with_skip = ExcelUploadConfig(
             columns=sample_config.columns,
-            skip_header=True,
-            skip_rows=1,  # Skip 1 additional row (Thai headers)
+            skip_rows=1,  # Skip 1 additional row
             batch_size=100,
         )
 
         result_df = service.read_excel_file(file_content, config_with_skip)
-        # Should get 2 data rows (PROD001, PROD002), skipping English and Thai headers
+        # Should get 2 data rows (PROD001, PROD002), skipping one row
         assert len(result_df) == 2
         assert "Code" in result_df.columns
         assert "Name" in result_df.columns
@@ -151,11 +151,10 @@ class TestProductExcelService:
         assert len(template_bytes) > 0
 
     def test_generate_excel_template_with_skip_rows(self, service, sample_config):
-        # Test template generation with skip_rows=1 (Thai headers)
+        # Test template generation with skip_rows=1
         config_with_skip = ExcelUploadConfig(
             columns=sample_config.columns,
-            skip_header=True,
-            skip_rows=1,  # Include Thai header row
+            skip_rows=1,  # Skip additional rows
             batch_size=100,
         )
 
@@ -163,32 +162,31 @@ class TestProductExcelService:
         assert isinstance(template, bytes)
         assert len(template) > 0
 
-        # Verify the template contains both English and Thai headers
+        # Verify the template contains sample data
         from io import BytesIO
 
         import pandas as pd
 
         df = pd.read_excel(BytesIO(template), engine="openpyxl")
-        # Should have 3 rows: English headers, Thai headers, and sample data
-        assert len(df) >= 3
+        # Should have at least 1 row with sample data
+        assert len(df) >= 1
 
     @patch('app.db.repositories.products.repo.product_repo')
     def test_process_excel_upload_success(
         self, mock_repo, service, mock_db, sample_config
     ):
-        # Create sample Excel data with headers
-        data = {
-            "Code": ["PROD001", "PROD002"],
-            "Name": ["Product 1", "Product 2"],
-            "Quantity": [10, 20],
-            "Price": [100.50, 200.75]
-        }
+        # Create sample Excel data with headers as first row
+        data = [
+            ["Code", "Name", "Quantity", "Price"],  # Headers
+            ["PROD001", "Product 1", 10, 100.50],   # Data row 1
+            ["PROD002", "Product 2", 20, 200.75]    # Data row 2
+        ]
         df = pd.DataFrame(data)
 
         # Save to bytes
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, sheet_name="DataSheet", index=False)
+            df.to_excel(writer, sheet_name="DataSheet", index=False, header=False)
         output.seek(0)
         file_content = output.getvalue()
 
@@ -198,7 +196,7 @@ class TestProductExcelService:
         # Test upload
         result = service.process_excel_upload(mock_db, file_content, sample_config)
 
-        # With skip_header=False, we get 2 data rows
+        # Now we always use first row as headers, so we get 2 data rows
         assert result.total_rows == 2
         assert result.successful_imports == 2
         assert result.failed_imports == 0
@@ -209,18 +207,17 @@ class TestProductExcelService:
         self, mock_repo, service, mock_db, sample_config
     ):
         # Create sample Excel data with headers and duplicate code
-        data = {
-            "Code": ["PROD001", "PROD001"],
-            "Name": ["Product 1", "Product 2"],
-            "Quantity": [10, 20],
-            "Price": [100.50, 200.75]
-        }
+        data = [
+            ["Code", "Name", "Quantity", "Price"],  # Headers
+            ["PROD001", "Product 1", 10, 100.50],   # Data row 1
+            ["PROD001", "Product 2", 20, 200.75]    # Data row 2 (duplicate code)
+        ]
         df = pd.DataFrame(data)
 
         # Save to bytes
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, sheet_name="DuplicateSheet", index=False)
+            df.to_excel(writer, sheet_name="DuplicateSheet", index=False, header=False)
         output.seek(0)
         file_content = output.getvalue()
 
@@ -233,7 +230,7 @@ class TestProductExcelService:
         # Test upload
         result = service.process_excel_upload(mock_db, file_content, sample_config)
 
-        # With skip_header=False, we get 2 data rows
+        # Now we always use first row as headers, so we get 2 data rows
         assert result.total_rows == 2
         assert result.successful_imports == 1
         assert result.failed_imports == 1

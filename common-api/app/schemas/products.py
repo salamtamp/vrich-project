@@ -111,7 +111,6 @@ class ColumnConfig(BaseModel):
 
 class ExcelUploadConfig(BaseModel):
     columns: list[ColumnConfig] | None = None
-    skip_header: bool | None = None
     skip_rows: int | None = None  # Number of additional rows to skip after header
     batch_size: int | None = None
 

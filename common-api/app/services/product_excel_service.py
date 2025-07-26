@@ -128,43 +128,8 @@ class ProductExcelService:
             else:
                 sample_data[col_config.column] = ""
 
-        # Create template with multiple header rows if skip_rows > 0
-        if merged_config.skip_rows and merged_config.skip_rows > 0:
-            # Create DataFrame with English headers (first row)
-            df_english = pd.DataFrame([columns], columns=columns)
-
-            # Create DataFrame with Thai headers (second row)
-            thai_headers = {
-                "Code": "รหัสสินค้า",
-                "Name": "ชื่อสินค้า",
-                "Description": "รายละเอียดสินค้า",
-                "Quantity": "จำนวน",
-                "Unit": "หน่วย",
-                "Full Price": "ราคาเต็ม",
-                "Selling Price": "ราคาขาย",
-                "Cost": "ต้นทุน",
-                "Profit": "กำไร",
-                "Shipping Fee": "ค่าส่ง",
-                "Note": "หมายเหตุ",
-                "Type": "ประเภทของสินค้า",
-                "Category": "กลุ่มของสินค้า",
-                "Color": "สี",
-                "Size": "ไซส์",
-                "Weight": "น้ำหนัก",
-                "Default Keyword": "คีย์เวิร์ด"
-            }
-
-            thai_row = [thai_headers.get(col, col) for col in columns]
-            df_thai = pd.DataFrame([thai_row], columns=columns)
-
-            # Create DataFrame with sample data (third row)
-            df_sample = pd.DataFrame([sample_data])
-
-            # Combine all rows
-            df_final = pd.concat([df_english, df_thai, df_sample], ignore_index=True)
-        else:
-            # Standard template with just English headers and sample data
-            df_final = pd.DataFrame([sample_data])
+        # Create template with headers and sample data
+        df_final = pd.DataFrame([sample_data])
 
         # Create Excel file in memory
         from io import BytesIO
@@ -197,12 +162,11 @@ class ProductExcelService:
                 engine="openpyxl"
             )
 
-            if config.skip_header:
-                # Use first row as header
-                df.columns = df.iloc[0]
-                # Skip the header row (row 0) plus any additional rows specified
-                start_row = 1 + config.skip_rows
-                df = df.iloc[start_row:].reset_index(drop=True)
+            # Skip additional rows if specified
+            if config.skip_rows and config.skip_rows > 0:
+                df = df.iloc[config.skip_rows:].reset_index(drop=True)
+            
+
 
             return df
         except Exception as e:
@@ -286,10 +250,6 @@ class ProductExcelService:
                 config.columns if config.columns is not None
                 else default_config.columns
             ),
-            skip_header=(
-                config.skip_header if config.skip_header is not None
-                else default_config.skip_header
-            ),
             skip_rows=(
                 config.skip_rows if config.skip_rows is not None
                 else default_config.skip_rows
@@ -298,6 +258,7 @@ class ProductExcelService:
                 config.batch_size if config.batch_size is not None
                 else default_config.batch_size
             ),
+
         )
 
     def process_excel_upload(

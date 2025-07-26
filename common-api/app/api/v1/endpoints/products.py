@@ -91,7 +91,6 @@ async def upload_excel_products(
     *,
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
-    skip_header: bool = Form(True),
     skip_rows: int = Form(0),
     batch_size: int = Form(100),
 ) -> ExcelUploadResponse:
@@ -106,7 +105,6 @@ async def upload_excel_products(
         file_content = await file.read()
         
         config = ExcelUploadConfig(
-            skip_header=skip_header,
             skip_rows=skip_rows,
             batch_size=batch_size,
         )
