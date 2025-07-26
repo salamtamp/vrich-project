@@ -14,6 +14,7 @@ export const API = {
   CAMPAIGN_WITH_PRODUCTS_POST: '/api/v1/campaigns/with-products',
   CAMPAIGN_WITH_PRODUCTS_PUT: (id: string) => `/api/v1/campaigns/with-products/${id}`,
   PRODUCTS: '/api/v1/products',
+  PRODUCTS_UPLOAD_EXCEL: '/api/v1/products/upload-excel',
   CAMPAIGNS_PRODUCTS: '/api/v1/campaigns-products',
   ORDER: '/api/v1/orders',
   PAYMENT: '/api/v1/payments',

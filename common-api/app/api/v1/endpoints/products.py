@@ -95,54 +95,33 @@ async def upload_excel_products(
     batch_size: int = Form(100),
 ) -> ExcelUploadResponse:
     """Upload products from Excel file."""
-    if not file.filename or not file.filename.lower().endswith(('.xlsx', '.xls')):
+    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
         raise HTTPException(
-            status_code=400,
-            detail="File must be an Excel file (.xlsx or .xls)"
+            status_code=400, detail="File must be an Excel file (.xlsx or .xls)"
         )
 
     try:
         file_content = await file.read()
-        
+
         config = ExcelUploadConfig(
             skip_rows=skip_rows,
             batch_size=batch_size,
         )
+
+        result = product_excel_service.process_excel_upload(db, file_content, config)
         
-        return product_excel_service.process_excel_upload(db, file_content, config)
+        # If there are any failed imports, return 400 status code
+        if result.failed_imports > 0:
+            from fastapi.responses import JSONResponse
+            return JSONResponse(
+                status_code=400,
+                content=result.model_dump()
+            )
+        
+        return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Internal server error: {e!s}"
-        ) from e
-
-
-@router.get("/upload-excel/config", response_model=ExcelUploadConfig)
-def get_excel_upload_config() -> ExcelUploadConfig:
-    """Get default Excel upload configuration."""
-    return product_excel_service.get_default_config()
-
-
-@router.post("/upload-excel/config", response_model=ExcelUploadConfig)
-def update_excel_upload_config(config: ExcelUploadConfig) -> ExcelUploadConfig:
-    """Update Excel upload configuration."""
-    return config
-
-
-@router.get("/upload-excel/template")
-def download_excel_template(config: ExcelUploadConfig | None = None) -> Response:
-    """Download Excel template file."""
-    try:
-        excel_content = product_excel_service.generate_excel_template(config)
-        return Response(
-            content=excel_content,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={
-                "Content-Disposition": "attachment; filename=product_template.xlsx"
-            }
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to generate template: {e!s}"
         ) from e

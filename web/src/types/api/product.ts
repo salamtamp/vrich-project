@@ -26,3 +26,14 @@ export type ProductCreate = Omit<Product, 'id' | 'created_at' | 'updated_at' | '
 export type ProductUpdate = Partial<Omit<Product, 'id' | 'created_at' | 'updated_at' | 'deleted_at'>>;
 
 export type ProductResponse = Product;
+
+export type ExcelUploadResponse = {
+  total_rows: number;
+  successful_imports: number;
+  failed_imports: number;
+  errors: Array<{
+    row: number;
+    errors: string[];
+  }>;
+  message: string;
+};

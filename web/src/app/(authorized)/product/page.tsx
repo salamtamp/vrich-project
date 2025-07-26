@@ -19,8 +19,11 @@ import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Product } from '@/types/api/product';
 
+import ExcelUploadModal from './excel-upload-modal';
+
 const ProductPage = () => {
   const router = useRouter();
+
   const {
     data,
     isLoading,
@@ -145,15 +148,22 @@ const ProductPage = () => {
     <Card className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
       <div className='flex flex-row items-center justify-between p-0'>
         <CardTitle className='text-lg-semibold text-blue-700'>Products</CardTitle>
-        <Button
-          className='rounded-lg border-blue-100 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-none hover:bg-blue-100 hover:text-blue-800'
-          variant='outline'
-          onClick={handleGoToCreateProduct}
-        >
-          <div className='flex items-center gap-2 text-blue-700'>
-            <Plus className='size-4' /> Create Product
-          </div>
-        </Button>
+        <div className='flex gap-2'>
+          <ExcelUploadModal
+            onSuccess={() => {
+              void handlePaginatedRequest();
+            }}
+          />
+          <Button
+            className='rounded-lg border-blue-100 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-none hover:bg-blue-100 hover:text-blue-800'
+            variant='outline'
+            onClick={handleGoToCreateProduct}
+          >
+            <div className='flex items-center gap-2 text-blue-700'>
+              <Plus className='size-4' /> Create Product
+            </div>
+          </Button>
+        </div>
       </div>
       <div className='mt-4 flex flex-1 flex-col gap-4 overflow-hidden'>
         <Table

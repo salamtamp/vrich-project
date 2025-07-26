@@ -1,0 +1,135 @@
+.uploadTriggerButton {
+  @apply rounded-lg border-green-100 bg-green-50 px-4 py-2 font-medium text-green-700 shadow-none hover:bg-green-100 hover:text-green-800;
+}
+
+.uploadIcon {
+  @apply size-4;
+}
+
+.uploadModal {
+  @apply flex flex-col gap-6 p-6 max-w-md w-full;
+}
+
+.modalHeader {
+  @apply flex items-center justify-between;
+}
+
+.modalTitle {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.closeIconButton {
+  @apply p-1 hover:bg-gray-100 rounded;
+}
+
+.closeIcon {
+  @apply size-4 text-gray-500;
+}
+
+.modalContent {
+  @apply space-y-6;
+}
+
+.fileSection {
+  @apply space-y-3;
+}
+
+.fileLabel {
+  @apply block text-sm font-medium text-gray-700;
+}
+
+.fileInput {
+  @apply cursor-pointer;
+}
+
+.fileInfo {
+  @apply flex items-center gap-2 mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700;
+}
+
+.fileIcon {
+  @apply size-4;
+}
+
+.configSection {
+  @apply space-y-3;
+}
+
+.configGrid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.configItem {
+  @apply space-y-2;
+}
+
+.configLabel {
+  @apply block text-sm font-medium text-gray-700;
+}
+
+.configInput {
+  @apply w-full;
+}
+
+.modalFooter {
+  @apply flex gap-3 justify-end pt-4 border-t border-gray-200;
+}
+
+.cancelButton {
+  @apply px-4 py-2;
+}
+
+.uploadButton {
+  @apply px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500;
+}
+
+.resultModal {
+  @apply flex flex-col gap-4 p-6 max-w-lg w-full;
+}
+
+.resultHeader {
+  @apply flex items-center gap-3;
+}
+
+.errorIcon {
+  @apply size-6 text-red-600;
+}
+
+.successIcon {
+  @apply size-6 text-green-600;
+}
+
+.errorTitle {
+  @apply text-lg font-semibold text-red-600;
+}
+
+.successTitle {
+  @apply text-lg font-semibold text-green-600;
+}
+
+.resultMessage {
+  @apply text-sm text-gray-600;
+}
+
+.errorContainer {
+  @apply max-h-60 overflow-y-auto space-y-3;
+}
+
+.errorItem {
+  @apply p-3 bg-red-50 border border-red-200 rounded;
+}
+
+.errorRowTitle {
+  @apply font-medium text-red-700 mb-1;
+}
+
+.errorList {
+  @apply list-disc list-inside text-sm text-red-600 space-y-1;
+}
+
+.successStats {
+  @apply text-sm text-gray-600 space-y-1;
+}
+
+.closeButton {
+  @apply px-4 py-2 bg-gray-600 text-white hover:bg-gray-700;
+} 

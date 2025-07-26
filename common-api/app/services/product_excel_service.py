@@ -280,69 +280,88 @@ class ProductExcelService:
             successful_imports = 0
             failed_imports = 0
             errors = []
+            products_to_create = []
 
-            # Process rows in batches
-            for batch_start in range(0, total_rows, merged_config.batch_size):
-                batch_end = min(batch_start + merged_config.batch_size, total_rows)
-                batch_df = df.iloc[batch_start:batch_end]
+            # First pass: Validate all rows and collect valid products
+            for index, row in df.iterrows():
+                row_number = index + 1
 
-                for index, row in batch_df.iterrows():
-                    row_number = index + 1
-
-                    try:
-                        # Validate row
-                        validation_errors = self.validate_row(row, merged_config)
-                        if validation_errors:
-                            failed_imports += 1
-                            errors.append({
-                                "row": row_number,
-                                "errors": validation_errors
-                            })
-                            continue
-
-                        # Convert to ProductCreate
-                        product_create = self.row_to_product_create(row, merged_config)
-
-                        # Check if product with same code already exists
-                        existing_product = (
-                            db.query(Product)
-                            .filter(Product.code == product_create.code)
-                            .first()
-                        )
-                        if existing_product:
-                            failed_imports += 1
-                            errors.append({
-                                "row": row_number,
-                                "errors": [
-                                    f"Product with code '{product_create.code}' already exists"  # noqa: E501
-                                ],
-                            })
-                            continue
-
-                        # Create product
-                        product_repo.create(db, obj_in=product_create)
-                        successful_imports += 1
-
-                    except Exception as e:
+                try:
+                    # Validate row
+                    validation_errors = self.validate_row(row, merged_config)
+                    if validation_errors:
                         failed_imports += 1
                         errors.append({
                             "row": row_number,
-                            "errors": [f"Unexpected error: {e!s}"]
+                            "errors": validation_errors
                         })
-                        logger.error(f"Error processing row {row_number}: {e}")
+                        continue
+
+                    # Convert to ProductCreate
+                    product_create = self.row_to_product_create(row, merged_config)
+
+                    # Check if product with same code already exists
+                    existing_product = (
+                        db.query(Product)
+                        .filter(Product.code == product_create.code)
+                        .first()
+                    )
+                    if existing_product:
+                        failed_imports += 1
+                        errors.append({
+                            "row": row_number,
+                            "errors": [
+                                f"Product with code '{product_create.code}' already exists"  # noqa: E501
+                            ],
+                        })
+                        continue
+
+                    # Add to list of products to create
+                    products_to_create.append(product_create)
+                    successful_imports += 1
+
+                except Exception as e:
+                    failed_imports += 1
+                    errors.append({
+                        "row": row_number,
+                        "errors": [f"Unexpected error: {e!s}"]
+                    })
+                    logger.error(f"Error processing row {row_number}: {e}")
+
+            # If there are any validation errors, don't save anything and return error response
+            if failed_imports > 0:
+                message = f"Upload failed: {failed_imports} rows have errors. No products were imported."
+                return ExcelUploadResponse(
+                    total_rows=total_rows,
+                    successful_imports=0,
+                    failed_imports=failed_imports,
+                    errors=errors,
+                    message=message
+                )
+
+            # Second pass: Create all products in batches (only if all rows are valid)
+            for batch_start in range(0, len(products_to_create), merged_config.batch_size):
+                batch_end = min(batch_start + merged_config.batch_size, len(products_to_create))
+                batch_products = products_to_create[batch_start:batch_end]
+
+                for product_create in batch_products:
+                    try:
+                        product_repo.create(db, obj_in=product_create)
+                    except Exception as e:
+                        logger.error(f"Error creating product: {e}")
+                        db.rollback()
+                        raise ValueError(f"Failed to create product: {e!s}") from e
 
                 # Commit batch
                 db.commit()
 
             message = f"Successfully imported {successful_imports} products"
-            if failed_imports > 0:
-                message += f", {failed_imports} failed"
 
             return ExcelUploadResponse(
                 total_rows=total_rows,
                 successful_imports=successful_imports,
-                failed_imports=failed_imports,
-                errors=errors,
+                failed_imports=0,
+                errors=[],
                 message=message
             )
 
