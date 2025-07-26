@@ -2,7 +2,7 @@ import logging
 import sys
 from contextlib import asynccontextmanager, suppress
 
-import socketio # type: ignore
+import socketio  # type: ignore
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

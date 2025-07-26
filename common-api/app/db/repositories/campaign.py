@@ -8,7 +8,7 @@ from app.db.models.campaign import Campaign
 from app.db.repositories.campaigns_products.repo import campaign_product_repo
 from app.db.repositories.crud.base import CRUDBase
 from app.db.repositories.facebook_post.repo import facebook_post_repo
-from app.schemas.campaign import CampaignCreate, CampaignProduct, CampaignUpdate
+from app.schemas.campaign import CampaignCreate, CampaignUpdate
 from app.schemas.campaigns_products import CampaignProductCreate
 
 

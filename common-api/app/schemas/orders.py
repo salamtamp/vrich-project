@@ -6,8 +6,8 @@ from pydantic import BaseModel, ConfigDict
 
 from app.schemas.facebook_profile import FacebookProfile
 from app.schemas.orders_products import OrderProduct, OrderProductCreate
-from app.schemas.profiles_contacts import ProfileContact
 from app.schemas.payments import Payment
+from app.schemas.profiles_contacts import ProfileContact
 
 OrderStatus = Literal[
     "pending",

@@ -1,6 +1,14 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from app.api.dependencies.pagination import (
@@ -12,7 +20,14 @@ from app.api.dependencies.pagination import (
 from app.db.models.products import Product as ProductModel
 from app.db.repositories.products.repo import product_repo
 from app.db.session import get_db
-from app.schemas.products import Product, ProductCreate, ProductUpdate
+from app.schemas.products import (
+    ExcelUploadConfig,
+    ExcelUploadResponse,
+    Product,
+    ProductCreate,
+    ProductUpdate,
+)
+from app.services.product_excel_service import product_excel_service
 
 router = APIRouter()
 
@@ -68,3 +83,58 @@ def delete_product(*, db: Session = Depends(get_db), product_id: UUID) -> Produc
     db.delete(db_obj)
     db.commit()
     return db_obj
+
+
+@router.post("/upload-excel", response_model=ExcelUploadResponse)
+async def upload_excel_products(
+    *,
+    db: Session = Depends(get_db),
+    file: UploadFile = File(...),
+    config: ExcelUploadConfig | None = None,
+) -> ExcelUploadResponse:
+    """Upload products from Excel file."""
+    if not file.filename or not file.filename.lower().endswith(('.xlsx', '.xls')):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be an Excel file (.xlsx or .xls)"
+        )
+
+    try:
+        file_content = await file.read()
+        return product_excel_service.process_excel_upload(db, file_content, config)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Internal server error: {e!s}"
+        ) from e
+
+
+@router.get("/upload-excel/config", response_model=ExcelUploadConfig)
+def get_excel_upload_config() -> ExcelUploadConfig:
+    """Get default Excel upload configuration."""
+    return product_excel_service.get_default_config()
+
+
+@router.post("/upload-excel/config", response_model=ExcelUploadConfig)
+def update_excel_upload_config(config: ExcelUploadConfig) -> ExcelUploadConfig:
+    """Update Excel upload configuration."""
+    return config
+
+
+@router.get("/upload-excel/template")
+def download_excel_template(config: ExcelUploadConfig | None = None) -> Response:
+    """Download Excel template file."""
+    try:
+        excel_content = product_excel_service.generate_excel_template(config)
+        return Response(
+            content=excel_content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": "attachment; filename=product_template.xlsx"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate template: {e!s}"
+        ) from e

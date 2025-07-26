@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -57,3 +58,31 @@ class ProductResponse(ProductBase):
 
 class Product(ProductResponse):
     pass
+
+
+# Excel Upload Schemas
+class ColumnConfig(BaseModel):
+    column: str
+    validate: Literal["required", "optional"] = "optional"
+    format: str | None = None  # Function name as string
+    db_field: str
+    default_value: Any = None
+
+
+class ExcelUploadConfig(BaseModel):
+    columns: list[ColumnConfig]
+    skip_header: bool = True
+    skip_rows: int = 0  # Number of additional rows to skip after header
+    batch_size: int = 100
+
+
+class ExcelUploadResponse(BaseModel):
+    total_rows: int
+    successful_imports: int
+    failed_imports: int
+    errors: list[dict[str, Any]] = []
+    message: str
+
+
+class ProductBulkCreate(BaseModel):
+    products: list[ProductCreate]
