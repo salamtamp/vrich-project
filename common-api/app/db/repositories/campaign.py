@@ -91,6 +91,9 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
                         f"Invalid product status: {prod_data.get('status')}"
                     )
                 prod_data["campaign_id"] = campaign.id
+                # Lowercase keyword before saving
+                if "keyword" in prod_data and prod_data["keyword"]:
+                    prod_data["keyword"] = prod_data["keyword"].lower()
                 try:
                     campaign_product_repo.create(
                         db, obj_in=CampaignProductCreate(**prod_data)
@@ -148,7 +151,9 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
 
                 for prod in campaign_in.products:
                     prod_data = prod.model_dump()
-                    
+                    # Lowercase keyword before saving/updating
+                    if "keyword" in prod_data and prod_data["keyword"]:
+                        prod_data["keyword"] = prod_data["keyword"].lower()
                     if prod_data.get("status") not in ("active", "inactive"):
                         raise ValueError(
                             f"Invalid product status: {prod_data.get('status')}"

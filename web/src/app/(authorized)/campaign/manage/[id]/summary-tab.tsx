@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 
-import { DollarSign, Package, TrendingUp, Users } from 'lucide-react';
+import { DollarSign, Package, ShoppingCart, TrendingUp } from 'lucide-react';
 
 import ContentPagination from '@/components/content/pagination';
 import Table, { type TableColumn } from '@/components/table';
@@ -66,6 +66,13 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
         bgColor: 'bg-blue-50',
       },
       {
+        title: 'Total Quantity',
+        value: data.products.docs.reduce((total, product) => total + product.sold_quantity, 0),
+        icon: ShoppingCart,
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-50',
+      },
+      {
         title: 'Total Sales',
         value: `฿${data.summary.total_sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         icon: DollarSign,
@@ -78,15 +85,6 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
         icon: TrendingUp,
         color: data.summary.total_profit >= 0 ? 'text-emerald-600' : 'text-red-600',
         bgColor: data.summary.total_profit >= 0 ? 'bg-emerald-50' : 'bg-red-50',
-      },
-      {
-        title: 'Active Orders',
-        value:
-          (data.summary.order_status_breakdown.confirmed || 0) +
-          (data.summary.order_status_breakdown.paid || 0),
-        icon: Users,
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-50',
       },
     ];
   }, [data]);
@@ -122,13 +120,6 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       ),
     },
     {
-      key: 'selling_unit',
-      label: 'Selling Unit',
-      align: 'center',
-      width: 100,
-      render: (row) => <Badge variant='outline'>{row.selling_unit}</Badge>,
-    },
-    {
       key: 'cost',
       label: 'Cost',
       align: 'right',
@@ -136,17 +127,6 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       render: (row) => (
         <span className='font-mono text-gray-600'>
           ฿{row.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
-      ),
-    },
-    {
-      key: 'profit',
-      label: 'Profit',
-      align: 'right',
-      width: 120,
-      render: (row) => (
-        <span className={`font-mono ${row.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-          ฿{row.profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       ),
     },
@@ -165,6 +145,17 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       render: (row) => (
         <span className='font-mono text-blue-600'>
           ฿{row.total_sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+      ),
+    },
+    {
+      key: 'profit',
+      label: 'Total Profit',
+      align: 'right',
+      width: 120,
+      render: (row) => (
+        <span className={`font-mono ${row.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          ฿{row.profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       ),
     },
@@ -203,7 +194,7 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
         </div>
         <ContentPagination
           className='mt-2'
-          limitOptions={[5, 10, 20, 30, 50, 100, 200]}
+          limitOptions={[10, 20, 30, 50, 100, 200]}
           total={data.products.total}
         />
       </Card>

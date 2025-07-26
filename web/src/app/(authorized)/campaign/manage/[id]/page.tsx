@@ -82,7 +82,7 @@ const ManageCampaignPage = () => {
 
       <div className='mt-2 flex-1 overflow-y-scroll pr-1'>
         {tab === 'summary' && (
-          <PaginationProvider defaultValue={{ limit: 5 }}>
+          <PaginationProvider defaultValue={{ limit: 10 }}>
             <SummaryTab campaignId={data.id} />
           </PaginationProvider>
         )}
