@@ -30,4 +30,5 @@ export type TableProps<T extends Record<string, unknown>> = {
   onApproveSelected?: () => void;
   // Per-row checkbox disabled
   checkboxDisabled?: (row: T) => boolean;
+  approveButtonLabel?: string;
 };

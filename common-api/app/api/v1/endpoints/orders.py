@@ -32,6 +32,7 @@ def list_orders(
     db: Session = Depends(get_db),
     pagination: PaginationParams = Depends(get_pagination_params),
     campaign_id: UUID | None = None,
+    status: str | None = None,  # <-- Add status as a query parameter
 ) -> PaginationResponse[Order]:
     builder = PaginationBuilder(OrderModel, db)
     builder.query = builder.query.options(
@@ -45,8 +46,13 @@ def list_orders(
     builder = builder.date_range(pagination.since, pagination.until)
     builder = builder.search(pagination.search, pagination.search_by)
     builder = builder.order_by(pagination.order_by, pagination.order)
-    if campaign_id:
-        builder = builder.custom_filter(campaign_id=campaign_id)
+    if campaign_id or status:
+        filter_kwargs = {}
+        if campaign_id:
+            filter_kwargs["campaign_id"] = campaign_id
+        if status:
+            filter_kwargs["status"] = status
+        builder = builder.custom_filter(**filter_kwargs)
     page = builder.paginate(pagination.limit, pagination.offset, serializer=Order)
     for order in page.docs:
         profile_contacts = (

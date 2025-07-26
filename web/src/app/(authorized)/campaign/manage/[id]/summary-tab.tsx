@@ -182,7 +182,7 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       </div>
 
       {/* Products Table */}
-      <Card className='flex min-h-[420px] flex-col overflow-hidden p-4 shadow-sm'>
+      <Card className='flex min-h-[460px] flex-col overflow-hidden p-4 shadow-sm'>
         <CardTitle className='mb-2 text-lg'>Product Summary</CardTitle>
         <div className='flex flex-1 overflow-hidden'>
           <Table

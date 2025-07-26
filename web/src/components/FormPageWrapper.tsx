@@ -15,9 +15,11 @@ export const FormPageWrapper = ({
 }) => (
   <div className='flex h-full min-h-full flex-col overflow-hidden'>
     <Card className='flex min-h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm'>
-      <CardHeader className='border-b border-gray-100 pb-4'>
-        <CardTitle className='text-2xl font-semibold tracking-tight text-blue-700'>{title}</CardTitle>
-      </CardHeader>
+      {title ? (
+        <CardHeader className='border-b border-gray-100 pb-4'>
+          <CardTitle className='text-2xl font-semibold tracking-tight text-blue-700'>{title}</CardTitle>
+        </CardHeader>
+      ) : null}
       <CardContent className={cn('mt-1 flex-1 overflow-y-scroll', className)}>{children}</CardContent>
     </Card>
   </div>

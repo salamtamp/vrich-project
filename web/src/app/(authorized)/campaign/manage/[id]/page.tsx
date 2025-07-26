@@ -66,10 +66,10 @@ const ManageCampaignPage = () => {
   return (
     <FormPageWrapper
       className='flex h-full flex-col overflow-hidden'
-      title='Manage Campaign'
+      title=''
     >
       <Tabs
-        className=''
+        className='mt-4'
         value={tab}
         onValueChange={setTab}
       >

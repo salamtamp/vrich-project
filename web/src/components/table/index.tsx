@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useRef } from 'react';
 
 import { twMerge } from 'tailwind-merge';
 
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table as ShadcnTable, TableBody, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -37,7 +36,6 @@ const Table = <T extends Record<string, unknown>>({
   onSelectRow,
   onSelectAll,
   rowIdKey = 'id',
-  onApproveSelected,
   checkboxDisabled,
 }: TableProps<T> & {
   onClickRow?: (e: React.MouseEvent<HTMLTableRowElement>, row: T) => void;
@@ -49,7 +47,6 @@ const Table = <T extends Record<string, unknown>>({
   onSelectRow?: (rowId: string, checked: boolean) => void;
   onSelectAll?: (checked: boolean) => void;
   rowIdKey?: string;
-  onApproveSelected?: () => void;
   checkboxDisabled?: (row: T) => boolean;
 }) => {
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
@@ -247,19 +244,6 @@ const Table = <T extends Record<string, unknown>>({
 
   return (
     <div className='flex w-full flex-1 flex-col overflow-hidden rounded-md'>
-      {/* Approve Button */}
-      {onApproveSelected ? (
-        <div className='mb-2 flex justify-end'>
-          <Button
-            className='border-green-200 bg-green-100 text-green-800 hover:bg-green-200'
-            disabled={selectedRowIds.length === 0}
-            variant='outline'
-            onClick={onApproveSelected}
-          >
-            Next Process
-          </Button>
-        </div>
-      ) : null}
       {/* Fixed Header */}
       <div className='border-b bg-white shadow-sm'>
         <ShadcnTable
