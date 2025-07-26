@@ -11,6 +11,7 @@ from app.schemas.products import (
     ExcelUploadResponse,
     ProductCreate,
 )
+from app.services.validation_service import validation_service
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +34,20 @@ class ProductExcelService:
         """Get default column configuration for product Excel upload."""
         return ExcelUploadConfig(
             columns=[
-                ColumnConfig(column="Code", validation="required", db_field="code"),
-                ColumnConfig(column="Name", validation="required", db_field="name"),
                 ColumnConfig(
-                    column="Description", validation="optional", db_field="description"
+                    column="Code", validation="required,unique", db_field="code"
+                ),
+                ColumnConfig(
+                    column="Name", validation="required,min_length:2", db_field="name"
+                ),
+                ColumnConfig(
+                    column="Description",
+                    validation="optional,max_length:500",
+                    db_field="description"
                 ),
                 ColumnConfig(
                     column="Quantity",
-                    validation="optional",
+                    validation="optional,positive_number",
                     format="to_int",
                     db_field="quantity",
                     default_value=0,
@@ -48,33 +55,35 @@ class ProductExcelService:
                 ColumnConfig(column="Unit", validation="optional", db_field="unit"),
                 ColumnConfig(
                     column="Full Price",
-                    validation="optional",
+                    validation="optional,non_negative_number",
                     format="to_float",
                     db_field="full_price",
                     default_value=0.0,
                 ),
                 ColumnConfig(
                     column="Selling Price",
-                    validation="optional",
+                    validation="optional,non_negative_number",
                     format="to_float",
                     db_field="selling_price",
                     default_value=0.0,
                 ),
                 ColumnConfig(
                     column="Cost",
-                    validation="optional",
+                    validation="optional,non_negative_number",
                     format="to_float",
                     db_field="cost",
                     default_value=0.0,
                 ),
                 ColumnConfig(
                     column="Shipping Fee",
-                    validation="optional",
+                    validation="optional,non_negative_number",
                     format="to_float",
                     db_field="shipping_fee",
                     default_value=0.0,
                 ),
-                ColumnConfig(column="Note", validation="optional", db_field="note"),
+                ColumnConfig(
+                    column="Note", validation="optional,max_length:200", db_field="note"
+                ),
                 ColumnConfig(
                     column="Type", validation="optional", db_field="product_type"
                 ),
@@ -87,13 +96,15 @@ class ProductExcelService:
                 ColumnConfig(column="Size", validation="optional", db_field="size"),
                 ColumnConfig(
                     column="Weight",
-                    validation="optional",
+                    validation="optional,non_negative_number",
                     format="to_float",
                     db_field="weight",
                     default_value=0.0,
                 ),
                 ColumnConfig(
-                    column="Default Keyword", validation="optional", db_field="keyword"
+                    column="Default Keyword",
+                    validation="optional,max_length:100",
+                    db_field="keyword"
                 ),
             ]
         )
@@ -102,24 +113,24 @@ class ProductExcelService:
         """Generate Excel template file with configured columns."""
         import pandas as pd
 
-        if config is None:
-            config = self.get_default_config()
+        # Merge config with defaults
+        merged_config = self._merge_config_with_defaults(config)
 
         # Create DataFrame with column headers
-        columns = [col.column for col in config.columns]
+        columns = [col.column for col in merged_config.columns]
 
         # Prepare sample data
         sample_data = {}
-        for col_config in config.columns:
+        for col_config in merged_config.columns:
             if col_config.default_value is not None:
                 sample_data[col_config.column] = col_config.default_value
-            elif col_config.validate == "required":
+            elif "required" in col_config.validation:
                 sample_data[col_config.column] = f"Sample {col_config.column}"
             else:
                 sample_data[col_config.column] = ""
 
         # Create template with multiple header rows if skip_rows > 0
-        if config.skip_rows > 0:
+        if merged_config.skip_rows and merged_config.skip_rows > 0:
             # Create DataFrame with English headers (first row)
             df_english = pd.DataFrame([columns], columns=columns)
 
@@ -178,7 +189,16 @@ class ProductExcelService:
 
         try:
             from io import BytesIO
-            df = pd.read_excel(BytesIO(file_content), engine="openpyxl")
+            # Get the first sheet name dynamically
+            excel_file = pd.ExcelFile(BytesIO(file_content), engine="openpyxl")
+            first_sheet_name = excel_file.sheet_names[0]
+            
+            # Read from the first sheet
+            df = pd.read_excel(
+                BytesIO(file_content), 
+                sheet_name=first_sheet_name, 
+                engine="openpyxl"
+            )
 
             if config.skip_header:
                 # Use first row as header
@@ -202,16 +222,20 @@ class ProductExcelService:
             column_name = col_config.column
             value = row.get(column_name)
 
-            # Check required fields
-            if (
-                col_config.validation == "required"
-                and (pd.isna(value) or str(value).strip() == "")
-            ):
-                errors.append(f"Required field '{column_name}' is missing or empty")
-                continue
+            # Parse validation rules
+            validation_rules = [
+                rule.strip() for rule in col_config.validation.split(",")
+            ]
 
-            # Apply formatting if specified
-            if col_config.format and not pd.isna(value) and str(value).strip() != "":
+            # Use validation service to validate the value
+            validation_errors = validation_service.validate_value(
+                value, validation_rules, column_name
+            )
+            errors.extend(validation_errors)
+
+            # Apply formatting if specified and no validation errors
+            if (col_config.format and not pd.isna(value) and
+                str(value).strip() != "" and not validation_errors):
                 try:
                     format_func = self.format_functions.get(col_config.format)
                     if format_func:
@@ -254,6 +278,35 @@ class ProductExcelService:
 
         return ProductCreate(**product_data)
 
+    def _merge_config_with_defaults(
+        self, config: ExcelUploadConfig | None = None
+    ) -> ExcelUploadConfig:
+        """Merge provided config with defaults, using provided values when available."""
+        default_config = self.get_default_config()
+
+        if config is None:
+            return default_config
+
+        # Create a new config with merged values
+        return ExcelUploadConfig(
+            columns=(
+                config.columns if config.columns is not None
+                else default_config.columns
+            ),
+            skip_header=(
+                config.skip_header if config.skip_header is not None
+                else default_config.skip_header
+            ),
+            skip_rows=(
+                config.skip_rows if config.skip_rows is not None
+                else default_config.skip_rows
+            ),
+            batch_size=(
+                config.batch_size if config.batch_size is not None
+                else default_config.batch_size
+            ),
+        )
+
     def process_excel_upload(
         self,
         db: Session,
@@ -262,12 +315,12 @@ class ProductExcelService:
     ) -> ExcelUploadResponse:
         """Process Excel file upload and import products."""
 
-        if config is None:
-            config = self.get_default_config()
+        # Merge config with defaults
+        merged_config = self._merge_config_with_defaults(config)
 
         try:
             # Read Excel file
-            df = self.read_excel_file(file_content, config)
+            df = self.read_excel_file(file_content, merged_config)
             total_rows = len(df)
 
             successful_imports = 0
@@ -275,8 +328,8 @@ class ProductExcelService:
             errors = []
 
             # Process rows in batches
-            for batch_start in range(0, total_rows, config.batch_size):
-                batch_end = min(batch_start + config.batch_size, total_rows)
+            for batch_start in range(0, total_rows, merged_config.batch_size):
+                batch_end = min(batch_start + merged_config.batch_size, total_rows)
                 batch_df = df.iloc[batch_start:batch_end]
 
                 for index, row in batch_df.iterrows():
@@ -284,7 +337,7 @@ class ProductExcelService:
 
                     try:
                         # Validate row
-                        validation_errors = self.validate_row(row, config)
+                        validation_errors = self.validate_row(row, merged_config)
                         if validation_errors:
                             failed_imports += 1
                             errors.append({
@@ -294,7 +347,7 @@ class ProductExcelService:
                             continue
 
                         # Convert to ProductCreate
-                        product_create = self.row_to_product_create(row, config)
+                        product_create = self.row_to_product_create(row, merged_config)
 
                         # Check if product with same code already exists
                         existing_product = (

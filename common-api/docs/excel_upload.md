@@ -13,6 +13,18 @@ The Excel upload feature allows users to bulk import products from Excel files (
 - Error reporting
 - Template generation
 - Multiple header row support (e.g., English + Thai headers)
+- **Dynamic sheet detection**: Automatically reads from the first sheet in the Excel file
+
+## Excel File Requirements
+
+### Sheet Name
+- **Automatic Detection**: The system automatically reads from the first sheet in the Excel file
+- No specific sheet name is required - it will use `sheet_names[0]` (the first sheet)
+- The system dynamically detects the sheet name and reads from it
+
+### File Format
+- Supported formats: `.xlsx`, `.xls`
+- The system uses OpenPyXL engine for reading Excel files
 
 ## API Endpoints
 
@@ -22,8 +34,18 @@ POST /api/v1/products/upload-excel
 ```
 
 **Parameters:**
-- `file`: Excel file (.xlsx, .xls)
-- `config`: Optional custom configuration (JSON)
+- `file`: Excel file (.xlsx, .xls) - **Required**
+- `config`: JSON string containing ExcelUploadConfig - **Optional**
+
+**Important:** The `config` parameter must be sent as a JSON string in the form data, not as a raw JSON object.
+
+**Example Request:**
+```bash
+curl -X POST "http://localhost:8000/api/v1/products/upload-excel" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@products.xlsx" \
+  -F 'config={"skip_rows": 1, "batch_size": 50}'
+```
 
 **Response:**
 ```json
@@ -69,7 +91,7 @@ GET /api/v1/products/upload-excel/config
     },
     {
       "column": "Name",
-      "validate": "required",
+      "validation": "required",
       "format": null,
       "db_field": "name",
       "default_value": null
@@ -86,7 +108,51 @@ GET /api/v1/products/upload-excel/config
 POST /api/v1/products/upload-excel/config
 ```
 
-**Request Body:** ExcelUploadConfig object
+**Request Body:** ExcelUploadConfig object (all fields optional)
+
+**Example:**
+```json
+{
+  "skip_rows": 1,
+  "batch_size": 50
+}
+```
+
+**Note:** You can send partial configurations. Any missing fields will use their default values.
+
+## Flexible Configuration
+
+The `ExcelUploadConfig` now supports flexible configuration where all fields are optional:
+
+- `columns`: List of column configurations (optional, uses default if not provided)
+- `skip_header`: Whether to skip the first row as header (optional, defaults to `true`)
+- `skip_rows`: Number of additional rows to skip after header (optional, defaults to `0`)
+- `batch_size`: Number of rows to process in each batch (optional, defaults to `100`)
+
+**Examples:**
+
+1. **Only change skip_rows:**
+   ```json
+   {
+     "skip_rows": 1
+   }
+   ```
+
+2. **Only change batch_size:**
+   ```json
+   {
+     "batch_size": 50
+   }
+   ```
+
+3. **Multiple changes:**
+   ```json
+   {
+     "skip_rows": 1,
+     "batch_size": 50,
+     "skip_header": false
+   }
+   ```
 
 ## Column Configuration
 
@@ -95,10 +161,72 @@ Each column can be configured with the following properties:
 ### ColumnConfig Properties
 
 - `column`: Excel column name (string)
-- `validation`: Validation level ("required" | "optional")
+- `validation`: Comma-separated validation rules (string)
 - `format`: Format function name (string, optional)
 - `db_field`: Database field name (string)
 - `default_value`: Default value if field is empty (any)
+
+### Supported Validation Rules
+
+The validation system uses a dedicated `ValidationService` that provides robust validation using Pydantic-style validation rules:
+
+- `required`: Field must not be empty
+- `optional`: Field can be empty
+- `positive_number`: Must be a positive number (> 0)
+- `non_negative_number`: Must be a non-negative number (≥ 0)
+- `min_length:N`: String must be at least N characters long
+- `max_length:N`: String must be no more than N characters long
+- `unique`: Value must be unique (checked against database)
+- `email`: Must be a valid email format
+- `url`: Must be a valid URL format
+- `integer`: Must be a valid integer
+- `float`: Must be a valid float
+
+### Validation Service Architecture
+
+The validation system is built using a dedicated `ValidationService` class that:
+
+- **Centralized Validation Logic**: All validation rules are defined in one place
+- **Extensible**: Easy to add new validation rules
+- **Error Handling**: Proper exception handling with clear error messages
+- **Parameter Support**: Supports validation rules with parameters (e.g., `min_length:2`)
+- **Type Safety**: Uses proper type hints and Pydantic integration
+
+### Validation Examples
+
+```json
+{
+  "column": "Code",
+  "validation": "required,unique",
+  "db_field": "code"
+}
+```
+
+```json
+{
+  "column": "Name", 
+  "validation": "required,min_length:2",
+  "db_field": "name"
+}
+```
+
+```json
+{
+  "column": "Quantity",
+  "validation": "optional,positive_number",
+  "format": "to_int",
+  "db_field": "quantity",
+  "default_value": 0
+}
+```
+
+```json
+{
+  "column": "Description",
+  "validation": "optional,max_length:500",
+  "db_field": "description"
+}
+```
 
 ### Available Format Functions
 

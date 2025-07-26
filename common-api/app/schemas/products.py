@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -61,19 +61,59 @@ class Product(ProductResponse):
 
 
 # Excel Upload Schemas
+class ValidationRule(BaseModel):
+    """Individual validation rule with parameters."""
+    rule: str
+    params: dict[str, Any] = {}
+
+    @classmethod
+    def parse(cls, rule_str: str) -> "ValidationRule":
+        """Parse a validation rule string like 'min_length:2' or 'required'."""
+        rule_str = rule_str.strip()
+        if not rule_str:  # Handle empty strings
+            return cls(rule="", params={})
+
+        if ":" in rule_str:
+            rule_name, param_str = rule_str.split(":", 1)
+            rule_name = rule_name.strip()
+            param_str = param_str.strip()
+            # Parse parameters (e.g., "min_length:2" -> {"value": 2})
+            try:
+                # Handle negative numbers and zero properly
+                if ((param_str.startswith('-') and param_str[1:].isdigit()) or
+                    param_str.isdigit()):
+                    param_value = int(param_str)
+                else:
+                    param_value = param_str
+                return cls(rule=rule_name, params={"value": param_value})
+            except ValueError:
+                return cls(rule=rule_name, params={"value": param_str})
+        else:
+            return cls(rule=rule_str, params={})
+
 class ColumnConfig(BaseModel):
     column: str
-    validation: Literal["required", "optional"] = "optional"
+    validation: str = "optional"  # Comma-separated validation rules
     format: str | None = None  # Function name as string
     db_field: str
     default_value: Any = None
 
+    @property
+    def validation_rules(self) -> list[ValidationRule]:
+        """Parse validation string into list of ValidationRule objects."""
+        rules = []
+        for rule in self.validation.split(","):
+            rule = rule.strip()
+            if rule:  # Only add non-empty rules
+                rules.append(ValidationRule.parse(rule))
+        return rules
+
 
 class ExcelUploadConfig(BaseModel):
-    columns: list[ColumnConfig]
-    skip_header: bool = True
-    skip_rows: int = 0  # Number of additional rows to skip after header
-    batch_size: int = 100
+    columns: list[ColumnConfig] | None = None
+    skip_header: bool | None = None
+    skip_rows: int | None = None  # Number of additional rows to skip after header
+    batch_size: int | None = None
 
 
 class ExcelUploadResponse(BaseModel):

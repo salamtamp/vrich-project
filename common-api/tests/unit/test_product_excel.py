@@ -87,7 +87,7 @@ class TestProductExcelService:
         # Save to bytes
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False)
+            df.to_excel(writer, sheet_name="TestSheet", index=False)
         output.seek(0)
         file_content = output.getvalue()
 
@@ -188,7 +188,7 @@ class TestProductExcelService:
         # Save to bytes
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False)
+            df.to_excel(writer, sheet_name="DataSheet", index=False)
         output.seek(0)
         file_content = output.getvalue()
 
@@ -220,7 +220,7 @@ class TestProductExcelService:
         # Save to bytes
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False)
+            df.to_excel(writer, sheet_name="DuplicateSheet", index=False)
         output.seek(0)
         file_content = output.getvalue()
 

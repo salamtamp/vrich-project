@@ -52,6 +52,7 @@ python-socketio = "^5.13.0"
 # Cache
 redis = "^5.2.1"
 email-validator = "^2.2.0"
+requests = "^2.32.4"
 
 [tool.poetry.group.dev.dependencies]
 # Code Quality & Linting
