@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Callable
 
+import pandas as pd
 from sqlalchemy.orm import Session
 
 from app.db.models.products import Product
@@ -111,8 +112,6 @@ class ProductExcelService:
 
     def generate_excel_template(self, config: ExcelUploadConfig | None = None) -> bytes:
         """Generate Excel template file with configured columns."""
-        import pandas as pd
-
         # Merge config with defaults
         merged_config = self._merge_config_with_defaults(config)
 
@@ -185,8 +184,6 @@ class ProductExcelService:
         self, file_content: bytes, config: ExcelUploadConfig
     ):
         """Read Excel file and return DataFrame."""
-        import pandas as pd
-
         try:
             from io import BytesIO
             # Get the first sheet name dynamically
@@ -214,8 +211,6 @@ class ProductExcelService:
 
     def validate_row(self, row, config: ExcelUploadConfig) -> list[str]:
         """Validate a single row against the configuration."""
-        import pandas as pd
-
         errors = []
 
         for col_config in config.columns:
@@ -251,8 +246,6 @@ class ProductExcelService:
         self, row, config: ExcelUploadConfig
     ) -> ProductCreate:
         """Convert a DataFrame row to ProductCreate object."""
-        import pandas as pd
-
         product_data = {}
 
         for col_config in config.columns:
