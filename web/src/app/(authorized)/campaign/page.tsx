@@ -117,7 +117,7 @@ const CampaignPage = () => {
       label: 'Keywords',
       width: 160,
       render: (row) => (
-        <span>
+        <span className='line-clamp-2'>
           {row.campaigns_products && row.campaigns_products.length > 0
             ? row.campaigns_products
                 .map((cp) => cp.keyword)

@@ -129,7 +129,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
     },
     {
       key: 'orders_products',
-      label: 'Items',
+      label: 'Product',
       align: 'center',
       width: 80,
       render: (row) => row.orders_products?.length ?? 0,
@@ -201,7 +201,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
   ];
 
   return (
-    <div className='flex w-full flex-col gap-1 overflow-hidden'>
+    <div className='flex size-full flex-col gap-1 overflow-hidden'>
       <div className='flex-1 overflow-scroll'>
         <Table
           bodyRowProps={{ className: 'bg-white hover:bg-gray-50' }}

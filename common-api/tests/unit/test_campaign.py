@@ -1,9 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
+from uuid import uuid4
 
 from app.api.dependencies.pagination import OrderDirection, PaginationBuilder
 from app.db.models.campaign import Campaign
 from app.db.repositories.campaign import campaign_repo
-from app.schemas.campaign import CampaignCreate
+from app.db.repositories.products.repo import product_repo
+from app.schemas.campaign import CampaignCreate, CampaignWithProductsUpdate
+from app.schemas.campaigns_products import CampaignProductInput
+from app.schemas.products import ProductCreate
 
 
 def seed_campaigns(db, count=10):
@@ -24,6 +28,19 @@ def seed_campaigns(db, count=10):
         campaign = campaign_repo.create(db, obj_in=campaign_in)
         campaigns.append(campaign)
     return campaigns
+
+
+def create_product(db):
+    product_in = ProductCreate(
+        code=f"PROD{uuid4().hex[:8].upper()}",
+        name=f"Product {uuid4()}",
+        description=f"Test product description {uuid4()}",
+        selling_price=100.0,
+        cost=50.0,
+        unit="piece",
+        quantity=100,
+    )
+    return product_repo.create(db, obj_in=product_in)
 
 
 def test_pagination_campaigns(db):
@@ -84,3 +101,79 @@ def test_campaign_with_minimal_fields(db):
     assert campaign.channels == ["facebook_comment"]
     assert campaign.start_date is not None
     assert campaign.end_date is not None
+
+
+def test_update_campaign_with_products_status(db):
+    """Test updating campaign with products and verify status updates correctly"""
+    # Create products
+    product1 = create_product(db)
+    product2 = create_product(db)
+
+    # Create campaign first
+    campaign_in = CampaignCreate(
+        name="Test Campaign",
+        description="Test campaign description",
+        status="active",
+        start_date=datetime.now(UTC),
+        end_date=datetime.now(UTC) + timedelta(days=1),
+        channels=["facebook_inbox"],
+    )
+    campaign = campaign_repo.create(db, obj_in=campaign_in)
+
+    # Create campaign products manually
+    from app.db.repositories.campaigns_products.repo import campaign_product_repo
+    from app.schemas.campaigns_products import CampaignProductCreate
+
+    cp1 = campaign_product_repo.create(
+        db,
+        obj_in=CampaignProductCreate(
+            campaign_id=campaign.id,
+            product_id=product1.id,
+            keyword="test1",
+            quantity=10,
+            status="inactive",
+        ),
+    )
+
+    cp2 = campaign_product_repo.create(
+        db,
+        obj_in=CampaignProductCreate(
+            campaign_id=campaign.id,
+            product_id=product2.id,
+            keyword="test2",
+            quantity=20,
+            status="inactive",
+        ),
+    )
+
+    # Commit the transaction to ensure data is persisted
+    db.commit()
+
+    # Verify initial status
+    assert cp1.status == "inactive"
+    assert cp2.status == "inactive"
+
+    # Update campaign with products - change status to active
+    update_in = CampaignWithProductsUpdate(
+        products=[
+            CampaignProductInput(
+                product_id=product1.id, keyword="test1", quantity=15, status="active"
+            ),
+            CampaignProductInput(
+                product_id=product2.id, keyword="test2", quantity=25, status="active"
+            ),
+        ]
+    )
+
+    updated_campaign = campaign_repo.update_campaign_with_products(
+        db, campaign.id, update_in
+    )
+
+    # Verify status was updated correctly
+    assert len(updated_campaign.campaigns_products) == 2
+    for cp in updated_campaign.campaigns_products:
+        assert cp.status == "active"
+        if str(cp.product_id) == str(product1.id):
+            assert cp.quantity == 15
+        elif str(cp.product_id) == str(product2.id):
+            assert cp.quantity == 25

@@ -5,14 +5,16 @@ import React, { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 
 import { FormPageWrapper } from '@/components/FormPageWrapper';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { API } from '@/constants/api.constant';
+import { PaginationProvider } from '@/contexts';
 import useRequest from '@/hooks/request/useRequest';
 import type { Campaign } from '@/types/api/campaign';
 
 import CampaignForm from '../../create/campaign-form';
 
 import OrderTab from './order-tab';
+import SummaryTab from './summary-tab';
 
 const ManageCampaignPage = () => {
   const params = useParams();
@@ -21,12 +23,20 @@ const ManageCampaignPage = () => {
     request: { url: `${API.CAMPAIGN}/${String(id)}`, method: 'GET' },
     defaultLoading: true,
   });
-  const [tab, setTab] = React.useState('detail');
+  const [tab, setTab] = React.useState('summary');
 
   useEffect(() => {
     void handleRequest();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    // Scroll to top when tab changes
+    const scrollContainer = document.querySelector('.overflow-y-scroll');
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [tab]);
 
   if (!data?.id) {
     return <></>;
@@ -55,38 +65,40 @@ const ManageCampaignPage = () => {
 
   return (
     <FormPageWrapper
-      className='flex h-full overflow-hidden'
+      className='flex h-full flex-col overflow-hidden'
       title='Manage Campaign'
     >
       <Tabs
-        className='mb-1 mt-3 size-full'
+        className=''
         value={tab}
         onValueChange={setTab}
       >
         <TabsList className='bg-gray-200'>
+          <TabsTrigger value='summary'>Summary</TabsTrigger>
           <TabsTrigger value='detail'>Detail</TabsTrigger>
           <TabsTrigger value='orders'>Orders</TabsTrigger>
         </TabsList>
-        <TabsContent
-          className='overflow-scroll'
-          style={{ maxHeight: 'calc(100% - 40px)' }}
-          value='detail'
-        >
-          <CampaignForm
-            campaignId={data.id}
-            initialPost={data.post}
-            initialValues={formValues}
-            mode='edit'
-          />
-        </TabsContent>
-        <TabsContent
-          className='flex h-full flex-1'
-          style={{ maxHeight: 'calc(100% - 60px)' }}
-          value='orders'
-        >
-          <OrderTab campaignId={data.id} />
-        </TabsContent>
       </Tabs>
+
+      <div className='mt-2 flex-1 overflow-y-scroll pr-1'>
+        {tab === 'summary' && (
+          <PaginationProvider defaultValue={{ limit: 5 }}>
+            <SummaryTab campaignId={data.id} />
+          </PaginationProvider>
+        )}
+        {tab === 'detail' && (
+          <PaginationProvider defaultValue={{ limit: 1000000 }}>
+            <CampaignForm
+              key={`campaign-form-${tab}`}
+              campaignId={data.id}
+              initialPost={data.post}
+              initialValues={formValues}
+              mode='edit'
+            />
+          </PaginationProvider>
+        )}
+        {tab === 'orders' && <OrderTab campaignId={data.id} />}
+      </div>
     </FormPageWrapper>
   );
 };

@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.exc import IntegrityError
@@ -110,7 +111,7 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
 
     def update_campaign_with_products(self, db: Session, campaign_id, campaign_in):
         from app.db.models.campaigns_products import CampaignProduct
-        from app.schemas.campaigns_products import CampaignProductCreate
+        from app.schemas.campaigns_products import CampaignProductCreate, CampaignProductUpdate
 
         try:
             # Get campaign
@@ -121,15 +122,20 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
             )
             if not campaign:
                 raise ValueError("Campaign not found")
+            
             # Update campaign fields
-            for field, value in campaign_in.model_dump(exclude_unset=True).items():
+            campaign_data = campaign_in.model_dump(exclude_unset=True)
+            
+            for field, value in campaign_data.items():
                 if field != "products" and value is not None:
                     setattr(campaign, field, value)
+            
             channels = (
                 campaign_in.channels if hasattr(campaign_in, "channels") else None
             )
             if channels is not None and "facebook_comment" not in channels:
                 campaign.post_id = None
+            
             if campaign_in.products is not None:
                 existing_products = (
                     db.query(CampaignProduct)
@@ -142,31 +148,47 @@ class CampaignRepo(CRUDBase[Campaign, CampaignCreate, CampaignUpdate]):
 
                 for prod in campaign_in.products:
                     prod_data = prod.model_dump()
+                    
                     if prod_data.get("status") not in ("active", "inactive"):
                         raise ValueError(
                             f"Invalid product status: {prod_data.get('status')}"
                         )
                     prod_data["campaign_id"] = campaign_id
                     product_id_str = str(prod.product_id)
+                    
                     if product_id_str in existing_products_map:
                         db_obj = existing_products_map[product_id_str]
-                        campaign_product_repo.update(
-                            db, db_obj=db_obj, obj_in=prod_data
-                        )
+                        
+                        db_obj.keyword = prod_data.get("keyword")
+                        db_obj.quantity = prod_data.get("quantity")
+                        db_obj.status = prod_data.get("status")
+                        db_obj.max_order_quantity = prod_data.get("max_order_quantity", None)
+                        db_obj.updated_at = datetime.now(UTC)
+                        
+                        db.add(db_obj)
                     else:
-                        campaign_product_repo.create(
-                            db, obj_in=CampaignProductCreate(**prod_data)
+                        create_data = CampaignProductCreate(
+                            campaign_id=campaign_id,
+                            product_id=prod.product_id,
+                            keyword=prod_data.get("keyword"),
+                            quantity=prod_data.get("quantity"),
+                            status=prod_data.get("status"),
+                            max_order_quantity=prod_data.get("max_order_quantity", None),
                         )
+                        campaign_product_repo.create(
+                            db, obj_in=create_data
+                        )
+                
                 incoming_product_ids = {str(p.product_id) for p in campaign_in.products}
                 for product_id_str, db_obj in existing_products_map.items():
                     if product_id_str not in incoming_product_ids:
                         db.delete(db_obj)
+            
             db.commit()
             db.refresh(campaign)
             return campaign
         except Exception as e:
             db.rollback()
-            print(f"Failed to update campaign with products: {e}")
             raise e from e
 
 
