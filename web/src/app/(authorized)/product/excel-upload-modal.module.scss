@@ -7,7 +7,7 @@
 }
 
 .uploadModal {
-  @apply flex w-full min-w-[360px] max-w-md flex-col gap-6;
+  @apply flex w-full min-w-[500px] max-w-md flex-col gap-6;
 }
 
 .modalHeader {
@@ -28,6 +28,19 @@
 
 .modalContent {
   @apply space-y-6;
+}
+
+.templateButton {
+  @apply w-fit border-blue-300 bg-blue-100 text-blue-700 hover:bg-blue-200 hover:text-blue-800;
+}
+
+.downloadIcon {
+  @apply size-4;
+}
+
+/* Upload Section */
+.uploadSection {
+  @apply space-y-3;
 }
 
 .fileSection {
@@ -135,6 +148,7 @@
 }
 
 .dropzone {
+  @apply h-[200px];
   @apply flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 transition-colors duration-150 hover:border-blue-400 hover:bg-blue-50;
 }
 

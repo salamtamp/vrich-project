@@ -1,8 +1,10 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 'use client';
 
 import React, { useCallback, useState } from 'react';
 
-import { AlertCircle, CheckCircle, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Download, Upload, X } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 
 import { Button } from '@/components/ui/button';
@@ -56,6 +58,16 @@ const ExcelUploadContent: React.FC<ExcelUploadContentProps> = ({ onSuccess, onCl
     noClick: true,
     noKeyboard: true,
   });
+
+  const handleDownloadTemplate = useCallback(() => {
+    // Create a link element to download the template
+    const link = document.createElement('a');
+    link.href = '/air-commerce-import-product.xlsx';
+    link.download = 'air-commerce-import-product.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
 
   const handleUpload = useCallback(async () => {
     if (!selectedFile) {
@@ -181,55 +193,72 @@ const ExcelUploadContent: React.FC<ExcelUploadContentProps> = ({ onSuccess, onCl
       </div>
 
       <div className={styles.modalContent}>
-        <div {...getRootProps({ className: styles.dropzone })}>
-          <input {...getInputProps()} />
-          <div className={styles.dropzoneContent}>
-            {(() => {
-              if (isDragActive) {
-                return <div className={styles.dropzoneActive}>Drop the file here ...</div>;
-              }
-              if (selectedFile) {
-                return (
-                  <div className={styles.fileInfoImproved}>
-                    <CheckCircle className={styles.fileValidIcon} />
-                    <div className={styles.fileTextGroup}>
-                      <span className={styles.fileLabel}>Selected file:</span>
-                      <span className={styles.fileName}>{selectedFile.name}</span>
+        <Button
+          className={styles.templateButton}
+          variant='outline'
+          onClick={handleDownloadTemplate}
+        >
+          <Download className={styles.downloadIcon} />
+          Load Example Template
+        </Button>
+
+        <div className={styles.uploadSection}>
+          <div
+            {...getRootProps({ className: styles.dropzone })}
+            onClick={(e) => {
+              e.stopPropagation();
+              openFileDialog();
+            }}
+          >
+            <input {...getInputProps()} />
+            <div className={styles.dropzoneContent}>
+              {(() => {
+                if (isDragActive) {
+                  return <div className={styles.dropzoneActive}>Drop the file here ...</div>;
+                }
+                if (selectedFile) {
+                  return (
+                    <div className={styles.fileInfoImproved}>
+                      <CheckCircle className={styles.fileValidIcon} />
+                      <div className={styles.fileTextGroup}>
+                        <span className={styles.fileLabel}>Selected file:</span>
+                        <span className={styles.fileName}>{selectedFile.name}</span>
+                      </div>
+                      <Button
+                        aria-label='Remove file'
+                        className={styles.removeFileButtonImproved}
+                        size='icon'
+                        variant='ghost'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFile(null);
+                        }}
+                      >
+                        <X className={styles.closeIcon} />
+                      </Button>
                     </div>
+                  );
+                }
+                return (
+                  <div className={styles.dropzonePrompt}>
+                    <Upload className={styles.fileIcon} />
+                    <span>Drag & drop Excel file here, or </span>
                     <Button
-                      aria-label='Remove file'
-                      className={styles.removeFileButtonImproved}
-                      size='icon'
-                      variant='ghost'
+                      className={styles.browseButton}
+                      size='sm'
+                      type='button'
+                      variant='outline'
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedFile(null);
+                        openFileDialog();
                       }}
                     >
-                      <X className={styles.closeIcon} />
+                      Browse
                     </Button>
                   </div>
                 );
-              }
-              return (
-                <div className={styles.dropzonePrompt}>
-                  <Upload className={styles.fileIcon} />
-                  <span>Drag & drop Excel file here, or </span>
-                  <Button
-                    className={styles.browseButton}
-                    size='sm'
-                    type='button'
-                    variant='outline'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openFileDialog();
-                    }}
-                  >
-                    Browse
-                  </Button>
-                </div>
-              );
-            })()}
+              })()}
+            </div>
           </div>
         </div>
       </div>
