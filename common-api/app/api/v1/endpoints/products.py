@@ -4,6 +4,7 @@ from fastapi import (
     APIRouter,
     Depends,
     File,
+    Form,
     HTTPException,
     Response,
     UploadFile,
@@ -90,7 +91,9 @@ async def upload_excel_products(
     *,
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
-    config: ExcelUploadConfig | None = None,
+    skip_header: bool = Form(True),
+    skip_rows: int = Form(0),
+    batch_size: int = Form(100),
 ) -> ExcelUploadResponse:
     """Upload products from Excel file."""
     if not file.filename or not file.filename.lower().endswith(('.xlsx', '.xls')):
@@ -101,6 +104,13 @@ async def upload_excel_products(
 
     try:
         file_content = await file.read()
+        
+        config = ExcelUploadConfig(
+            skip_header=skip_header,
+            skip_rows=skip_rows,
+            batch_size=batch_size,
+        )
+        
         return product_excel_service.process_excel_upload(db, file_content, config)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

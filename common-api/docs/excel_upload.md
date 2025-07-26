@@ -35,16 +35,27 @@ POST /api/v1/products/upload-excel
 
 **Parameters:**
 - `file`: Excel file (.xlsx, .xls) - **Required**
-- `config`: JSON string containing ExcelUploadConfig - **Optional**
+- `skip_header`: Boolean - **Optional** (default: `false`)
+- `skip_rows`: Integer - **Optional** (default: `0`)
+- `batch_size`: Integer - **Optional** (default: `100`)
 
-**Important:** The `config` parameter must be sent as a JSON string in the form data, not as a raw JSON object.
+**Important:** All parameters have sensible defaults, so you can omit any of them.
 
-**Example Request:**
+**Example Request (with parameters):**
 ```bash
 curl -X POST "http://localhost:8000/api/v1/products/upload-excel" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@products.xlsx" \
-  -F 'config={"skip_rows": 1, "batch_size": 50}'
+  -F "skip_rows=1" \
+  -F "skip_header=true" \
+  -F "batch_size=50"
+```
+
+**Example Request (minimal - using defaults):**
+```bash
+curl -X POST "http://localhost:8000/api/v1/products/upload-excel" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@products.xlsx"
 ```
 
 **Response:**
