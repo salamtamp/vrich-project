@@ -34,8 +34,50 @@ class FacebookCommentProcessor:
         )
         self.database.connect()
 
-    def close(self):
-        self.database.close()
+    def __del__(self):
+        """Cleanup database connection on destruction."""
+        if hasattr(self, 'database') and self.database:
+            self.database.close()
+
+    def _noti_order_to_messenger(self, profile_id: str, order_id: str, order_code: str, order_status: str) -> Tuple[bool, Optional[Exception]]:
+        try:
+            if order_status == "success":
+                facebook_page_url = f"http://{settings.FACEBOOK_PAGE_API_HOST}:{settings.FACEBOOK_PAGE_API_PORT}/api/v1/messengers/send-template-message"
+                payload = {
+                    "recipient_id": profile_id,
+                    "template": {
+                        "template_type": "button",
+                        "text": f"ออเดอร์: {order_code} ของคุณได้รับจองแล้ว",
+                        "buttons": [{ "type": "web_url", "url": f"http://{settings.WEB_HOST}:{settings.WEB_PORT}/orders/{order_id}", "title": "ดูออเดอร์" }]
+                    }
+                }
+            else:
+                facebook_page_url = f"http://{settings.FACEBOOK_PAGE_API_HOST}:{settings.FACEBOOK_PAGE_API_PORT}/api/v1/messengers/send-text-message"
+                payload = {
+                    "recipient_id": profile_id,
+                    "message": "ไม่สามารถจองสินค้าได้ เนื่องจากสินค้าหมด หรือถึงลิมิตการจอง"
+                }
+
+            with httpx.Client() as client:
+                response = client.post(
+                    facebook_page_url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=30.0
+                )
+
+                if response.status_code == 200:
+                    log_message("FacebookCommentProcessor", "debug", f"Sending facebook notification to profile: {profile_id}, order: {order_id} successfully")
+                    return True, None
+                else:
+                    error_msg = f"HTTP {response.status_code}: {response.text}"
+                    log_message("FacebookCommentProcessor", "error", f"Sending facebook notification to profile: {profile_id}, order: {order_id} failed - {error_msg}")
+                    return False, Exception(error_msg)
+
+        except Exception as e:
+            log_message("FacebookCommentProcessor", "error", f"Error sending facebook notification to profile: {profile_id}, order: {order_id} with error: {e}")
+            return False, e
+
 
     def _noti_facebook_comment(self, host: str, comment_id: str) -> Tuple[bool, Optional[Exception]]:
         """Send notification about Facebook comment to webhook endpoint."""
@@ -98,7 +140,7 @@ class FacebookCommentProcessor:
                 log_message("FacebookCommentProcessor", "info", f"No matching product found for comment message: {comment_data['message']}, skipped")
                 return None
 
-            _, error = self._create_order(
+            order_id, order_code, error = self._create_order(
                 profile_id,
                 matching_product.campaign_id,
                 matching_product.campaign_product_id,
@@ -107,8 +149,26 @@ class FacebookCommentProcessor:
             )
 
             if error:
+                if "exceeds max allowed" in str(error):
+                    log_message("FacebookCommentProcessor", "info", f"Order product quantity exceeds max allowed for order_code={order_code}")
+                    _, notify_error = self._noti_order_to_messenger(message["from_id"], order_id, order_code, "failed")
+                    if notify_error:
+                        log_message("FacebookCommentProcessor", "error", f"Failed to send facebook notification for order: {order_code}")
+                        return notify_error
+
+                    return None
+
                 log_message("FacebookCommentProcessor", "error", f"Failed to create order: {error}")
                 return error
+
+            if order_code is None:
+                log_message("FacebookCommentProcessor", "error", f"Failed to create order: {error}, not found order code")
+                return error
+
+            _, notify_error = self._noti_order_to_messenger(message["from_id"], order_id, order_code, "success")
+            if notify_error:
+                log_message("FacebookCommentProcessor", "error", f"Failed to send facebook notification for order: {order_code}")
+                return notify_error
 
             return None
 
@@ -119,18 +179,29 @@ class FacebookCommentProcessor:
 
     def _get_profile_id(self, id: str, name: str) -> Tuple[Optional[str], Optional[Exception]]:
         try:
-            query = "SELECT id FROM facebook_profiles WHERE facebook_id = %s LIMIT 1"
+            query = """
+                SELECT id FROM facebook_profiles WHERE facebook_id = %s LIMIT 1
+            """
             result = self.database.execute_query(query, (id,))
+
             if result:
                 return result[0]["id"], None
 
-            # Insert and return the new id directly
-            query = "INSERT INTO facebook_profiles (type, facebook_id, name) VALUES (%s, %s, %s) RETURNING id"
-            result = self.database.execute_command(query, ("user", id, name))
-            if result and isinstance(result, list) and result[0].get("id"):
-                return result[0]["id"], None
-            else:
-                return None, Exception("Failed to insert new profile")
+            # If not found, insert new profile with proper error handling
+            query = """
+                INSERT INTO facebook_profiles (type, facebook_id, name)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (facebook_id) DO UPDATE SET name = EXCLUDED.name
+                RETURNING id
+            """
+
+            # Get the newly created profile ID
+            query = """
+                SELECT id FROM facebook_profiles WHERE facebook_id = %s LIMIT 1
+            """
+            result = self.database.execute_query(query, (id,))
+
+            return result[0]["id"], None
         except Exception as e:
             log_message("FacebookCommentProcessor", "error", f"Error getting profile ID for facebook_id={id}, name={name}: {e}")
             return None, e
@@ -170,35 +241,48 @@ class FacebookCommentProcessor:
         return None, None
 
 
-    def _create_order(self, profile_id: str, campaign_id: str, campaign_product_id: str, quantity: int, max_quantity: int) -> Tuple[Optional[str], Optional[Exception]]:
+    def _create_order(self, profile_id: str, campaign_id: str, campaign_product_id: str, quantity: int, max_quantity: int) -> Tuple[Optional[str], Optional[str], Optional[Exception]]:
         try:
             order_id, error = self._create_pending_order(profile_id, campaign_id)
             if error:
                 log_message("FacebookCommentProcessor", "error", f"Failed to create or fetch order for profile_id={profile_id}, campaign_id={campaign_id}")
-                return None, error
+                return None, None, error
 
             if not order_id:
                 log_message("FacebookCommentProcessor", "error", f"Failed to create or fetch order for profile_id={profile_id}, campaign_id={campaign_id}")
-                return None, error
+                return None, None, error
+
+            order_code, error = self._get_order_code(order_id)
+            if error:
+                log_message("FacebookCommentProcessor", "error", f"Failed to get order code for order_id={order_id}")
+                return None, None, error
 
             _, error = self._create_order_product(order_id, profile_id, campaign_product_id, quantity, max_quantity)
             if error:
                 if "exceeds max allowed" in str(error):
                     log_message("FacebookCommentProcessor", "info", f"Order product quantity exceeds max allowed for order_id={order_id}")
-                    return order_id, None
+                    return order_id, order_code, None
 
                 log_message("FacebookCommentProcessor", "error", f"Failed to create order product for order_id={order_id}")
-                return None, error
+                return None, None, error
 
             _, error = self._deduct_campaign_product_quantity(campaign_product_id, quantity)
             if error:
                 log_message("FacebookCommentProcessor", "error", f"Failed to deduct product quantity for campaign_product_id={campaign_product_id}")
-                return None, error
+                return None, None, error
 
-            return order_id, None
+            return order_id, order_code, None
         except Exception as e:
             log_message("FacebookCommentProcessor", "error", f"Error creating order: {e}")
-            return None, e
+            return None, None, e
+
+
+    def _get_order_code(self, order_id: str) -> Tuple[Optional[str], Optional[Exception]]:
+        query = """
+            SELECT code FROM orders WHERE id = %s
+        """
+        result = self.database.execute_query(query, (order_id,))
+        return result[0]["code"] if result else None, None
 
 
     def _create_pending_order(self, profile_id: str, campaign_id: str) -> Tuple[Optional[str], Optional[Exception]]:
