@@ -255,7 +255,7 @@ async def handle_webhook(request: Request):
 
         # Convert msg.time (timestamp) to ISO 8601 string with timezone +0000
         if msg.time:
-            created_time = datetime.datetime.fromtimestamp(msg.time).strftime("%Y-%m-%dT%H:%M:%S+0000")
+            created_time = datetime.datetime.fromtimestamp(msg.time / 1000).strftime("%Y-%m-%dT%H:%M:%S+0000")
         else:
             created_time = "0"
 

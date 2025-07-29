@@ -12,7 +12,7 @@ Content-Type: application/json
 
 {
     "pageId": "221760221538013",
-    "schedule": "0 0 * * *",
+    "schedule": "*/3 * * * *",
     "triggerType": "cron"
 }
 

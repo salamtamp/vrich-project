@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any, Union
 
 import httpx
 import logging
+import json
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -103,11 +104,6 @@ async def send_facebook_text_message(
         "access_token": settings.FACEBOOK_PAGE_ACCESS_TOKEN
     }
 
-    print("url", url)
-    print("payload", payload)
-    print("params", params)
-    print("recipient_id", recipient_id)
-
     try:
         logger.info(f"Sending message to recipient {recipient_id}")
 
@@ -119,8 +115,6 @@ async def send_facebook_text_message(
                 headers={"Content-Type": "application/json"},
                 timeout=30.0
             )
-
-            print("response", response.json())
 
             response_data = response.json()
 
