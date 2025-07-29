@@ -208,3 +208,12 @@ Content-Type: application/json
         }
     ]
 }
+
+### Verify Slip by EasySlip
+POST https://developer.easyslip.com/api/v1/verify
+Content-Type: application/json
+Authorization: Bearer 638480ec-7225-4a33-b533-7cc21f994476
+
+{
+  "image": "<BASE64_ENCODED_IMAGE>"
+}

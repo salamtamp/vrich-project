@@ -34,9 +34,17 @@ class Settings(BaseSettings):
     QUEUE_PASS: str = os.getenv("QUEUE_PASS", "guest")
     QUEUE_NAME: str = os.getenv("QUEUE_NAME", "facebook_inboxes")
 
+    # Web
+    WEB_HOST: str = os.getenv("WEB_HOST", "localhost")
+    WEB_PORT: int = os.getenv("WEB_PORT", 3000)
+
     # Webhook
     WEBHOOK_HOST: str = os.getenv("WEBHOOK_HOST", "localhost")
-    WEBHOOK_PORT: int = os.getenv("WEBHOOK_PORT", 3000)
+    WEBHOOK_PORT: int = os.getenv("WEBHOOK_PORT", 3001)
+
+    # Facebook Page API
+    FACEBOOK_PAGE_API_HOST: str = os.getenv("FACEBOOK_PAGE_API_HOST", "localhost")
+    FACEBOOK_PAGE_API_PORT: int = os.getenv("FACEBOOK_PAGE_API_PORT", 3002)
 
     # Env
     DEBUG: bool = os.getenv("DEBUG", "False") == "True"
