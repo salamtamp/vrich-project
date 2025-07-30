@@ -184,16 +184,58 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+    if (file && !file.type.startsWith('image/')) {
+      setUploadError('Please select an image file.');
+      return;
+    }
     setFileInput(file);
+    setUploadError(null);
   };
 
-  // Simulate 3rd-party upload
-  const mockUploadToThirdParty = async (_: File): Promise<string> => {
-    // Simulate upload delay
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    // Return a fake URL (in real use, this would be the URL from the 3rd-party)
-    // const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    return 'https://picsum.photos/200/300';
+  // Function to resize image and convert to base64
+  const resizeImageAndConvertToBase64 = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new window.Image();
+
+      img.onload = () => {
+        // Set maximum dimensions for payment slip (smaller for base64 efficiency)
+        const maxWidth = 600;
+        const maxHeight = 800;
+
+        let { width, height } = img;
+
+        // Calculate new dimensions while maintaining aspect ratio
+        // For payment slips, prioritize height (portrait orientation) with smaller file size
+        if (height > maxHeight) {
+          width = (width * maxHeight) / height;
+          height = maxHeight;
+        } else if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        // Set canvas dimensions
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw resized image
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        // Convert to base64 with balanced quality for smaller file size
+        const base64 = canvas.toDataURL('image/jpeg', 0.7);
+        resolve(base64);
+      };
+
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+
+      // Create object URL for the image
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
+    });
   };
 
   const handleUploadSlip = async () => {
@@ -207,13 +249,24 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
     setUploading(true);
     setUploadError(null);
     try {
-      // 1. Upload to 3rd-party (mocked)
-      const slipUrl = await mockUploadToThirdParty(fileInput);
-      // 2. Save to backend (mocked)
+      // Resize image and convert to base64
+      const base64Data = await resizeImageAndConvertToBase64(fileInput);
+
+      // Generate unique payment code
+      const generatePaymentCode = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = 'PAY';
+        for (let i = 0; i < 8; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      };
+
+      // Save to backend with base64 data
       const mockPayment: Payment = {
         id: crypto.randomUUID(),
-        payment_slip: slipUrl,
-        payment_code: payment?.payment_code ?? 'MOCK-CODE',
+        payment_slip: base64Data, // Use base64 data instead of URL
+        payment_code: payment?.payment_code ?? generatePaymentCode(),
         amount: payment?.amount ?? 0,
         method: payment?.method ?? 'bank_transfer',
         status: payment?.status ?? 'pending',
@@ -844,13 +897,13 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
           </CardHeader>
           <CardContent>
             {paymentSlipUrl ? (
-              <div className='mb-4'>
+              <div className='mb-4 flex w-full justify-center'>
                 <Image
                   alt='Payment Slip'
                   className='max-h-64 rounded-lg border border-gray-200 shadow-sm'
                   height={240}
                   src={paymentSlipUrl}
-                  width={320}
+                  width={200}
                 />
               </div>
             ) : (
@@ -861,7 +914,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
               <div className='flex flex-col gap-2 md:flex-row md:items-center'>
                 <input
                   ref={fileInputRef}
-                  accept='image/*,application/pdf'
+                  accept='image/*'
                   className='mb-2 flex-1 rounded border border-gray-300 px-3 py-2 text-base md:mb-0'
                   disabled={uploading}
                   type='file'

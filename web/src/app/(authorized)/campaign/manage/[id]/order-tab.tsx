@@ -245,7 +245,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
               onClick={() => {
                 modal.open({
                   content: (
-                    <div className='flex max-h-[600px]'>
+                    <div className='flex max-h-[600px] min-h-[400px] min-w-[300px]'>
                       <OrderDetailsClient
                         isAdmin
                         id={row.id}
