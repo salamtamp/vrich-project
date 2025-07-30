@@ -1,0 +1,102 @@
+[
+  {
+    "status": 200,
+    "data": {
+      "payload": "0041000600000101030040220015209145042CQR023245102TH91040251",
+      "transRef": "015209145042CQR02324",
+      "date": "2025-07-28T14:50:42+07:00",
+      "countryCode": "TH",
+      "amount": {
+        "amount": 140,
+        "local": {
+          "amount": 140,
+          "currency": "764"
+        }
+      },
+      "fee": 0,
+      "ref1": "KB000001809892",
+      "ref2": "202507283534755",
+      "ref3": "",
+      "sender": {
+        "bank": {
+          "id": "004",
+          "name": "ธนาคารกสิกรไทย",
+          "short": "KBANK"
+        },
+        "account": {
+          "name": {
+            "th": "นาย พชร ส",
+            "en": "MR. PATCHARA S"
+          },
+          "bank": {
+            "type": "BANKAC",
+            "account": "xxx-x-x9076-x"
+          }
+        }
+      },
+      "receiver": {
+        "bank": {},
+        "account": {
+          "name": {
+            "th": "The Life G",
+            "en": "The Life G"
+          }
+        }
+      }
+    }
+  },
+  {
+    "status": 200,
+    "data": {
+      "payload": "0038000600000101030060217A955607da840243de5102TH91045E7B",
+      "transRef": "A955607da840243de",
+      "date": "2025-07-29T12:46:23+07:00",
+      "countryCode": "TH",
+      "amount": {
+        "amount": 18000,
+        "local": {
+          "amount": 0,
+          "currency": ""
+        }
+      },
+      "fee": 0,
+      "ref1": "",
+      "ref2": "",
+      "ref3": "",
+      "sender": {
+        "bank": {
+          "id": "006",
+          "name": "ธนาคารกรุงไทย",
+          "short": "KTB"
+        },
+        "account": {
+          "name": {
+            "th": "นาย พชร ส",
+            "en": "MR. PATCHARA S"
+          },
+          "bank": {
+            "type": "BANKAC",
+            "account": "XXX-X-XX295-0"
+          }
+        }
+      },
+      "receiver": {
+        "bank": {},
+        "account": {
+          "name": {
+            "th": "นาย พชร ส",
+            "en": "MR. PATCHARA S"
+          },
+          "proxy": {
+            "type": "MSISDN",
+            "account": "XXXXXX4664"
+          }
+        }
+      }
+    }
+  },
+  {
+    "status": 404,
+    "message": "qrcode_not_found"
+  }
+]
