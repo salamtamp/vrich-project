@@ -26,7 +26,7 @@ import { API } from '@/constants/api.constant';
 import { getStatusIcon, STATUS_COLORS, STATUS_LABELS } from '@/constants/order-status';
 import useRequest from '@/hooks/request/useRequest';
 import dayjs from '@/lib/dayjs';
-import { cn } from '@/lib/utils';
+import { cn, verifyPaymentSlip } from '@/lib/utils';
 import type { Order, Payment } from '@/types/api/order';
 
 const formatDate = (date?: string, includeTime = false) => {
@@ -249,10 +249,13 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
     setUploading(true);
     setUploadError(null);
     try {
-      // Resize image and convert to base64
       const base64Data = await resizeImageAndConvertToBase64(fileInput);
+      const { data: verifyData, error } = await verifyPaymentSlip(base64Data);
+      if (error) {
+        setUploadError(error.message);
+        return;
+      }
 
-      // Generate unique payment code
       const generatePaymentCode = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let result = 'PAY';
@@ -262,12 +265,16 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
         return result;
       };
 
-      // Save to backend with base64 data
+      const slip_amount = verifyData?.amount ?? 0;
+      const slip_purchase_date = verifyData?.date ? dayjs(verifyData.date).format('YYYY-MM-DD HH:mm:ss') : '';
+      const purchase_date = dayjs().format('YYYY-MM-DD HH:mm:ss');
+
       const mockPayment: Payment = {
         id: crypto.randomUUID(),
         payment_slip: base64Data, // Use base64 data instead of URL
         payment_code: payment?.payment_code ?? generatePaymentCode(),
-        amount: payment?.amount ?? 0,
+        amount: slip_amount,
+        payment_date: slip_purchase_date,
         method: payment?.method ?? 'bank_transfer',
         status: payment?.status ?? 'pending',
         order_id: order.id,
@@ -279,7 +286,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      await updateOrderStatus({ data: { status: 'paid', purchase_date: dayjs().toISOString() } });
+      await updateOrderStatus({ data: { status: 'paid', purchase_date } });
       void handleRequest();
     } catch (err) {
       setUploadError((err as { message?: string })?.message ?? 'Upload failed');
