@@ -252,7 +252,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
       const base64Data = await resizeImageAndConvertToBase64(fileInput);
       const { data: verifyData, error } = await verifyPaymentSlip(base64Data);
       if (error) {
-        setUploadError(error.message);
+        setUploadError('สลิปไม่ถูกต้อง กรุณาตรวจสอบสลิปการโอนเงินอีกครั้งหรือติดต่อเจ้าหน้าที่');
         return;
       }
 
@@ -276,7 +276,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
         amount: slip_amount,
         payment_date: slip_purchase_date,
         method: payment?.method ?? 'bank_transfer',
-        status: payment?.status ?? 'pending',
+        status: payment?.status ?? 'success',
         order_id: order.id,
         profile_id: order.profile_id,
       };
