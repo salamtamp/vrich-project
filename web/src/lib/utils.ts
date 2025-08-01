@@ -34,3 +34,22 @@ export function getRelativeTimeInThai(date: string | Date | null | undefined): s
   }
   return `${diffYears} ปีที่แล้ว`;
 }
+
+/**
+ * Converts UTC date to Bangkok timezone and formats it
+ * @param date - The date to convert (UTC string, Date object, or null/undefined)
+ * @param format - The format string (default: 'YYYY-MM-DD HH:mm')
+ * @param fallback - The fallback value if date is null/undefined (default: '-')
+ * @returns Formatted date string in Bangkok timezone or fallback value
+ */
+export function formatDateToBangkok(
+  date: string | Date | null | undefined,
+  format: string = 'YYYY-MM-DD HH:mm',
+  fallback: string = '-'
+): string {
+  if (!date) {
+    return fallback;
+  }
+
+  return dayjs.utc(date).tz('Asia/Bangkok').format(format);
+}

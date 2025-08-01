@@ -19,6 +19,7 @@ import dayjs from '@/lib/dayjs';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Order, OrderStatus } from '@/types/api/order';
 import { ORDER_PROCESS_STATUSES, ORDER_STATUSES } from '@/types/api/order';
+import { formatDateToBangkok } from '@/lib/utils';
 
 const getOrderRowId = (row: Order) => String(row.id);
 type OrderTabProps = { campaignId: string };
@@ -195,21 +196,21 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       label: 'Purchase Date',
       align: 'center',
       width: 120,
-      render: (row) => (row.purchase_date ? dayjs(row.purchase_date).format('YYYY-MM-DD') : '-'),
+      render: (row) => formatDateToBangkok(row.purchase_date),
     },
     {
       key: 'shipping_date',
       label: 'Shipping Date',
       align: 'center',
       width: 120,
-      render: (row) => (row.shipping_date ? dayjs(row.shipping_date).format('YYYY-MM-DD') : '-'),
+      render: (row) => formatDateToBangkok(row.shipping_date),
     },
     {
       key: 'delivery_date',
       label: 'Delivery Date',
       align: 'center',
       width: 120,
-      render: (row) => (row.delivery_date ? dayjs(row.delivery_date).format('YYYY-MM-DD') : '-'),
+      render: (row) => formatDateToBangkok(row.delivery_date),
     },
     {
       key: 'actions',
@@ -222,8 +223,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
         return (
           <div className='flex items-center justify-center gap-2'>
             {ORDER_PROCESS_STATUSES.includes(row.status) &&
-            getNextOrderStatus(row.status) &&
-            !hindButtonByData ? (
+              getNextOrderStatus(row.status) &&
+              !hindButtonByData ? (
               <Button
                 className={STATUS_COLORS[getNextOrderStatus(row.status) ?? '']}
                 disabled={isBatchUpdating}
@@ -266,8 +267,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
 
   const onApproveSelected = canBatchApprove
     ? () => {
-        void handleApproveSelected();
-      }
+      void handleApproveSelected();
+    }
     : undefined;
 
   const nextStatus = selectedStatus !== 'all' ? getNextOrderStatus(selectedStatus as OrderStatus) : undefined;

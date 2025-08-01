@@ -279,7 +279,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      await updateOrderStatus({ data: { status: 'paid' } });
+      await updateOrderStatus({ data: { status: 'paid', purchase_date: dayjs().toISOString() } });
       void handleRequest();
     } catch (err) {
       setUploadError((err as { message?: string })?.message ?? 'Upload failed');
