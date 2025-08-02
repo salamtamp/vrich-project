@@ -18,4 +18,6 @@ export const API = {
   CAMPAIGNS_PRODUCTS: '/api/v1/campaigns-products',
   ORDER: '/api/v1/orders',
   PAYMENT: '/api/v1/payments',
+  PAYMENT_SLIP_VERIFY: 'https://developer.easyslip.com/api/v1/verify',
+  PAYMENT_SLIP_API_TOKEN: '638480ec-7225-4a33-b533-7cc21f994476',
 };

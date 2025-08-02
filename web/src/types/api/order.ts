@@ -32,13 +32,6 @@ export const ORDER_PROCESS_STATUSES: OrderStatus[] = [
   'completed',
 ];
 
-// Deprecated: Use FacebookProfileResponse instead for profile
-// export type OrderProfile = {
-//   id: string;
-//   name: string;
-//   profile_picture_url?: string;
-// };
-
 export type OrderProduct = {
   id: string;
   order_id: string;

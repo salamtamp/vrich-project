@@ -8,10 +8,12 @@ import isToday from 'dayjs/plugin/isToday';
 import isTomorrow from 'dayjs/plugin/isTomorrow';
 import localeData from 'dayjs/plugin/localeData';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import timezone from 'dayjs/plugin/timezone';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(updateLocale);
 dayjs.extend(localeData);
