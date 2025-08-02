@@ -421,7 +421,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
                       </div>
                       <div>
                         <p className='text-sm font-medium text-gray-700'>Account Number:</p>
-                        <p className='font-mono text-lg font-bold text-green-700'>123-4-56789-123</p>
+                        <p className='text-lg font-bold text-green-700'>123-4-56789-123</p>
                       </div>
                     </div>
                     <div className='mt-3'>
@@ -437,7 +437,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
                       </div>
                       <div>
                         <p className='text-sm font-medium text-gray-700'>Order Code:</p>
-                        <p className='font-mono text-lg font-bold text-blue-700'>#{code}</p>
+                        <p className='text-lg font-bold text-blue-700'>#{code}</p>
                       </div>
                     </div>
                   </div>
@@ -477,9 +477,7 @@ const OrderDetailsClient = ({ id, isAdmin = false }: { id: string; isAdmin?: boo
                   </div>
                   <div>
                     <span className='text-gray-600'>Facebook ID:</span>{' '}
-                    <span className='rounded bg-gray-100 px-2 py-1 font-mono text-xs'>
-                      {profile?.facebook_id ?? 'N/A'}
-                    </span>
+                    <p className='rounded bg-gray-100 px-2 py-1 text-xs'>{profile?.facebook_id ?? 'N/A'}</p>
                   </div>
                 </div>
               </div>

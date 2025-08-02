@@ -111,12 +111,12 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       align: 'right',
       width: 120,
       render: (row) => (
-        <span className='font-mono'>
+        <p>
           {row.selling_price.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}
-        </span>
+        </p>
       ),
     },
     {
@@ -125,9 +125,9 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       align: 'right',
       width: 100,
       render: (row) => (
-        <span className='font-mono text-gray-600'>
+        <p className='text-gray-600'>
           {row.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
+        </p>
       ),
     },
     {
@@ -143,9 +143,9 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       align: 'right',
       width: 120,
       render: (row) => (
-        <span className='font-mono text-blue-600'>
+        <p className='text-blue-600'>
           {row.total_sales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
+        </p>
       ),
     },
     {
@@ -154,9 +154,9 @@ const SummaryTab: React.FC<SummaryTabProps> = ({ campaignId }) => {
       align: 'right',
       width: 120,
       render: (row) => (
-        <span className={`font-mono ${row.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <p className={row.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
           {row.profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </span>
+        </p>
       ),
     },
   ];

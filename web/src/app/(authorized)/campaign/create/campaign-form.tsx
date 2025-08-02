@@ -28,6 +28,7 @@ import useRequest from '@/hooks/request/useRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import { ImageWithFallback } from '@/hooks/useImageFallback';
 import dayjs from '@/lib/dayjs';
+import { createQuantitySchema } from '@/lib/yup-utils';
 import type { CampaignChannel, CampaignResponse, CampaignStatus } from '@/types/api';
 import type { FacebookPostResponse } from '@/types/api/facebook-post';
 import type { Product } from '@/types/api/product';
@@ -53,7 +54,7 @@ const schema = yup.object({
         productId: yup.string().required('Product is required'),
         name: yup.string().required('Name is required'),
         keyword: yup.string().required('Keyword is required'),
-        quantity: yup.number().min(1, 'Quantity must be at least 1').required('Quantity is required'),
+        quantity: createQuantitySchema(1),
         status: yup.string().oneOf(['active', 'inactive']).optional(),
       })
     )
@@ -487,7 +488,7 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
           variant='outline'
           onClick={onClear}
         >
-          Clear
+          Cancel
         </Button>
         <Button
           className='rounded-lg border-blue-600 bg-blue-600 px-6 py-2 font-medium text-white shadow-none hover:border-blue-700 hover:bg-blue-700'

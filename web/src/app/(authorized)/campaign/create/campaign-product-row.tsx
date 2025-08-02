@@ -3,7 +3,7 @@ import React from 'react';
 import { Trash2 } from 'lucide-react';
 import type { Control, UseFormSetValue } from 'react-hook-form';
 
-import { FormController } from '@/components/ui';
+import { FormController, NumberInput } from '@/components/ui';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -121,19 +121,20 @@ const CampaignProductRow = ({
               render={({ field }) => (
                 <div className='flex flex-col gap-2'>
                   <Label htmlFor='quantity'>Quantity</Label>
-                  <Input
+                  <NumberInput
                     ref={field.ref}
+                    allowDecimal={false}
                     id={`product-quantity-${idx}`}
                     max={selectedProduct?.quantity ?? undefined}
                     min={1}
                     name={field.name}
-                    step='1'
-                    type='number'
                     value={
                       typeof field.value === 'number' || typeof field.value === 'string' ? field.value : 1
                     }
                     onBlur={field.onBlur}
-                    onChange={field.onChange}
+                    onChange={(value: string | number) => {
+                      field.onChange(value);
+                    }}
                   />
                 </div>
               )}

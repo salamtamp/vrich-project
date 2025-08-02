@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm, useFormState } from 'react-hook-form';
+import { type Resolver, useForm, useFormState } from 'react-hook-form';
 import * as yup from 'yup';
 
-import { FormController } from '@/components/ui';
+import { FormController, NumberInput } from '@/components/ui';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { API } from '@/constants/api.constant';
 import { useLoading } from '@/contexts';
 import useRequest from '@/hooks/request/useRequest';
+import { createPriceSchema, createQuantitySchema, createWeightSchema } from '@/lib/yup-utils';
 import type { ProductResponse } from '@/types/api/product';
 
 type ProductFormValues = {
@@ -42,22 +43,19 @@ const schema = yup.object({
   code: yup.string().required('Product code is required'),
   name: yup.string().required('Product name is required'),
   description: yup.string().optional().default(''),
-  quantity: yup.number().min(0, 'Quantity must be at least 0').required('Quantity is required'),
+  quantity: createQuantitySchema(0),
   unit: yup.string().required('Unit is required'),
-  full_price: yup.number().min(0, 'Full price must be at least 0').required('Full price is required'),
-  selling_price: yup
-    .number()
-    .min(0, 'Selling price must be at least 0')
-    .required('Selling price is required'),
-  cost: yup.number().min(0, 'Cost must be at least 0').required('Cost is required'),
-  shipping_fee: yup.number().min(0, 'Shipping fee must be at least 0').required('Shipping fee is required'),
+  full_price: createPriceSchema(0),
+  selling_price: createPriceSchema(0),
+  cost: createPriceSchema(0),
+  shipping_fee: createPriceSchema(0),
   note: yup.string().optional().default(''),
   keyword: yup.string().required('Keyword is required'),
   product_category: yup.string().required('Product category is required'),
   product_type: yup.string().required('Product type is required'),
   color: yup.string().optional().default(''),
   size: yup.string().optional().default(''),
-  weight: yup.number().min(0, 'Weight must be at least 0').required('Weight is required'),
+  weight: createWeightSchema(0),
 });
 
 const defaultValues: ProductFormValues = {
@@ -98,7 +96,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
 
   const { control, handleSubmit, reset } = useForm<ProductFormValues>({
     defaultValues: mode === 'edit' && initialValues ? { ...defaultValues, ...initialValues } : defaultValues,
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as Resolver<ProductFormValues>,
     mode: 'onSubmit',
   });
   const { errors } = useFormState({ control });
@@ -237,15 +235,14 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               control={control}
               name='quantity'
               render={({ field }) => (
-                <Input
+                <NumberInput
+                  allowDecimal={false}
                   id='quantity'
-                  min='0'
-                  step='1'
-                  type='number'
+                  min={0}
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
-                  onChange={(e) => {
-                    field.onChange(Number(e.target.value));
+                  onChange={(value: number | string) => {
+                    field.onChange(value);
                   }}
                 />
               )}
@@ -276,15 +273,14 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               control={control}
               name='full_price'
               render={({ field }) => (
-                <Input
+                <NumberInput
+                  decimalPlaces={2}
                   id='full_price'
-                  min='0'
-                  step='1'
-                  type='number'
+                  min={0}
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
-                  onChange={(e) => {
-                    field.onChange(Number(e.target.value));
+                  onChange={(value: string | number) => {
+                    field.onChange(value);
                   }}
                 />
               )}
@@ -299,15 +295,14 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               control={control}
               name='selling_price'
               render={({ field }) => (
-                <Input
+                <NumberInput
                   id='selling_price'
-                  min='0'
-                  step='1'
-                  type='number'
+                  min={0}
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
-                  onChange={(e) => {
-                    field.onChange(Number(e.target.value));
+                  decimalPlaces={2}
+                  onChange={(value: string | number) => {
+                    field.onChange(value);
                   }}
                 />
               )}
@@ -324,15 +319,14 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               control={control}
               name='cost'
               render={({ field }) => (
-                <Input
+                <NumberInput
                   id='cost'
-                  min='0'
-                  step='1'
-                  type='number'
+                  min={0}
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
-                  onChange={(e) => {
-                    field.onChange(Number(e.target.value));
+                  decimalPlaces={2}
+                  onChange={(value: string | number) => {
+                    field.onChange(value);
                   }}
                 />
               )}
@@ -345,15 +339,14 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
               control={control}
               name='shipping_fee'
               render={({ field }) => (
-                <Input
+                <NumberInput
                   id='shipping_fee'
-                  min='0'
-                  step='1'
-                  type='number'
+                  min={0}
                   {...field}
                   className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
-                  onChange={(e) => {
-                    field.onChange(Number(e.target.value));
+                  decimalPlaces={2}
+                  onChange={(value: string | number) => {
+                    field.onChange(value);
                   }}
                 />
               )}
@@ -436,15 +429,14 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
             control={control}
             name='weight'
             render={({ field }) => (
-              <Input
+              <NumberInput
                 id='weight'
-                min='0'
-                step='1'
-                type='number'
+                min={0}
                 {...field}
                 className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder:text-gray-400'
-                onChange={(e) => {
-                  field.onChange(Number(e.target.value));
+                decimalPlaces={2}
+                onChange={(value: string | number) => {
+                  field.onChange(value);
                 }}
               />
             )}
@@ -461,7 +453,7 @@ const ProductForm = ({ mode, initialValues }: ProductFormProps) => {
           variant='outline'
           onClick={onClear}
         >
-          Clear
+          Cancel
         </Button>
         <Button
           className='rounded-lg border-blue-600 bg-blue-600 px-6 py-2 font-medium text-white shadow-none hover:border-blue-700 hover:bg-blue-700'
