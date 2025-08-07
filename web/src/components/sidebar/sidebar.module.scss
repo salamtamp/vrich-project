@@ -2,6 +2,7 @@
   @apply flex h-full flex-col justify-between overflow-hidden;
   @apply bg-white;
   @apply min-w-[215px];
+  @apply border-r border-gray-200;
 
   box-shadow: rgba(17, 17, 26, 0.1) 0px 0px 16px;
 }

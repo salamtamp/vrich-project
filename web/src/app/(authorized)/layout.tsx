@@ -9,10 +9,10 @@ const AuthorizedLayout = ({ children }: NextJSChildren) => {
       <SocketProvider>
         <NotificationProvider>
           <div className='flex h-screen w-screen'>
-            <div className=''>
+            <div className='border-l border-gray-500'>
               <Sidebar />
             </div>
-            <div className='flex flex-1 flex-col overflow-hidden rounded-2xl'>
+            <div className='flex flex-1 flex-col overflow-hidden'>
               <PaginationProvider>
                 <ModalProvider>{children}</ModalProvider>
               </PaginationProvider>
