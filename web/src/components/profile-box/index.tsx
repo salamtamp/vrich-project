@@ -21,6 +21,8 @@ import { Input } from '../ui/input';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { useToast } from '../ui/toast';
 
+export { default as ProfileSection } from './ProfileSection';
+
 type TextListProps = {
   id?: string;
   cardData?: CardData;

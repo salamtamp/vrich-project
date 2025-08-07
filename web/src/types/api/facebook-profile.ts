@@ -6,6 +6,8 @@ export type FacebookProfile = {
   name: string;
   profile_picture_url: string;
   profile_contact?: FacebookProfileContact;
+  username?: string;
+  bio?: string;
 };
 
 export type FacebookProfileUpdate = Partial<FacebookProfile> & {

@@ -97,3 +97,5 @@ web/public/mockServiceWorker.js
 node_modules/
 
 theme
+
+.cursor

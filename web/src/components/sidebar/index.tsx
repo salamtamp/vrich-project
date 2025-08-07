@@ -34,41 +34,21 @@ const Sidebar = () => {
       className={cn(
         styles.container,
         'transition-all duration-300 ease-in-out',
-        isCollapse ? '!min-w-[110px] !px-0' : 'w-full'
+        isCollapse && styles.isCollapse
       )}
     >
       <div className={styles.navBarContainer}>
-        <div
-          className={cn(
-            styles.headerContainer,
-            'transition-all duration-300 ease-in-out',
-            isCollapse && '!ml-2 pl-5'
-          )}
-        >
-          <div className='h-[30px] overflow-hidden'>
-            <div
-              className={cn(
-                'transition-all duration-300 ease-in-out',
-                isCollapse ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-              )}
-            >
+        <div className={cn(styles.headerContainer, isCollapse && styles.headerContainerCollapsed)}>
+          <div className={styles.logoContainer}>
+            <div className={cn(isCollapse ? styles.logoSmall : styles.logoSmallHidden)}>
               {isCollapse ? <LogoSmallIcon /> : null}
             </div>
-            <div
-              className={cn(
-                'transition-all duration-300 ease-in-out',
-                !isCollapse ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
-              )}
-            >
+            <div className={cn(!isCollapse ? styles.logoLarge : styles.logoLargeHidden)}>
               {!isCollapse && <LogoIcon />}
             </div>
           </div>
           <button
-            className={cn(
-              'flex size-7 items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-300',
-              'transform transition-all duration-300 ease-in-out',
-              isCollapse ? 'mr-2 rotate-180' : 'mr-4'
-            )}
+            className={cn(styles.collapseButton, isCollapse && styles.collapseButtonCollapsed)}
             onClick={() => {
               setIsCollapse((c) => !c);
             }}
@@ -76,7 +56,7 @@ const Sidebar = () => {
             <LeftColorIcon />
           </button>
         </div>
-        <div className='mt-5 h-[2px] w-full rounded-lg bg-gray-300' />
+        <div className={styles.divider} />
 
         <div className={styles.menuContainer}>
           {sidebarConfig.map((item) => {
@@ -86,33 +66,27 @@ const Sidebar = () => {
             return (
               <div
                 key={item.path}
-                className={cn('flex flex-col px-3')}
+                className='flex flex-col px-3'
               >
                 <button
                   type='button'
                   className={cn(
                     styles.menuItem,
                     isActive && styles.isActive,
-                    'cursor-pointer rounded-lg p-2 transition-all duration-300 ease-in-out',
-                    isCollapse && 'justify-center'
+                    isCollapse && styles.menuItemCollapsed
                   )}
                   onClick={() => {
                     handleMenuClick(item.path);
                   }}
                 >
                   <IconComponent
-                    className={cn(styles.iconActive, 'transition-all duration-300 ease-in-out')}
+                    className={styles.iconActive}
                     size={20}
                     strokeWidth={2.5}
                   />
                   {!isCollapse ? (
-                    <div
-                      className={cn(
-                        'overflow-hidden transition-all duration-300 ease-in-out',
-                        isCollapse ? 'w-0 opacity-0' : 'w-auto opacity-100'
-                      )}
-                    >
-                      <p className='ml-2 whitespace-nowrap text-display-medium'>{item.label}</p>
+                    <div className={styles.menuTextContainer}>
+                      <p className={styles.menuText}>{item.label}</p>
                     </div>
                   ) : null}
                 </button>
@@ -122,31 +96,22 @@ const Sidebar = () => {
         </div>
       </div>
       <div className={styles.navBarContainer}>
-        <div className='mt-6 h-[2px] w-full rounded-lg bg-gray-300' />
-        <div className={cn('flex flex-col px-3 pb-4')}>
+        <div className={styles.footerDivider} />
+        <div className={styles.logoutContainer}>
           <button
+            className={cn(styles.logoutButton, isCollapse && styles.logoutButtonCollapsed)}
             type='button'
-            className={cn(
-              styles.menuItem,
-              'mt-4 cursor-pointer rounded-lg p-2 transition-all duration-300 ease-in-out',
-              isCollapse && 'justify-center'
-            )}
             onClick={() => {
               void handleLogout();
             }}
           >
             <LogOut
-              className={cn(styles.iconActive, 'transition-all duration-300 ease-in-out')}
+              className={styles.iconActive}
               strokeWidth={2.5}
             />
             {!isCollapse ? (
-              <div
-                className={cn(
-                  'overflow-hidden transition-all duration-300 ease-in-out',
-                  isCollapse ? 'w-0 opacity-0' : 'w-auto opacity-100'
-                )}
-              >
-                <p className='ml-2 whitespace-nowrap text-display-medium'>Logout</p>
+              <div className={styles.menuTextContainer}>
+                <p className={styles.menuText}>Logout</p>
               </div>
             ) : null}
           </button>

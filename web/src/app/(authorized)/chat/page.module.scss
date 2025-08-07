@@ -1,0 +1,68 @@
+.container {
+  @apply flex size-full flex-1 flex-col overflow-hidden rounded-2xl bg-white px-4 py-2 shadow-sm;
+}
+.header {
+  @apply flex flex-col;
+}
+.title {
+  @apply text-lg-semibold text-primary;
+}
+.subtitle {
+  @apply text-md-regular text-gray-600;
+}
+
+.selectPlatformContainer {
+  @apply flex items-center gap-4 px-4;
+  @apply w-full rounded-lg border border-gray-300 shadow;
+}
+
+.main {
+  @apply mt-2 flex h-full gap-4 overflow-hidden p-2;
+}
+.sidebar {
+  @apply h-full w-[300px] overflow-hidden rounded-lg py-3;
+  @apply border border-gray-300 shadow;
+}
+.sidebarInner {
+  @apply flex w-full flex-col px-3 py-2;
+}
+.icon {
+  @apply text-gray-500;
+}
+.divider {
+  @apply mt-3;
+}
+.inboxItem {
+  @apply flex gap-3 px-4 py-2;
+}
+.profileImage {
+  @apply size-10;
+}
+.inboxName {
+  @apply text-md-semibold text-primary;
+  @apply text-start;
+}
+.inboxMessage {
+  @apply line-clamp-1 text-md-regular text-gray-600;
+  @apply text-start;
+}
+
+.isSelected {
+  @apply bg-blue-100;
+}
+
+.content {
+  @apply flex h-full flex-1 flex-col overflow-hidden rounded-lg;
+  @apply border border-gray-300 shadow;
+}
+.contentHeader {
+  @apply flex h-20 items-center gap-4 px-4;
+  @apply border-b border-gray-300 shadow;
+}
+
+.inputMessage {
+  @apply flex items-center;
+  @apply gap-4 rounded-lg px-4;
+  @apply mx-[18px] mb-[18px] h-[52px];
+  @apply border border-gray-300 shadow;
+}

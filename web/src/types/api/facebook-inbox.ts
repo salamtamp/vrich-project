@@ -7,7 +7,9 @@ export type FacebookInbox = {
   type: string;
   link: string | null;
   published_at: string;
+  notificationCount?: number;
   profile?: FacebookProfileResponse;
+  platform?: string;
 };
 
 export type FacebookInboxUpdate = Partial<

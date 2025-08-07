@@ -1,4 +1,4 @@
-import { Inbox, MessageSquareText, ShoppingBag, Tag, User } from 'lucide-react';
+import { Inbox, MessageSquare, MessageSquareText, ShoppingBag, Tag, User } from 'lucide-react';
 
 import { PATH } from '@/constants/path.constant';
 
@@ -8,4 +8,5 @@ export const sidebarConfig = [
   { label: 'Inbox', path: PATH.INBOX, icon: Inbox },
   { label: 'Campaign', path: PATH.CAMPAIGN, icon: Tag },
   { label: 'Products', path: PATH.PRODUCTS, icon: ShoppingBag },
+  { label: 'Chat', path: PATH.CHATS, icon: MessageSquare },
 ];
