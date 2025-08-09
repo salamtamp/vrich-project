@@ -1,18 +1,24 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { useParams } from 'next/navigation';
 
 import { ArrowLeft } from 'lucide-react';
 
-import { CampaignWidget } from '@/components/campaign-widget';
+import type { TextData } from '@/components/list-item';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
-import { campaignWidgetsData } from '@/mock/campaign-widgets';
+import { dayjsUtil } from '@/lib/dayjs';
 import type { Campaign } from '@/types/api/campaign';
+
+import KpiGrid from './components/KpiGrid';
+import LiveMonitor from './components/LiveMonitor';
+import ProductTable from './components/ProductTable';
+
+import styles from './page.module.scss';
 
 const CampaignLivePage = () => {
   const params = useParams();
@@ -30,6 +36,21 @@ const CampaignLivePage = () => {
 
   const campaign = useMemo(() => campaignData, [campaignData]);
 
+  const [search, setSearch] = useState('');
+
+  const products = useMemo(() => campaign?.campaigns_products ?? [], [campaign?.campaigns_products]);
+
+  const liveItems: TextData[] = useMemo(() => {
+    const src = (campaign?.campaigns_products ?? []).slice(0, 8);
+    return src.map((cp) => ({
+      id: cp.product?.id ?? cp.id,
+      text: cp.product?.name ?? '-',
+      name: cp.product?.code,
+      timeAgo: dayjsUtil(campaign?.created_at ?? new Date().toISOString()).fromNow(),
+      dateString: dayjsUtil(campaign?.created_at ?? new Date().toISOString()).format('D MMM BBBB HH:mm'),
+    }));
+  }, [campaign?.campaigns_products, campaign?.created_at]);
+
   const handleGoBack = () => {
     window.history.back();
   };
@@ -42,7 +63,7 @@ const CampaignLivePage = () => {
   if (isLoading) {
     const skeletons = Array.from({ length: 10 }, () => crypto.randomUUID());
     return (
-      <Card className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden'>
+      <Card className={styles.container}>
         <CardHeader className='flex flex-row items-center justify-between gap-4'>
           <div className='flex items-center gap-3'>
             <div className='h-8 w-20 animate-pulse rounded-md bg-gray-100' />
@@ -54,7 +75,7 @@ const CampaignLivePage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
+          <div className={styles.kpiGrid}>
             {skeletons.map((id) => (
               <div
                 key={id}
@@ -78,8 +99,8 @@ const CampaignLivePage = () => {
   }
 
   return (
-    <Card className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden'>
-      <CardHeader className='flex flex-row items-center justify-between gap-4'>
+    <div className={styles.container}>
+      <div className='flex flex-row items-center justify-between gap-4'>
         <div className='flex items-center gap-3'>
           <Button
             className='flex items-center gap-2'
@@ -92,19 +113,20 @@ const CampaignLivePage = () => {
           </Button>
           <CardTitle className='truncate text-base md:text-lg'>{campaignData?.name}</CardTitle>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent>
-        <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
-          {campaignWidgetsData.map((widget) => (
-            <CampaignWidget
-              key={widget.id}
-              widget={widget}
-            />
-          ))}
+      <div className='flex flex-1 flex-col'>
+        <KpiGrid className={styles.kpiGrid} />
+        <div className={styles.sectionsGrid}>
+          <ProductTable
+            products={products}
+            search={search}
+            onSearchChange={setSearch}
+          />
+          <LiveMonitor items={liveItems} />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

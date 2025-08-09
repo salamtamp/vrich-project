@@ -1,0 +1,12 @@
+.container {
+  @apply flex flex-1;
+  @apply size-full flex-col gap-4 overflow-y-auto px-6 py-4;
+}
+
+.kpiGrid {
+  @apply grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5;
+}
+
+.sectionsGrid {
+  @apply mt-4 flex gap-4 overflow-hidden;
+}
