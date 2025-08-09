@@ -1,7 +1,9 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+import sqlalchemy as sa
+from datetime import datetime, UTC
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -14,6 +16,8 @@ from app.constants.facebook_profile import (
     ERR_FACEBOOK_PROFILE_NOT_FOUND,
 )
 from app.db.models.facebook_profile import FacebookProfile as FacebookProfileModel
+from app.db.models.facebook_comment import FacebookComment as FacebookCommentModel
+from app.db.models.facebook_inbox import FacebookInbox as FacebookInboxModel
 from app.db.repositories.facebook_profile.repo import facebook_profile_repo
 from app.db.session import get_db
 from app.schemas.facebook_profile import (
@@ -45,14 +49,117 @@ def get_facebook_profile(
     profile_id: UUID,
     db: Session = Depends(get_db),
 ) -> FacebookProfile:
+    profile = db.query(FacebookProfileModel).filter(FacebookProfileModel.id == profile_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail=ERR_FACEBOOK_PROFILE_NOT_FOUND)
+    return profile
+
+
+@router.get("/{profile_id}/with-relations")
+def get_facebook_profile_with_relations(
+    profile_id: UUID,
+    db: Session = Depends(get_db),
+    pagination: PaginationParams = Depends(get_pagination_params),
+):
     profile = (
         db.query(FacebookProfileModel)
+        .options(joinedload(FacebookProfileModel.profiles_contacts))
         .filter(FacebookProfileModel.id == profile_id)
         .first()
     )
     if not profile:
         raise HTTPException(status_code=404, detail=ERR_FACEBOOK_PROFILE_NOT_FOUND)
-    return profile
+
+    inbox_builder = PaginationBuilder(FacebookInboxModel, db)
+    inbox_builder.query = inbox_builder.query.options(joinedload(FacebookInboxModel.profile))
+    inboxes = (
+        inbox_builder
+        .filter_deleted()
+        .custom_filter(profile_id=str(profile_id))
+        .order_by(pagination.order_by, pagination.order)
+        .paginate(pagination.limit, pagination.offset)
+    )
+
+    comment_builder = PaginationBuilder(FacebookCommentModel, db)
+    comment_builder.query = comment_builder.query.options(
+        joinedload(FacebookCommentModel.profile), joinedload(FacebookCommentModel.post)
+    )
+    comments = (
+        comment_builder
+        .filter_deleted()
+        .custom_filter(profile_id=str(profile_id))
+        .order_by(pagination.order_by, pagination.order)
+        .paginate(pagination.limit, pagination.offset)
+    )
+
+    return {
+        "profile": FacebookProfile.model_validate(profile),
+        "inboxes": inboxes,
+        "comments": comments,
+    }
+
+
+@router.get("/{profile_id}/timeline")
+def get_profile_timeline(
+    profile_id: UUID,
+    db: Session = Depends(get_db),
+    pagination: PaginationParams = Depends(get_pagination_params),
+):
+    inbox_q = (
+        db.query(FacebookInboxModel)
+        .filter(FacebookInboxModel.profile_id == str(profile_id), FacebookInboxModel.deleted_at.is_(None))
+        .order_by(FacebookInboxModel.published_at.desc())
+    )
+    comment_q = (
+        db.query(FacebookCommentModel)
+        .filter(FacebookCommentModel.profile_id == str(profile_id), FacebookCommentModel.deleted_at.is_(None))
+        .order_by(FacebookCommentModel.published_at.desc())
+    )
+
+    inbox_items = [
+        {
+            "id": str(i.id),
+            "source": "inbox",
+            "text": i.message or "",
+            "timestamp": i.published_at,
+        }
+        for i in inbox_q.all()
+    ]
+    comment_items = [
+        {
+            "id": str(c.id),
+            "source": "comment",
+            "text": c.message or "",
+            "timestamp": c.published_at,
+        }
+        for c in comment_q.all()
+    ]
+
+    merged = sorted(inbox_items + comment_items, key=lambda x: x["timestamp"], reverse=True)
+
+    total = len(merged)
+    start_idx = pagination.offset or 0
+    limit = pagination.limit if pagination.limit is not None else total
+    end_idx = start_idx + limit
+    docs = merged[start_idx:end_idx]
+    has_next = False if pagination.limit is None else (start_idx + limit) < total
+    has_prev = start_idx > 0
+
+    return {
+        "total": total,
+        "docs": [
+            {
+                **d,
+                "timestamp": d["timestamp"].isoformat() if hasattr(d["timestamp"], "isoformat") else d["timestamp"],
+            }
+            for d in docs
+        ],
+        "limit": limit,
+        "offset": start_idx,
+        "has_next": has_next,
+        "has_prev": has_prev,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
 
 
 @router.post("/", response_model=FacebookProfile, status_code=status.HTTP_201_CREATED)

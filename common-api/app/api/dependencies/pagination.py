@@ -14,7 +14,7 @@ class OrderDirection(str, Enum):
 
 
 class PaginationParams(BaseModel):
-    limit: int = Field(default=20, ge=1, le=1000000)
+    limit: int | None = Field(default=None, ge=1, le=1000000)
     offset: int = Field(default=0, ge=0)
     order: OrderDirection = Field(default=OrderDirection.DESC)
     order_by: str = Field(default="created_at")
@@ -99,10 +99,13 @@ class PaginationBuilder:
         return self
 
     def paginate(
-        self, limit: int = 20, offset: int = 0, serializer: type[T] | None = None
+        self, limit: int | None = None, offset: int = 0, serializer: type[T] | None = None
     ) -> PaginationResponse[T]:
         total = self.count_query.scalar()
-        items = self.query.limit(limit).offset(offset).all()
+        query = self.query.offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
+        items = query.all()
         if serializer:
             docs = [serializer.from_orm(item) for item in items]
         else:
@@ -117,12 +120,12 @@ class PaginationBuilder:
                     docs.append(doc)
                 else:
                     docs.append(item)
-        has_next = (offset + limit) < total
+        has_next = False if limit is None else (offset + limit) < total
         has_prev = offset > 0
         return PaginationResponse[T](
             total=total,
             docs=docs,
-            limit=limit,
+            limit=(limit if limit is not None else len(items)),
             offset=offset,
             has_next=has_next,
             has_prev=has_prev,
@@ -131,7 +134,7 @@ class PaginationBuilder:
 
 
 def get_pagination_params(
-    limit: int = Query(20, ge=1, le=1000000, description="Number of items per page"),
+    limit: int | None = Query(None, ge=1, le=1000000, description="Number of items per page"),
     offset: int = Query(0, ge=0, description="Number of items to skip"),
     order: OrderDirection = Query(OrderDirection.DESC, description="Sort order"),
     order_by: str = Query("created_at", description="Field to sort by"),
@@ -162,7 +165,7 @@ def create_pagination_dependency(
     default_order_by: str = "created_at",
 ):
     def get_validated_pagination_params(
-        limit: int = Query(20, ge=1, le=1000000),
+        limit: int | None = Query(None, ge=1, le=1000000),
         offset: int = Query(0, ge=0),
         order: OrderDirection = Query(OrderDirection.DESC),
         order_by: str = Query(default_order_by),

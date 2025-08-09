@@ -1,27 +1,22 @@
-import { useMemo } from 'react';
-
 import { AudioLines, Ellipsis, FileImage, Send, User } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import { ImageWithFallback } from '@/hooks/useImageFallback';
-import type { FacebookInboxResponse } from '@/types/api/facebook-inbox';
+import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
 
-import { mockChatHistory } from '../mock';
+type TimelineItem = { id: string; source: 'inbox' | 'comment'; text: string; timestamp: string };
 
 import styles from './chatContent.module.scss';
 
 type ChatContentProps = {
-  selectedInput: FacebookInboxResponse | null;
+  profile: FacebookProfileResponse | undefined | null;
+  timeline: TimelineItem[];
+  onLoadMore?: () => void;
+  hasNext?: boolean;
 };
 
-const ChatContent = ({ selectedInput }: ChatContentProps) => {
-  const profileId = selectedInput?.profile?.id;
-  const messages = useMemo(() => {
-    if (!profileId) {
-      return [];
-    }
-    return mockChatHistory[profileId] || [];
-  }, [profileId]);
+const ChatContent = ({ profile, timeline, onLoadMore, hasNext = false }: ChatContentProps) => {
+  const messages = timeline;
 
   return (
     <section
@@ -31,35 +26,43 @@ const ChatContent = ({ selectedInput }: ChatContentProps) => {
       <div className={styles.contentHeader}>
         <div className='ml-[2px]'>
           <ImageWithFallback
-            alt={selectedInput?.profile?.name ?? 'profile'}
+            alt={profile?.name ?? 'profile'}
             className={styles.profileImage}
             fallbackIcon={<User size={24} />}
             size={40}
-            src={selectedInput?.profile?.profile_picture_url}
+            src={profile?.profile_picture_url}
           />
         </div>
         <div className='gap-2'>
-          <p className='text-md-semibold'>{selectedInput?.profile?.name ?? 'Unknown User'}</p>
+          <p className='text-md-semibold'>{profile?.name ?? 'Unknown User'}</p>
           <p className='text-sm-regular text-gray-600'>online</p>
         </div>
       </div>
-      <div className='flex w-full flex-1 flex-col gap-4 overflow-y-auto p-[18px]'>
+      <div
+        className='flex w-full flex-1 flex-col gap-4 overflow-y-auto p-[18px]'
+        onScroll={(e) => {
+          const el = e.currentTarget as HTMLDivElement;
+          if (hasNext && el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+            onLoadMore?.();
+          }
+        }}
+      >
         {messages.length === 0 ? (
           <div className='text-center text-gray-400'>No messages</div>
         ) : (
           messages.map((msg) => {
-            const isMe = msg.sender === 'me';
+            const isMe = false;
             return (
               <div
-                key={msg.id}
+                key={`${msg.source}-${msg.id}`}
                 className={`flex gap-4 ${isMe ? 'justify-end' : 'justify-start'}`}
               >
                 {!isMe && (
                   <ImageWithFallback
-                    alt={selectedInput?.profile?.name ?? 'profile'}
+                    alt={profile?.name ?? 'profile'}
                     className='size-9 rounded-full object-cover'
                     size={36}
-                    src={selectedInput?.profile?.profile_picture_url}
+                    src={profile?.profile_picture_url}
                     fallbackIcon={
                       <User
                         className='text-gray-400'

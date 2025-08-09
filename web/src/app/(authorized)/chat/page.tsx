@@ -1,47 +1,238 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { FacebookInboxResponse } from '@/types/api';
+import { API } from '@/constants/api.constant';
+import { PaginationProvider } from '@/contexts';
+import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
+import useRequest from '@/hooks/request/useRequest';
+import type { FacebookCommentResponse, FacebookInboxResponse } from '@/types/api';
+import type { PaginationResponse } from '@/types/api/api-response';
+import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
 
 import ChatContent from './chatContent';
 import ChatProfile from './chatProfile';
 import ChatProfileList from './chatProfileList';
-import { mockInboxes } from './mock';
 import SelectPlatform from './selectPlatform';
+import type { ChatListItem } from './types';
 
 import styles from './page.module.scss';
 
 const Chat = () => {
   type PlatformType = 'all' | 'messenger' | 'fb_comments' | 'line_oa';
 
-  const [selectedInput, setSelectedInput] = useState<FacebookInboxResponse | null>(mockInboxes[0]);
+  const [selectedItem, setSelectedItem] = useState<ChatListItem | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformType>('all');
 
-  const handleSetSelectedInput = useCallback((inbox: FacebookInboxResponse) => {
-    setSelectedInput(inbox);
+  const handleSetSelectedItem = useCallback((item: ChatListItem) => {
+    setSelectedItem(item);
   }, []);
 
   const handleSelectPlatform = useCallback((platform: PlatformType) => {
     setSelectedPlatform(platform);
   }, []);
 
+  const { data: inboxData, handleRequest: loadMoreInbox } = usePaginatedRequest<
+    PaginationResponse<FacebookInboxResponse>
+  >({
+    url: API.INBOX,
+    additionalParams: { limit: 20 },
+  });
+
+  const { data: commentData, handleRequest: loadMoreComment } = usePaginatedRequest<
+    PaginationResponse<FacebookCommentResponse>
+  >({
+    url: API.COMMENT,
+    additionalParams: { limit: 20 },
+  });
+
+  // Accumulate list pane data so new pages concat with old data
+  const [inboxAccum, setInboxAccum] = useState<FacebookInboxResponse[]>([]);
+  const [commentAccum, setCommentAccum] = useState<FacebookCommentResponse[]>([]);
+  const [inboxHasNext, setInboxHasNext] = useState(false);
+  const [commentHasNext, setCommentHasNext] = useState(false);
+
+  useEffect(() => {
+    if (!inboxData) {
+      return;
+    }
+    setInboxHasNext(Boolean(inboxData.has_next));
+    if ((inboxData.offset ?? 0) === 0) {
+      setInboxAccum(inboxData.docs ?? []);
+      return;
+    }
+    if (inboxData.docs?.length) {
+      setInboxAccum((curr) => {
+        const existingIds = new Set(curr.map((i) => i.id));
+        const newDocs = (inboxData.docs ?? []).filter((d) => !existingIds.has(d.id));
+        return [...curr, ...newDocs];
+      });
+    }
+  }, [inboxData]);
+
+  useEffect(() => {
+    if (!commentData) {
+      return;
+    }
+    setCommentHasNext(Boolean(commentData.has_next));
+    if ((commentData.offset ?? 0) === 0) {
+      setCommentAccum(commentData.docs ?? []);
+      return;
+    }
+    if (commentData.docs?.length) {
+      setCommentAccum((curr) => {
+        const existingIds = new Set(curr.map((c) => c.id));
+        const newDocs = (commentData.docs ?? []).filter((d) => !existingIds.has(d.id));
+        return [...curr, ...newDocs];
+      });
+    }
+  }, [commentData]);
+
+  const items: ChatListItem[] = useMemo(() => {
+    const inboxItems: ChatListItem[] = inboxAccum.map((i) => ({
+      id: i.id,
+      source: 'inbox',
+      profile: i.profile,
+      message: i.message,
+      published_at: i.published_at,
+      notificationCount: i.notificationCount,
+    }));
+    const commentItems: ChatListItem[] = commentAccum.map((c) => ({
+      id: c.id,
+      source: 'comment',
+      profile: c.profile,
+      message: c.message ?? '',
+      published_at: c.published_at,
+    }));
+
+    if (selectedPlatform === 'messenger') {
+      return inboxItems;
+    }
+    if (selectedPlatform === 'fb_comments') {
+      return commentItems;
+    }
+    return [...inboxItems, ...commentItems].sort((a, b) => (a.published_at < b.published_at ? 1 : -1));
+  }, [inboxAccum, commentAccum, selectedPlatform]);
+
+  const effectiveSelected = useMemo(() => {
+    if (!selectedItem && items.length) {
+      return items[0];
+    }
+    if (selectedItem && items.some((i) => i.id === selectedItem.id)) {
+      return selectedItem;
+    }
+    return items[0] ?? null;
+  }, [items, selectedItem]);
+
+  const { handleRequest: fetchProfile, data: selectedProfile } = useRequest<FacebookProfileResponse>({
+    request: {
+      url: `${API.PROFILE}/${effectiveSelected?.profile?.id ?? ''}`,
+      method: 'GET',
+    },
+  });
+
+  type TimelineItem = { id: string; source: 'inbox' | 'comment'; text: string; timestamp: string };
+  type TimelineResponse = {
+    total: number;
+    docs: TimelineItem[];
+    limit: number;
+    offset: number;
+    has_next: boolean;
+    has_prev: boolean;
+    timestamp: string;
+  };
+
+  const { handleRequest: fetchTimeline } = useRequest<TimelineResponse>({
+    request: { url: `${API.PROFILE}/${effectiveSelected?.profile?.id ?? ''}/timeline`, method: 'GET' },
+  });
+
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [timelineOffset, setTimelineOffset] = useState(0);
+  const [timelineHasNext, setTimelineHasNext] = useState(false);
+
+  const loadTimeline = useCallback(
+    async (reset = false) => {
+      const profileId = effectiveSelected?.profile?.id;
+      if (!profileId) {
+        return;
+      }
+      const nextOffset = reset ? 0 : timelineOffset;
+      const res = await fetchTimeline({ params: { offset: nextOffset, limit: 10 } });
+      if (!res) {
+        return;
+      }
+      setTimeline((curr) => (reset ? res.docs : [...curr, ...res.docs]));
+      setTimelineOffset(nextOffset + (res.limit ?? 0));
+      setTimelineHasNext(res.has_next ?? false);
+    },
+    [effectiveSelected?.profile?.id, fetchTimeline, timelineOffset]
+  );
+
+  // fetch fresh profile each selection change
+  useEffect(() => {
+    if (effectiveSelected?.profile?.id) {
+      void fetchProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveSelected?.profile?.id]);
+
+  useEffect(() => {
+    // reset and load first page when selection changes
+    if (effectiveSelected?.profile?.id) {
+      setTimeline([]);
+      setTimelineOffset(0);
+      setTimelineHasNext(false);
+      void loadTimeline(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveSelected?.profile?.id]);
+
   return (
-    <div className={styles.container}>
-      <SelectPlatform
-        selectedPlatform={selectedPlatform}
-        onSelect={handleSelectPlatform}
-      />
-      <div className={styles.main}>
-        <ChatProfileList
-          inboxes={mockInboxes}
-          selectedInput={selectedInput}
-          onSelect={handleSetSelectedInput}
+    <PaginationProvider>
+      <div className={styles.container}>
+        <SelectPlatform
+          selectedPlatform={selectedPlatform}
+          onSelect={handleSelectPlatform}
         />
-        <ChatContent selectedInput={selectedInput} />
-        <ChatProfile profile={selectedInput?.profile} />
+        <div className={styles.main}>
+          <ChatProfileList
+            hasNext={inboxHasNext || commentHasNext}
+            items={items}
+            selectedItem={effectiveSelected}
+            onSelect={handleSetSelectedItem}
+            onLoadMore={() => {
+              const nextOffsetInbox = inboxAccum.length;
+              const nextOffsetComment = commentAccum.length;
+              if (inboxHasNext) {
+                void loadMoreInbox({ params: { offset: nextOffsetInbox, limit: inboxData?.limit ?? 20 } });
+              }
+              if (commentHasNext) {
+                void loadMoreComment({
+                  params: { offset: nextOffsetComment, limit: commentData?.limit ?? 20 },
+                });
+              }
+            }}
+          />
+          <ChatContent
+            hasNext={timelineHasNext}
+            profile={selectedProfile ?? effectiveSelected?.profile ?? null}
+            timeline={timeline}
+            onLoadMore={() => {
+              if (timelineHasNext) {
+                void loadTimeline(false);
+              }
+            }}
+          />
+          <ChatProfile
+            profile={selectedProfile ?? effectiveSelected?.profile}
+            onOpen={() => {
+              // load all timeline data for this profile
+              void loadTimeline(true);
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </PaginationProvider>
   );
 };
 

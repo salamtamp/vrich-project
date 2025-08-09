@@ -87,7 +87,7 @@ const ManageCampaignPage = () => {
           </PaginationProvider>
         )}
         {tab === 'detail' && (
-          <PaginationProvider defaultValue={{ limit: 1000000 }}>
+          <PaginationProvider>
             <CampaignForm
               key={`campaign-form-${tab}`}
               campaignId={data.id}

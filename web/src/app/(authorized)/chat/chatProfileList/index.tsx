@@ -3,17 +3,26 @@ import { Search, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ImageWithFallback } from '@/hooks/useImageFallback';
 import { cn } from '@/lib/utils';
-import type { FacebookInboxResponse } from '@/types/api/facebook-inbox';
+
+import type { ChatListItem } from '../types';
 
 import styles from './chatProfileList.module.scss';
 
 type ChatProfileListProps = {
-  inboxes: FacebookInboxResponse[];
-  selectedInput: FacebookInboxResponse | null;
-  onSelect: (inbox: FacebookInboxResponse) => void;
+  items: ChatListItem[];
+  selectedItem: ChatListItem | null;
+  onSelect: (item: ChatListItem) => void;
+  onLoadMore?: () => void;
+  hasNext?: boolean;
 };
 
-const ChatProfileList = ({ inboxes, selectedInput, onSelect }: ChatProfileListProps) => (
+const ChatProfileList = ({
+  items,
+  selectedItem,
+  onSelect,
+  onLoadMore,
+  hasNext = false,
+}: ChatProfileListProps) => (
   <nav aria-label='Chat list'>
     <div className={styles.sidebar}>
       <div className={styles.sidebarInner}>
@@ -31,39 +40,45 @@ const ChatProfileList = ({ inboxes, selectedInput, onSelect }: ChatProfileListPr
       <ul
         className='flex h-full flex-col overflow-y-auto'
         role='listbox'
+        onScroll={(e) => {
+          const el = e.currentTarget as HTMLUListElement;
+          if (hasNext && el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
+            onLoadMore?.();
+          }
+        }}
       >
-        {inboxes.map((inbox) => {
-          const isSelected = selectedInput?.id === inbox.id;
+        {items.map((item) => {
+          const isSelected = selectedItem?.id === item.id;
           return (
             <li
-              key={inbox.id}
+              key={`${item.source}-${item.id}`}
               aria-selected={isSelected}
               className={cn('w-full', styles.inboxItem, isSelected && styles.isSelected)}
               role='option'
               tabIndex={0}
               onClick={() => {
-                onSelect(inbox);
+                onSelect(item);
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  onSelect(inbox);
+                  onSelect(item);
                 }
               }}
             >
               <div className='w-fit min-w-6'>
                 <ImageWithFallback
-                  alt={inbox.profile?.name ?? 'profile'}
+                  alt={item.profile?.name ?? 'profile'}
                   className={styles.profileImage}
                   fallbackIcon={<User size={24} />}
                   size={40}
-                  src={inbox.profile?.profile_picture_url}
+                  src={item.profile?.profile_picture_url}
                 />
               </div>
               <div className='flex flex-1 flex-col'>
-                <p className={styles.inboxName}>{inbox.profile?.name}</p>
-                <p className={styles.inboxMessage}> {inbox.message}</p>
+                <p className={styles.inboxName}>{item.profile?.name}</p>
+                <p className={styles.inboxMessage}> {item.message}</p>
               </div>
-              {inbox.notificationCount ? (
+              {item.notificationCount ? (
                 <div className='flex h-full w-7 items-center justify-center'>
                   <div className='size-6 max-h-full max-w-full items-center justify-center rounded-lg border-red-500 bg-red-200 text-sm-regular text-red-600'>
                     1

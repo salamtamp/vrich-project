@@ -230,10 +230,11 @@ def get_campaign_summary(
         total_cost += product_cost
         total_profit += product_profit
 
-    # Apply pagination to product summary
+    # Apply pagination to product summary (support unlimited when limit is None)
     total_products = len(product_summary)
-    start_idx = pagination.offset
-    end_idx = start_idx + pagination.limit
+    start_idx = pagination.offset or 0
+    limit = pagination.limit if pagination.limit is not None else total_products
+    end_idx = start_idx + limit
     paginated_products = product_summary[start_idx:end_idx]
 
     # Order status breakdown
@@ -258,7 +259,7 @@ def get_campaign_summary(
         "products": {
             "docs": paginated_products,
             "total": total_products,
-            "limit": pagination.limit,
-            "offset": pagination.offset,
+            "limit": limit,
+            "offset": start_idx,
         },
     }

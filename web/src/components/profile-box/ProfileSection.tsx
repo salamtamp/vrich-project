@@ -34,9 +34,10 @@ const mockProfile: FacebookProfileResponse = {
 
 type ProfileSectionProps = {
   profile: FacebookProfileResponse;
+  onOpenProfile?: () => void;
 };
 
-const ProfileSection = ({ profile = mockProfile }: ProfileSectionProps) => {
+const ProfileSection = ({ profile = mockProfile, onOpenProfile }: ProfileSectionProps) => {
   return (
     <div className={styles.profile}>
       <div className='bg-gradient-to-br'>
@@ -125,7 +126,10 @@ const ProfileSection = ({ profile = mockProfile }: ProfileSectionProps) => {
         ) : null}
 
         <div className='flex gap-3'>
-          <button className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-700 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95'>
+          <button
+            className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-700 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95'
+            onClick={onOpenProfile}
+          >
             <SquareArrowUpRight className='size-4' />
             User Profile
           </button>

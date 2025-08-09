@@ -20,6 +20,7 @@ type UsePaginatedRequestProps = {
   additionalParams?: AxiosRequestConfig['params'];
   requireFields?: string[];
   waiting?: boolean;
+  disableLimit?: boolean;
 };
 
 function usePaginatedRequest<T, D = object>({
@@ -31,9 +32,12 @@ function usePaginatedRequest<T, D = object>({
   additionalParams = {},
   requireFields = [],
   waiting = false,
+  disableLimit,
 }: UsePaginatedRequestProps) {
   const { pagination, reset } = usePaginationContext();
-  const { limit, offset } = pagination;
+  const { limit: limitPagination, offset } = pagination;
+
+  const limit = disableLimit ? undefined : limitPagination;
 
   const [since, setSince] = useState<string | null>(defaultStartDate.startOf('day').toISOString());
   const [until, setUntil] = useState<string | null>(defaultEndDate.endOf('day').toISOString());

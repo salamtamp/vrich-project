@@ -18,12 +18,12 @@ def read_users(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(deps.get_current_user),
     skip: int = 0,
-    limit: int = 1000000,
+    limit: int | None = None,
 ) -> list[user_schema.User]:
     """
     Retrieve users.
     """
-    return user_repo.get_multi(db, skip=skip, limit=limit)
+    return user_repo.get_multi(db, skip=skip, limit=limit or 10_000_000)
 
 
 @router.post("/", response_model=user_schema.User, status_code=status.HTTP_201_CREATED)

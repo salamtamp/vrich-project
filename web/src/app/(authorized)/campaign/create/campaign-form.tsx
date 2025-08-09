@@ -104,6 +104,7 @@ const CampaignForm = ({ mode, initialValues, campaignId, initialPost }: Campaign
     order: 'desc',
     orderBy: 'created_at',
     defaultStartDate: dayjs().subtract(50, 'years'),
+    disableLimit: true,
   });
 
   const productsList = productData?.docs ?? [];
