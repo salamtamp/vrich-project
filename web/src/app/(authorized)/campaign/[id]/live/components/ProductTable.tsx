@@ -5,11 +5,15 @@ import React, { useEffect, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 
 import ContentPagination from '@/components/content/pagination';
-import Table, { type TableColumn } from '@/components/table';
+import type { TableColumn } from '@/components/table';
+import Table from '@/components/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import useModalContext from '@/hooks/useContext/useModalContext';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
+
+import ProductSoldListModal from './ProductSoldListModal';
 
 type ProductTableProps = {
   products: CampaignsProduct[];
@@ -20,6 +24,7 @@ type ProductTableProps = {
 const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchChange }) => {
   const { pagination, update } = usePaginationContext();
   const { limit, offset, page } = pagination;
+  const { open } = useModalContext();
 
   const columns: TableColumn<CampaignsProduct>[] = useMemo(
     () => [
@@ -53,12 +58,24 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         key: 'sold_total',
         label: 'ขาย / ทั้งหมด',
         width: 140,
-        render: (row) => <span className='tabular-nums'>0/{row.quantity ?? 0}</span>,
+        render: (row) => (
+          <button
+            className='tabular-nums transition-colors hover:text-primary hover:underline hover:underline-offset-4'
+            type='button'
+            onClick={() => {
+              open({
+                content: <ProductSoldListModal campaignProduct={row} />,
+              });
+            }}
+          >
+            0/{row.quantity ?? 0}
+          </button>
+        ),
         headerAlign: 'center',
         bodyAlign: 'center',
       },
     ],
-    []
+    [open]
   );
 
   const filteredProducts = useMemo(() => {
