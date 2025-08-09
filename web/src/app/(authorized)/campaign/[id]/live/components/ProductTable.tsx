@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { Plus } from 'lucide-react';
 
+import ContentPagination from '@/components/content/pagination';
 import Table, { type TableColumn } from '@/components/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
 
 type ProductTableProps = {
@@ -16,6 +18,9 @@ type ProductTableProps = {
 };
 
 const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchChange }) => {
+  const { pagination, update } = usePaginationContext();
+  const { limit, offset, page } = pagination;
+
   const columns: TableColumn<CampaignsProduct>[] = useMemo(
     () => [
       {
@@ -29,8 +34,8 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
       {
         key: 'name',
         label: 'ชื่อสินค้า',
-        width: '45%',
-        render: (row) => <span className='line-clamp-1'>{row.product?.name ?? '-'}</span>,
+        width: '60%',
+        render: (row) => <span className='line-clamp-2'>{row.product?.name ?? '-'}</span>,
         headerAlign: 'left',
         bodyAlign: 'left',
       },
@@ -68,8 +73,29 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
     );
   }, [products, search]);
 
+  const paginatedProducts = useMemo(() => {
+    return filteredProducts.slice(offset, offset + limit);
+  }, [filteredProducts, offset, limit]);
+
+  useEffect(() => {
+    update({ page: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredProducts.length / limit);
+    if (totalPages === 0 && page !== 1) {
+      update({ page: 1 });
+      return;
+    }
+    if (totalPages > 0 && page > totalPages) {
+      update({ page: totalPages });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredProducts.length, limit]);
+
   return (
-    <div className='h-fit max-h-[520px] min-h-[520px] max-w-[680px] rounded-md border border-gray-200 p-4 shadow-sm'>
+    <div className='flex h-fit max-h-[520px] min-h-[520px] max-w-[680px] flex-col rounded-md border border-gray-200 p-4 shadow-sm'>
       <div className='flex items-center justify-between'>
         <p className='w-full text-lg-semibold'>สินค้าในแคมเปญ</p>
 
@@ -88,11 +114,15 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         </div>
       </div>
 
-      <div className='mt-3'>
+      <div className='mt-3 flex h-full max-h-fit flex-1 flex-col gap-2 overflow-hidden'>
         <Table<CampaignsProduct>
           columns={columns}
-          data={filteredProducts}
+          data={[...paginatedProducts, ...paginatedProducts]}
           isLoading={false}
+        />
+        <ContentPagination
+          className='mb-0'
+          total={filteredProducts.length}
         />
       </div>
     </div>
