@@ -8,6 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 
 import { CampaignWidget } from '@/components/campaign-widget';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
 import { campaignWidgetsData } from '@/mock/campaign-widgets';
@@ -39,12 +40,30 @@ const CampaignLivePage = () => {
   }, []);
 
   if (isLoading) {
+    const skeletons = Array.from({ length: 10 }, () => crypto.randomUUID());
     return (
-      <div className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden border border-gray-100 px-6 py-4 shadow-sm'>
-        <div className='flex h-full items-center justify-center'>
-          <div className='text-lg'>Loading...</div>
-        </div>
-      </div>
+      <Card className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden'>
+        <CardHeader className='flex flex-row items-center justify-between gap-4'>
+          <div className='flex items-center gap-3'>
+            <div className='h-8 w-20 animate-pulse rounded-md bg-gray-100' />
+            <div className='h-6 w-48 animate-pulse rounded-md bg-gray-100' />
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='h-8 w-28 animate-pulse rounded-md bg-gray-100' />
+            <div className='h-8 w-36 animate-pulse rounded-md bg-gray-100' />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
+            {skeletons.map((id) => (
+              <div
+                key={id}
+                className='h-28 animate-pulse rounded-xl border border-gray-200 bg-gray-50'
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -59,9 +78,9 @@ const CampaignLivePage = () => {
   }
 
   return (
-    <div className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden border border-gray-100 px-6 py-4 shadow-sm'>
-      <div className='flex flex-row items-center justify-between p-0'>
-        <div className='flex items-center gap-4'>
+    <Card className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden'>
+      <CardHeader className='flex flex-row items-center justify-between gap-4'>
+        <div className='flex items-center gap-3'>
           <Button
             className='flex items-center gap-2'
             size='sm'
@@ -71,15 +90,12 @@ const CampaignLivePage = () => {
             <ArrowLeft className='size-4' />
             Back
           </Button>
+          <CardTitle className='truncate text-base md:text-lg'>{campaignData?.name}</CardTitle>
         </div>
-        <div className='flex items-center gap-4'>
-          <p className='narrow max-w-[460px] truncate text-md-semibold'>{campaignData?.name}</p>
-          <Button variant='outline'>จัดการแคมเปญ</Button>
-        </div>
-      </div>
+      </CardHeader>
 
-      <div className='mt-4 flex-1 overflow-auto'>
-        <div className='grid gap-2 md:grid-cols-3 lg:grid-cols-5'>
+      <CardContent>
+        <div className='grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'>
           {campaignWidgetsData.map((widget) => (
             <CampaignWidget
               key={widget.id}
@@ -87,8 +103,8 @@ const CampaignLivePage = () => {
             />
           ))}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

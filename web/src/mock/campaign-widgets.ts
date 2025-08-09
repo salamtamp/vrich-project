@@ -21,7 +21,6 @@ export type CampaignWidget = {
   end: number;
   duration: number;
   icon2: React.ComponentType<{ className?: string }>;
-  perData: string;
   iconcolor: string;
   numbers?: string;
   currency?: string;
@@ -36,7 +35,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 1445,
     duration: 3000,
     icon2: TrendingUp,
-    perData: '2.1%',
     iconcolor: 'badge badge-green',
   },
   {
@@ -47,7 +45,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 100,
     duration: 3000,
     icon2: TrendingUp,
-    perData: '1.5%',
     iconcolor: 'badge badge-green',
   },
   {
@@ -58,7 +55,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 845,
     duration: 3000,
     icon2: TrendingDown,
-    perData: '0.7%',
     iconcolor: 'badge badge-red',
   },
   {
@@ -69,7 +65,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 500,
     duration: 3000,
     icon2: TrendingUp,
-    perData: '0.9%',
     iconcolor: 'badge badge-green',
   },
   {
@@ -80,7 +75,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 1245,
     duration: 3000,
     icon2: TrendingUp,
-    perData: '3.4%',
     iconcolor: 'badge badge-green',
     numbers: ' พันบาท',
   },
@@ -92,7 +86,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 150,
     duration: 3000,
     icon2: TrendingUp,
-    perData: '1.2%',
     iconcolor: 'badge badge-green',
   },
   {
@@ -103,7 +96,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 24,
     duration: 3000,
     icon2: TrendingDown,
-    perData: '0.3%',
     iconcolor: 'badge badge-red',
   },
   {
@@ -114,7 +106,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 95,
     duration: 3000,
     icon2: TrendingUp,
-    perData: '2.7%',
     iconcolor: 'badge badge-green',
   },
   {
@@ -125,7 +116,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 9,
     duration: 3000,
     icon2: TrendingUp,
-    perData: '0.4%',
     iconcolor: 'badge badge-green',
   },
   {
@@ -136,7 +126,6 @@ export const campaignWidgetsData: CampaignWidget[] = [
     end: 86,
     duration: 3000,
     icon2: TrendingDown,
-    perData: '0.2%',
     iconcolor: 'badge badge-red',
   },
 ];

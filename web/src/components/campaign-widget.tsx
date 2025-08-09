@@ -10,18 +10,29 @@ type CampaignWidgetProps = {
 };
 
 const CampaignWidget: React.FC<CampaignWidgetProps> = ({ widget }) => {
+  const LeadIcon = widget.icon;
+
   return (
-    <div className='rounded-lg border border-gray-200 bg-white p-4 text-center shadow-sm'>
-      <p className='mb-2 text-sm-regular text-gray-500'>{widget.name}</p>
-      <div className='text-2xl font-semibold text-gray-900'>
-        {widget.currency}
-        <div className='flex flex-col'>
+    <div className='group rounded-xl border border-gray-200 bg-white p-4 shadow-sm ring-1 ring-transparent transition hover:shadow-md hover:ring-gray-200'>
+      <div className='mb-3 flex items-center justify-between'>
+        <div className='flex items-center gap-2 text-gray-600'>
+          {LeadIcon ? <LeadIcon className='size-4 text-gray-400' /> : null}
+          <p className='text-sm-regular'>{widget.name}</p>
+        </div>
+        <div />
+      </div>
+
+      <div className='flex items-end justify-between'>
+        <div className='text-2xl font-semibold text-gray-900'>
+          {widget.currency}
           <AnimatedCounter
             duration={widget.duration}
             end={widget.end}
             start={widget.start}
           />
-          <p className='text-md-regular'> {widget.numbers}</p>
+          {widget.numbers ? (
+            <span className='ml-1 text-base font-normal text-gray-600'>{widget.numbers}</span>
+          ) : null}
         </div>
       </div>
     </div>
