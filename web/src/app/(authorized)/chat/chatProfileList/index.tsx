@@ -38,7 +38,7 @@ const ChatProfileList = ({
       </div>
       <hr className={styles.divider} />
       <ul
-        className='flex h-full flex-col overflow-y-auto'
+        className='flex flex-1 flex-col overflow-y-auto'
         role='listbox'
         onScroll={(e) => {
           const el = e.currentTarget as HTMLUListElement;
@@ -65,7 +65,10 @@ const ChatProfileList = ({
                 }
               }}
             >
-              <div className='w-fit min-w-6'>
+              <div
+                key={`${item.profile?.profile_picture_url}-${item.profile?.name}`}
+                className='w-fit min-w-6'
+              >
                 <ImageWithFallback
                   alt={item.profile?.name ?? 'profile'}
                   className={styles.profileImage}

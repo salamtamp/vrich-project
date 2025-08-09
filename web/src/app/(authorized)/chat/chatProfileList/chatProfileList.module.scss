@@ -1,15 +1,15 @@
 .sidebar {
-  @apply h-full w-[300px] overflow-hidden rounded-lg py-3;
+  @apply h-full w-[300px] flex flex-col rounded-lg py-3;
   @apply border border-gray-200 shadow-sm;
 }
 .sidebarInner {
-  @apply flex w-full flex-col px-3 py-2;
+  @apply flex w-full flex-col px-3 py-2 flex-shrink-0;
 }
 .icon {
   @apply text-gray-500;
 }
 .divider {
-  @apply mt-3;
+  @apply mt-3 flex-shrink-0;
 }
 .inboxItem {
   @apply flex cursor-pointer gap-3 px-4 py-4;

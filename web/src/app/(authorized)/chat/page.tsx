@@ -51,6 +51,8 @@ const Chat = () => {
   const [commentAccum, setCommentAccum] = useState<FacebookCommentResponse[]>([]);
   const [inboxHasNext, setInboxHasNext] = useState(false);
   const [commentHasNext, setCommentHasNext] = useState(false);
+  const [lastInboxCreatedAt, setLastInboxCreatedAt] = useState<string | null>(null);
+  const [lastCommentCreatedAt, setLastCommentCreatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!inboxData) {
@@ -59,6 +61,11 @@ const Chat = () => {
     setInboxHasNext(Boolean(inboxData.has_next));
     if ((inboxData.offset ?? 0) === 0) {
       setInboxAccum(inboxData.docs ?? []);
+      // Set last created_at for initial load
+      if (inboxData.docs?.length) {
+        const lastItem = inboxData.docs[inboxData.docs.length - 1];
+        setLastInboxCreatedAt(lastItem.created_at);
+      }
       return;
     }
     if (inboxData.docs?.length) {
@@ -67,6 +74,9 @@ const Chat = () => {
         const newDocs = (inboxData.docs ?? []).filter((d) => !existingIds.has(d.id));
         return [...curr, ...newDocs];
       });
+      // Update last created_at for load more
+      const lastItem = inboxData.docs[inboxData.docs.length - 1];
+      setLastInboxCreatedAt(lastItem.created_at);
     }
   }, [inboxData]);
 
@@ -77,6 +87,11 @@ const Chat = () => {
     setCommentHasNext(Boolean(commentData.has_next));
     if ((commentData.offset ?? 0) === 0) {
       setCommentAccum(commentData.docs ?? []);
+      // Set last created_at for initial load
+      if (commentData.docs?.length) {
+        const lastItem = commentData.docs[commentData.docs.length - 1];
+        setLastCommentCreatedAt(lastItem.created_at);
+      }
       return;
     }
     if (commentData.docs?.length) {
@@ -85,6 +100,9 @@ const Chat = () => {
         const newDocs = (commentData.docs ?? []).filter((d) => !existingIds.has(d.id));
         return [...curr, ...newDocs];
       });
+      // Update last created_at for load more
+      const lastItem = commentData.docs[commentData.docs.length - 1];
+      setLastCommentCreatedAt(lastItem.created_at);
     }
   }, [commentData]);
 
@@ -241,11 +259,21 @@ const Chat = () => {
               const nextOffsetInbox = inboxAccum.length;
               const nextOffsetComment = commentAccum.length;
               if (inboxHasNext) {
-                void loadMoreInbox({ params: { offset: nextOffsetInbox, limit: inboxData?.limit ?? 20 } });
+                void loadMoreInbox({
+                  params: {
+                    offset: nextOffsetInbox,
+                    limit: inboxData?.limit ?? 20,
+                    ...(lastInboxCreatedAt ? { before_created_at: lastInboxCreatedAt } : {}),
+                  },
+                });
               }
               if (commentHasNext) {
                 void loadMoreComment({
-                  params: { offset: nextOffsetComment, limit: commentData?.limit ?? 20 },
+                  params: {
+                    offset: nextOffsetComment,
+                    limit: commentData?.limit ?? 20,
+                    ...(lastCommentCreatedAt ? { before_created_at: lastCommentCreatedAt } : {}),
+                  },
                 });
               }
             }}

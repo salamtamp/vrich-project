@@ -36,6 +36,7 @@ def list_facebook_inboxes(
     profile_id: str | None = None,
     messenger_id: str | None = None,
     group_by: str | None = None,
+    before_created_at: str | None = None,
 ) -> PaginationResponse[FacebookInbox]:
     if group_by == "profile_id":
         sub = (
@@ -58,8 +59,16 @@ def list_facebook_inboxes(
                     FacebookInboxModel.published_at == sub.c.max_published_at,
                 ),
             )
+            .filter(FacebookInboxModel.deleted_at.is_(None))
             .order_by(FacebookInboxModel.published_at.desc())
         )
+
+        if before_created_at:
+            try:
+                before_date = datetime.fromisoformat(before_created_at.replace('Z', '+00:00'))
+                base_q = base_q.filter(FacebookInboxModel.created_at < before_date)
+            except ValueError:
+                pass
 
         # Manual paginate
         total = db.query(sa.func.count(sub.c.profile_id)).scalar() or 0
@@ -81,6 +90,14 @@ def list_facebook_inboxes(
 
     builder = PaginationBuilder(FacebookInboxModel, db)
     builder.query = builder.query.options(joinedload(FacebookInboxModel.profile))
+    
+    if before_created_at:
+        try:
+            before_date = datetime.fromisoformat(before_created_at.replace('Z', '+00:00'))
+            builder.query = builder.query.filter(FacebookInboxModel.created_at < before_date)
+        except ValueError:
+            pass
+    
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
