@@ -13,11 +13,13 @@ const KpiGrid: React.FC<KpiGridProps> = ({ className }) => {
   return (
     <div className={className}>
       {campaignWidgetsData.map((widget) => (
-        <CampaignWidget key={widget.id} widget={widget} />
+        <CampaignWidget
+          key={widget.id}
+          widget={widget}
+        />
       ))}
     </div>
   );
 };
 
 export default KpiGrid;
-

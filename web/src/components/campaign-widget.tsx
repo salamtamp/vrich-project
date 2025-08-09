@@ -23,7 +23,7 @@ const CampaignWidget: React.FC<CampaignWidgetProps> = ({ widget }) => {
       </div>
 
       <div className='flex items-end justify-between'>
-        <div className='text-2xl font-semibold text-gray-900'>
+        <div className='flex w-full items-end justify-center text-2xl font-semibold text-gray-900'>
           {widget.currency}
           <AnimatedCounter
             duration={widget.duration}

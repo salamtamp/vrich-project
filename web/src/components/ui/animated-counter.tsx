@@ -12,7 +12,7 @@ type AnimatedCounterProps = {
 export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   start,
   end,
-  duration = 2000,
+  duration = 200,
   className,
 }) => {
   const [count, setCount] = useState(start);

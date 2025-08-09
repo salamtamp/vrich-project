@@ -8,7 +8,10 @@ import Table, { type TableColumn } from '@/components/table';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import useModalContext from '@/hooks/useContext/useModalContext';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
+
+import AddSoldCustomerModal from './AddSoldCustomerModal';
 
 type ProductSoldListModalProps = {
   campaignProduct: CampaignsProduct;
@@ -35,6 +38,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
   const productName = campaignProduct.product?.name ?? '-';
   const productPrice = campaignProduct.product?.selling_price ?? 0;
   const quantity = campaignProduct.quantity ?? 0;
+  const { open, close } = useModalContext();
 
   const handleStartEdit = useCallback((row: CustomerOrderItem) => {
     setEditingId(row.id);
@@ -154,7 +158,25 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          <Button>
+          <Button
+            onClick={() => {
+              const opts = [
+                { id: campaignProduct.product?.id ?? 'unknown', name: campaignProduct.product?.name ?? '-' },
+              ];
+              const defaultId = campaignProduct.product?.id ?? null;
+              open({
+                content: (
+                  <AddSoldCustomerModal
+                    defaultProductId={defaultId}
+                    productOptions={opts}
+                    onSubmitAdd={() => {
+                      close();
+                    }}
+                  />
+                ),
+              });
+            }}
+          >
             <Plus className='mr-1 size-4' /> เพิ่มลูกค้า
           </Button>
           <div className='flex items-center gap-2'>
