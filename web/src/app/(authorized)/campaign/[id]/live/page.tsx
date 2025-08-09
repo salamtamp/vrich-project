@@ -4,11 +4,10 @@ import React, { useEffect, useMemo } from 'react';
 
 import { useParams } from 'next/navigation';
 
-import { ArrowLeft, Radio } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 import { CampaignWidget } from '@/components/campaign-widget';
 import { Button } from '@/components/ui/button';
-import { CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
 import { campaignWidgetsData } from '@/mock/campaign-widgets';
@@ -72,24 +71,21 @@ const CampaignLivePage = () => {
             <ArrowLeft className='size-4' />
             Back
           </Button>
-          <CardTitle className='text-lg-semibold text-blue-700'>{campaign.name} - Live</CardTitle>
         </div>
-        <div className='flex items-center gap-2'>
-          <Radio className='size-4 text-green-600' />
-          <span className='text-sm font-medium text-green-600'>Live</span>
+        <div className='flex items-center gap-4'>
+          <p className='narrow max-w-[460px] truncate text-md-semibold'>{campaignData?.name}</p>
+          <Button variant='outline'>จัดการแคมเปญ</Button>
         </div>
       </div>
 
-      <div className='mt-6 flex-1 overflow-auto'>
-        <div className='card rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm dark:from-gray-900 dark:to-gray-800'>
-          <div className='grid grid-cols-12 gap-0'>
-            {campaignWidgetsData.map((widget) => (
-              <CampaignWidget
-                key={widget.id}
-                widget={widget}
-              />
-            ))}
-          </div>
+      <div className='mt-4 flex-1 overflow-auto'>
+        <div className='grid gap-2 md:grid-cols-3 lg:grid-cols-5'>
+          {campaignWidgetsData.map((widget) => (
+            <CampaignWidget
+              key={widget.id}
+              widget={widget}
+            />
+          ))}
         </div>
       </div>
     </div>
