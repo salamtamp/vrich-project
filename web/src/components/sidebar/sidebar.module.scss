@@ -1,7 +1,8 @@
 /* Root container */
 .sidebarRoot {
   @apply w-[215px] bg-white;
-  @apply border-r border-gray-300;
+  @apply mt-[54px];
+  @apply border-r border-gray-200 shadow-sm;
   @apply flex flex-col;
   @apply transition-all duration-300 ease-in-out;
 }
@@ -12,25 +13,7 @@
 
 /* Main container */
 .sidebarMainContainer {
-  @apply flex flex-col bg-white flex-1;
-}
-
-/* Header section */
-.sidebarHeader {
-  @apply relative flex border-gray-300;
-  @apply transition-all duration-300 ease-in-out;
-}
-
-.sidebarHeader:not(.sidebarHeaderCollapsed) {
-  @apply h-[68px];
-}
-
-.sidebarHeader:is(.sidebarHeaderCollapsed) {
-  @apply h-[60px];
-}
-
-.sidebarHeaderDivider {
-  @apply border-b border-gray-300;
+  @apply flex flex-1 flex-col bg-white;
 }
 
 /* Logo section */
@@ -80,7 +63,7 @@
 /* Menu section */
 .sidebarMenuContainer {
   @apply flex flex-col gap-1;
-  @apply mx-2 my-2;
+  @apply mx-2 mb-2 mt-4;
   @apply transition-all duration-300 ease-in-out;
 }
 
@@ -133,7 +116,7 @@
 
 /* Menu item indicator (for sub-items) */
 .menuItemIndicator {
-  @apply mx-1 size-3 rounded-full border border-dashed border-gray-400 bg-gray-50;
+  @apply ml-2 size-3 rounded-full border border-dashed border-gray-400 bg-gray-50;
 }
 
 .menuItemIndicatorActive {
@@ -169,7 +152,6 @@
 
 /* Menu sub-list */
 .menuItemSubList {
-  @apply ml-4;
   @apply transition-all duration-300 ease-in-out;
 }
 
@@ -190,10 +172,6 @@
   @apply w-full;
   @apply transition-all duration-200 ease-in-out;
   @apply hover:bg-gray-50;
-}
-
-.menuItemDropdownItemActive {
-  @apply bg-blue-50;
 }
 
 .menuItemDropdownItemContent {
@@ -218,16 +196,6 @@
 
 .menuItemDropdownItemActive .menuItemDropdownItemText {
   @apply text-blue-600;
-}
-
-/* Footer section */
-.sidebarFooterContainer {
-  @apply flex flex-col bg-white mt-auto;
-  @apply transition-all duration-300 ease-in-out;
-}
-
-.sidebarFooterDivider {
-  @apply border-t border-gray-300;
 }
 
 .sidebarLogoutWrapper {

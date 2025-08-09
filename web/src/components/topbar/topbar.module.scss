@@ -1,0 +1,135 @@
+.topbar {
+  @apply fixed left-0 right-0 top-0 z-40;
+  @apply border-b border-gray-200 bg-white;
+  @apply shadow-sm;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.topbarContent {
+  @apply flex items-center justify-between;
+  @apply h-14 px-4;
+  @apply max-w-full;
+}
+
+/* Logo Section */
+.topbarLogoSection {
+  @apply flex items-center;
+  @apply min-w-0;
+}
+
+.topbarLogoWrapper {
+  @apply flex items-center h-full;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.topbarLogoSmall {
+  @apply flex items-center justify-center;
+  @apply h-8 w-8;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.topbarLogoSmallHidden {
+  @apply hidden;
+}
+
+.topbarLogoLarge {
+  @apply flex items-center justify-center;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.topbarLogoLargeHidden {
+  @apply hidden;
+}
+
+/* Center Section */
+.topbarCenterSection {
+  @apply flex-1;
+  @apply flex items-center justify-center;
+  @apply px-4;
+  @apply min-w-0;
+}
+
+/* Right Section */
+.topbarRightSection {
+  @apply flex items-center gap-3;
+  @apply min-w-0;
+}
+
+/* Toggle Button */
+.topbarToggleButton {
+  @apply flex items-center justify-center;
+  @apply h-10 w-10 ml-4;
+  @apply rounded-lg;
+  @apply text-gray-600;
+  @apply hover:bg-gray-100;
+  @apply hover:text-gray-900;
+  @apply transition-all duration-200 ease-in-out;
+  @apply focus:outline-none;
+}
+
+.topbarToggleIcon {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+/* Logout Button */
+.topbarLogoutButton {
+  @apply flex items-center gap-2;
+  @apply px-3 py-2;
+  @apply rounded-lg;
+  @apply text-gray-600;
+  @apply hover:bg-gray-100;
+  @apply hover:text-gray-900;
+  @apply transition-all duration-200 ease-in-out;
+  @apply focus:outline-none;
+}
+
+.topbarLogoutIcon {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.topbarLogoutText {
+  @apply text-sm font-medium;
+  @apply transition-all duration-200 ease-in-out;
+  @apply whitespace-nowrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .topbarContent {
+    @apply px-3;
+  }
+
+  .topbarCenterSection {
+    @apply px-2;
+  }
+
+  .topbarRightSection {
+    @apply gap-2;
+  }
+
+  .topbarLogoutText {
+    @apply hidden;
+  }
+
+  .topbarLogoutButton {
+    @apply px-2;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbarLogoLarge {
+    @apply hidden;
+  }
+
+  .topbarLogoSmall {
+    @apply block;
+  }
+
+  .topbarLogoSmallHidden {
+    @apply block;
+  }
+
+  .topbarLogoLargeHidden {
+    @apply hidden;
+  }
+}
