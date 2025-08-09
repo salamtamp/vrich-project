@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
+import sqlalchemy as sa
+from datetime import datetime, UTC
 
 from app.api.dependencies.pagination import (
     PaginationBuilder,
@@ -33,7 +35,52 @@ def list_facebook_comments(
     pagination: PaginationParams = Depends(get_pagination_params),
     post_id: str | None = None,
     profile_id: str | None = None,
+    group_by: str | None = None,
 ) -> PaginationResponse[FacebookComment]:
+    if group_by == "profile_id":
+        sub = (
+            db.query(
+                FacebookCommentModel.profile_id.label("profile_id"),
+                sa.func.max(FacebookCommentModel.published_at).label("max_published_at"),
+            )
+            .filter(FacebookCommentModel.deleted_at.is_(None))
+            .group_by(FacebookCommentModel.profile_id)
+            .subquery()
+        )
+
+        base_q = (
+            db.query(FacebookCommentModel)
+            .options(
+                joinedload(FacebookCommentModel.profile),
+                joinedload(FacebookCommentModel.post),
+            )
+            .join(
+                sub,
+                sa.and_(
+                    FacebookCommentModel.profile_id == sub.c.profile_id,
+                    FacebookCommentModel.published_at == sub.c.max_published_at,
+                ),
+            )
+            .order_by(FacebookCommentModel.published_at.desc())
+        )
+
+        total = db.query(sa.func.count(sub.c.profile_id)).scalar() or 0
+        q = base_q.offset(pagination.offset)
+        if pagination.limit is not None:
+            q = q.limit(pagination.limit)
+        rows = q.all()
+        docs = [FacebookComment.model_validate(r) for r in rows]
+        has_next = False if pagination.limit is None else (pagination.offset + pagination.limit) < total
+        return PaginationResponse[FacebookComment](
+            total=total,
+            docs=docs,
+            limit=pagination.limit or len(docs),
+            offset=pagination.offset,
+            has_next=has_next,
+            has_prev=pagination.offset > 0,
+            timestamp=datetime.now(UTC),
+        )
+
     builder = PaginationBuilder(FacebookCommentModel, db)
     builder.query = builder.query.options(
         joinedload(FacebookCommentModel.profile), joinedload(FacebookCommentModel.post)

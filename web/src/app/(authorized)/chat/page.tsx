@@ -36,14 +36,14 @@ const Chat = () => {
     PaginationResponse<FacebookInboxResponse>
   >({
     url: API.INBOX,
-    additionalParams: { limit: 20 },
+    additionalParams: { limit: 20, group_by: 'profile_id' },
   });
 
   const { data: commentData, handleRequest: loadMoreComment } = usePaginatedRequest<
     PaginationResponse<FacebookCommentResponse>
   >({
     url: API.COMMENT,
-    additionalParams: { limit: 20 },
+    additionalParams: { limit: 20, group_by: 'profile_id' },
   });
 
   // Accumulate list pane data so new pages concat with old data

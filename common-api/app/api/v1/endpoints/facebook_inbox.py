@@ -1,5 +1,7 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
+import sqlalchemy as sa
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
@@ -33,7 +35,50 @@ def list_facebook_inboxes(
     pagination: PaginationParams = Depends(get_pagination_params),
     profile_id: str | None = None,
     messenger_id: str | None = None,
+    group_by: str | None = None,
 ) -> PaginationResponse[FacebookInbox]:
+    if group_by == "profile_id":
+        sub = (
+            db.query(
+                FacebookInboxModel.profile_id.label("profile_id"),
+                sa.func.max(FacebookInboxModel.published_at).label("max_published_at"),
+            )
+            .filter(FacebookInboxModel.deleted_at.is_(None))
+            .group_by(FacebookInboxModel.profile_id)
+            .subquery()
+        )
+
+        base_q = (
+            db.query(FacebookInboxModel)
+            .options(joinedload(FacebookInboxModel.profile))
+            .join(
+                sub,
+                sa.and_(
+                    FacebookInboxModel.profile_id == sub.c.profile_id,
+                    FacebookInboxModel.published_at == sub.c.max_published_at,
+                ),
+            )
+            .order_by(FacebookInboxModel.published_at.desc())
+        )
+
+        # Manual paginate
+        total = db.query(sa.func.count(sub.c.profile_id)).scalar() or 0
+        q = base_q.offset(pagination.offset)
+        if pagination.limit is not None:
+            q = q.limit(pagination.limit)
+        rows = q.all()
+        docs = [FacebookInbox.model_validate(r) for r in rows]
+        has_next = False if pagination.limit is None else (pagination.offset + pagination.limit) < total
+        return PaginationResponse[FacebookInbox](
+            total=total,
+            docs=docs,
+            limit=pagination.limit or len(docs),
+            offset=pagination.offset,
+            has_next=has_next,
+            has_prev=pagination.offset > 0,
+            timestamp=datetime.now(UTC),
+        )
+
     builder = PaginationBuilder(FacebookInboxModel, db)
     builder.query = builder.query.options(joinedload(FacebookInboxModel.profile))
     return (
