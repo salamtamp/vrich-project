@@ -13,6 +13,8 @@ const MenuItem = memo<MenuItemProps>(
   ({ item, level = 0, isCollapsed = false, isActive, isExpanded, onMenuClick, onExpandClick }) => {
     const MenuIcon = item.icon;
     const hasSubItems = item.children && item.children.length > 0;
+    const hasSingleChild = item.children && item.children.length === 1;
+    const hasMultipleChildren = item.children && item.children.length > 1;
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -39,11 +41,17 @@ const MenuItem = memo<MenuItemProps>(
     }, [showDropdown]);
 
     const handleMenuItemClick = () => {
-      if (isCollapsed && hasSubItems) {
+      if (isCollapsed && hasMultipleChildren) {
+        // If collapsed and has multiple children, show dropdown
         setShowDropdown(!showDropdown);
+      } else if (isCollapsed && hasSingleChild && item.children?.[0]?.path) {
+        // If collapsed and has single child, navigate directly to child
+        onMenuClick(item.children[0].path);
       } else if (hasSubItems) {
+        // If expanded, toggle sub-menu
         onExpandClick(item.label);
       } else if (item.path) {
+        // Direct navigation
         onMenuClick(item.path);
       }
     };
@@ -51,6 +59,16 @@ const MenuItem = memo<MenuItemProps>(
     const handleSubItemClick = (path: string) => {
       onMenuClick(path);
       setShowDropdown(false);
+    };
+
+    const getTooltipText = () => {
+      if (!isCollapsed) {
+        return undefined;
+      }
+      if (hasSingleChild) {
+        return item.children?.[0]?.label;
+      }
+      return item.label;
     };
 
     return (
@@ -61,7 +79,7 @@ const MenuItem = memo<MenuItemProps>(
         <button
           ref={buttonRef}
           className={cn(styles.menuItemButton, isCollapsed && styles.menuItemButtonCollapsed)}
-          title={isCollapsed ? item.label : undefined}
+          title={getTooltipText()}
           type='button'
           onClick={handleMenuItemClick}
         >
@@ -108,8 +126,8 @@ const MenuItem = memo<MenuItemProps>(
           ) : null}
         </button>
 
-        {/* Dropdown for collapsed state */}
-        {isCollapsed && hasSubItems && showDropdown ? (
+        {/* Dropdown for collapsed state - only show for multiple children */}
+        {isCollapsed && hasMultipleChildren && showDropdown ? (
           <div
             ref={dropdownRef}
             className={styles.menuItemDropdown}
