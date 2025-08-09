@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Eye, Plus, Trash2 } from 'lucide-react';
+import { Eye, MonitorDot, Plus, Trash2 } from 'lucide-react';
 
 import ContentPagination from '@/components/content/pagination';
 import type { TableColumn } from '@/components/table';
@@ -17,6 +17,7 @@ import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
+import { i18n } from '@/lib/language';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Campaign } from '@/types/api/campaign';
 
@@ -54,7 +55,7 @@ const CampaignPage = () => {
     open({
       content: (
         <div className='flex flex-col items-center justify-center gap-4 p-4'>
-          <div className='text-lg font-semibold'>Are you sure you want to delete this campaign?</div>
+          <div className='text-lg font-semibold'>{i18n.campaign.deleteModal.title}</div>
           <div className='mt-2 flex gap-4'>
             <Button
               className='bg-red-600 text-white hover:bg-red-700'
@@ -66,7 +67,7 @@ const CampaignPage = () => {
                 })();
               }}
             >
-              Delete
+              {i18n.campaign.deleteModal.delete}
             </Button>
             <Button
               variant='outline'
@@ -74,7 +75,7 @@ const CampaignPage = () => {
                 close();
               }}
             >
-              Cancel
+              {i18n.campaign.deleteModal.cancel}
             </Button>
           </div>
         </div>
@@ -85,7 +86,7 @@ const CampaignPage = () => {
   const columns: TableColumn<TableRowType>[] = [
     {
       key: 'name',
-      label: 'Campaign',
+      label: i18n.campaign.columns.campaign,
       bold: true,
       width: 200,
       render: (row) => {
@@ -94,7 +95,7 @@ const CampaignPage = () => {
     },
     {
       key: 'channels',
-      label: 'Channels',
+      label: i18n.campaign.columns.channels,
       width: 140,
       render: (row) => (
         <span>
@@ -108,14 +109,14 @@ const CampaignPage = () => {
                   </React.Fragment>
                 );
               })
-            : '-'}
+            : i18n.campaign.noData}
         </span>
       ),
     },
     {
       key: 'keywords',
-      label: 'Keywords',
-      width: 160,
+      label: i18n.campaign.columns.keywords,
+      width: 120,
       render: (row) => (
         <span className='line-clamp-2'>
           {row.campaigns_products && row.campaigns_products.length > 0
@@ -123,13 +124,13 @@ const CampaignPage = () => {
                 .map((cp) => cp.keyword)
                 .filter(Boolean)
                 .join(', ')
-            : '-'}
+            : i18n.campaign.noData}
         </span>
       ),
     },
     {
       key: 'status',
-      label: 'Status',
+      label: i18n.campaign.columns.status,
       align: 'center',
       width: 100,
       render: (row) => (
@@ -141,38 +142,40 @@ const CampaignPage = () => {
               : 'border-gray-200 bg-gray-100 text-gray-500'
           }
         >
-          {row.status === 'active' ? 'Active' : 'Inactive'}
+          {row.status === 'active' ? i18n.campaign.status.active : i18n.campaign.status.inactive}
         </Badge>
       ),
     },
     {
       key: 'start_date',
-      label: 'Start Date',
+      label: i18n.campaign.columns.startDate,
       width: 120,
       render: (row) => dayjs(row.start_date).format('YYYY-MM-DD'),
       align: 'center',
     },
     {
       key: 'end_date',
-      label: 'End Date',
+      label: i18n.campaign.columns.endDate,
       width: 120,
       render: (row) => dayjs(row.end_date).format('YYYY-MM-DD'),
       align: 'center',
     },
     {
-      key: 'created_at',
-      label: 'Created',
-      width: 160,
-      render: (row) => dayjs(row.created_at).format('YYYY-MM-DD HH:mm'),
-      align: 'center',
-    },
-    {
       key: 'actions',
-      label: 'Actions',
+      label: i18n.campaign.columns.actions,
       align: 'center',
       width: 120,
       render: (row) => (
         <div className='flex items-center justify-center gap-2'>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={() => {
+              router.push(`/campaign/${String(row.id)}/live`);
+            }}
+          >
+            <MonitorDot className='size-4' />
+          </Button>
           <Button
             size='sm'
             variant='outline'
@@ -200,14 +203,14 @@ const CampaignPage = () => {
   return (
     <div className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden border border-gray-100 px-6 py-4 shadow-sm'>
       <div className='flex flex-row items-center justify-between p-0'>
-        <CardTitle className='text-lg-semibold text-blue-700'>Campaigns</CardTitle>
+        <CardTitle className='text-lg-semibold text-blue-700'>{i18n.campaign.title}</CardTitle>
         <Button
           className='rounded-lg border-blue-100 bg-blue-50 px-4 py-2 font-medium text-blue-700 shadow-none hover:bg-blue-100 hover:text-blue-800'
           variant='outline'
           onClick={handleGoToCreateCampaign}
         >
           <div className='flex items-center gap-2 text-blue-700'>
-            <Plus className='size-4' /> Create Campaign
+            <Plus className='size-4' /> {i18n.campaign.createCampaign}
           </div>
         </Button>
       </div>

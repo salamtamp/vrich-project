@@ -1,0 +1,31 @@
+{
+  "campaign": {
+    "title": "แคมเปญ",
+    "createCampaign": "สร้างแคมเปญ",
+    "columns": {
+      "campaign": "แคมเปญ",
+      "channels": "ช่องทาง",
+      "keywords": "คำค้นหา",
+      "status": "สถานะ",
+      "startDate": "วันที่เริ่มต้น",
+      "endDate": "วันที่สิ้นสุด",
+      "created": "วันที่สร้าง",
+      "actions": "การดำเนินการ"
+    },
+    "status": {
+      "active": "เปิดใช้งาน",
+      "inactive": "ปิดใช้งาน"
+    },
+    "actions": {
+      "view": "ดู",
+      "delete": "ลบ",
+      "live": "ไลฟ์"
+    },
+    "deleteModal": {
+      "title": "คุณแน่ใจหรือไม่ที่จะลบแคมเปญนี้?",
+      "delete": "ลบ",
+      "cancel": "ยกเลิก"
+    },
+    "noData": "-"
+  }
+}

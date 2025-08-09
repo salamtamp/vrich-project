@@ -43,7 +43,9 @@ def list_facebook_comments(
         sub = (
             db.query(
                 FacebookCommentModel.profile_id.label("profile_id"),
-                sa.func.max(FacebookCommentModel.published_at).label("max_published_at"),
+                sa.func.max(FacebookCommentModel.published_at).label(
+                    "max_published_at"
+                ),
             )
             .filter(FacebookCommentModel.deleted_at.is_(None))
             .group_by(FacebookCommentModel.profile_id)
@@ -69,7 +71,9 @@ def list_facebook_comments(
 
         if before_created_at:
             try:
-                before_date = datetime.fromisoformat(before_created_at.replace('Z', '+00:00'))
+                before_date = datetime.fromisoformat(
+                    before_created_at.replace("Z", "+00:00")
+                )
                 base_q = base_q.filter(FacebookCommentModel.created_at < before_date)
             except ValueError:
                 pass
@@ -80,7 +84,11 @@ def list_facebook_comments(
             q = q.limit(pagination.limit)
         rows = q.all()
         docs = [FacebookComment.model_validate(r) for r in rows]
-        has_next = False if pagination.limit is None else (pagination.offset + pagination.limit) < total
+        has_next = (
+            False
+            if pagination.limit is None
+            else (pagination.offset + pagination.limit) < total
+        )
         return PaginationResponse[FacebookComment](
             total=total,
             docs=docs,
@@ -95,14 +103,18 @@ def list_facebook_comments(
     builder.query = builder.query.options(
         joinedload(FacebookCommentModel.profile), joinedload(FacebookCommentModel.post)
     )
-    
+
     if before_created_at:
         try:
-            before_date = datetime.fromisoformat(before_created_at.replace('Z', '+00:00'))
-            builder.query = builder.query.filter(FacebookCommentModel.created_at < before_date)
+            before_date = datetime.fromisoformat(
+                before_created_at.replace("Z", "+00:00")
+            )
+            builder.query = builder.query.filter(
+                FacebookCommentModel.created_at < before_date
+            )
         except ValueError:
             pass
-    
+
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
