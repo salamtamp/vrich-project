@@ -157,15 +157,33 @@ const Chat = () => {
         return;
       }
       const nextOffset = reset ? 0 : timelineOffset;
-      const res = await fetchTimeline({ params: { offset: nextOffset, limit: 10 } });
+      let filterType: 'messenger' | 'fb_comments' | undefined;
+      if (selectedPlatform === 'messenger') {
+        filterType = 'messenger';
+      } else if (selectedPlatform === 'fb_comments') {
+        filterType = 'fb_comments';
+      } else {
+        filterType = undefined;
+      }
+
+      const res = await fetchTimeline({
+        params: { offset: nextOffset, limit: 10, ...(filterType ? { type: filterType } : {}) },
+      });
       if (!res) {
         return;
       }
-      setTimeline((curr) => (reset ? res.docs : [...curr, ...res.docs]));
+      setTimeline((curr) => {
+        if (reset) {
+          return res.docs;
+        }
+        const existingKeys = new Set(curr.map((d) => `${d.source}-${d.id}`));
+        const newDocs = res.docs.filter((d) => !existingKeys.has(`${d.source}-${d.id}`));
+        return [...curr, ...newDocs];
+      });
       setTimelineOffset(nextOffset + (res.limit ?? 0));
       setTimelineHasNext(res.has_next ?? false);
     },
-    [effectiveSelected?.profile?.id, fetchTimeline, timelineOffset]
+    [effectiveSelected?.profile?.id, fetchTimeline, selectedPlatform, timelineOffset]
   );
 
   // fetch fresh profile each selection change
@@ -215,6 +233,7 @@ const Chat = () => {
           />
           <ChatContent
             hasNext={timelineHasNext}
+            platform={selectedPlatform}
             profile={selectedProfile ?? effectiveSelected?.profile ?? null}
             timeline={timeline}
             onLoadMore={() => {

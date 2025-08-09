@@ -13,10 +13,25 @@ type ChatContentProps = {
   timeline: TimelineItem[];
   onLoadMore?: () => void;
   hasNext?: boolean;
+  platform?: 'all' | 'messenger' | 'fb_comments' | 'line_oa';
 };
 
-const ChatContent = ({ profile, timeline, onLoadMore, hasNext = false }: ChatContentProps) => {
-  const messages = timeline;
+const ChatContent = ({
+  profile,
+  timeline,
+  onLoadMore,
+  hasNext = false,
+  platform = 'all',
+}: ChatContentProps) => {
+  const messages = timeline.filter((m) => {
+    if (platform === 'messenger') {
+      return m.source === 'inbox';
+    }
+    if (platform === 'fb_comments') {
+      return m.source === 'comment';
+    }
+    return true;
+  });
 
   return (
     <section
