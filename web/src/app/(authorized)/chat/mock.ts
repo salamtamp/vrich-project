@@ -266,3 +266,134 @@ export const mockInboxes: FacebookInboxResponse[] = [
     profile: profiles[1],
   },
 ];
+
+export const mockChatHistory: Record<
+  string,
+  Array<{
+    id: string;
+    sender: 'me' | 'them';
+    text: string;
+    timestamp: string;
+  }>
+> = {
+  profile_001: [
+    {
+      id: 'profile_001-msg-1',
+      sender: 'me',
+      text: 'Hi Alice, how can I help you today?',
+      timestamp: '2024-06-01T10:00:00Z',
+    },
+    {
+      id: 'profile_001-msg-2',
+      sender: 'them',
+      text: 'Hello! I need help with my order.',
+      timestamp: '2024-06-01T10:01:00Z',
+    },
+    {
+      id: 'profile_001-msg-3',
+      sender: 'me',
+      text: 'Sure, can you provide your order number?',
+      timestamp: '2024-06-01T10:02:00Z',
+    },
+    {
+      id: 'profile_001-msg-4',
+      sender: 'them',
+      text: 'It is #1234.',
+      timestamp: '2024-06-01T10:03:00Z',
+    },
+    {
+      id: 'profile_001-msg-5',
+      sender: 'me',
+      text: 'Thank you! I am checking it now.',
+      timestamp: '2024-06-01T10:04:00Z',
+    },
+  ],
+  profile_002: [
+    {
+      id: 'profile_002-msg-1',
+      sender: 'me',
+      text: 'Hi Bob, how can I assist you?',
+      timestamp: '2024-06-01T10:10:00Z',
+    },
+    {
+      id: 'profile_002-msg-2',
+      sender: 'them',
+      text: 'Can you update my shipping address?',
+      timestamp: '2024-06-01T10:11:00Z',
+    },
+    {
+      id: 'profile_002-msg-3',
+      sender: 'me',
+      text: 'Of course! Please provide the new address.',
+      timestamp: '2024-06-01T10:12:00Z',
+    },
+    {
+      id: 'profile_002-msg-4',
+      sender: 'them',
+      text: '456 New Oak Ave, Austin, TX',
+      timestamp: '2024-06-01T10:13:00Z',
+    },
+    {
+      id: 'profile_002-msg-5',
+      sender: 'me',
+      text: 'Address updated. Anything else I can help with?',
+      timestamp: '2024-06-01T10:14:00Z',
+    },
+  ],
+  profile_003: [
+    {
+      id: 'profile_003-msg-1',
+      sender: 'me',
+      text: 'Hi Carol, do you need any assistance?',
+      timestamp: '2024-06-01T10:20:00Z',
+    },
+    {
+      id: 'profile_003-msg-2',
+      sender: 'them',
+      text: 'No, just browsing. Thanks!',
+      timestamp: '2024-06-01T10:21:00Z',
+    },
+  ],
+  profile_004: [
+    {
+      id: 'profile_004-msg-1',
+      sender: 'them',
+      text: 'Thank you for your quick response!',
+      timestamp: '2024-06-01T10:30:00Z',
+    },
+    {
+      id: 'profile_004-msg-2',
+      sender: 'me',
+      text: 'You are welcome, Dave!',
+      timestamp: '2024-06-01T10:31:00Z',
+    },
+  ],
+  profile_005: [
+    {
+      id: 'profile_005-msg-1',
+      sender: 'me',
+      text: 'Hi Eve, your order has shipped.',
+      timestamp: '2024-06-01T10:40:00Z',
+    },
+    {
+      id: 'profile_005-msg-2',
+      sender: 'them',
+      text: 'Thank you!',
+      timestamp: '2024-06-01T10:41:00Z',
+    },
+  ],
+  profile_006: [
+    {
+      id: 'profile_006-msg-1',
+      sender: 'them',
+      text: 'Is there a discount for bulk orders?',
+      timestamp: '2024-06-01T10:50:00Z',
+    },
+    {
+      id: 'profile_006-msg-2',
+      sender: 'me',
+      text: 'Yes, please contact our sales team for details.',
+      timestamp: '2024-06-01T10:51:00Z',
+    },
+  ],
+};

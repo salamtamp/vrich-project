@@ -1,4 +1,6 @@
 export const PATH = {
+  HOME: '/home',
+
   LOGIN: '/login',
 
   INBOX: '/inbox',
@@ -7,4 +9,8 @@ export const PATH = {
   CAMPAIGN: '/campaign',
   PRODUCTS: '/product',
   CHATS: '/chat',
+
+  INVENTORY: '/inventory',
+  ORDER: '/order',
+  DELIVERY: '/Delivery',
 };

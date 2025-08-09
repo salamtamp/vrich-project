@@ -1,126 +1,268 @@
-.container {
-  @apply flex h-full flex-col justify-between overflow-hidden;
-  @apply bg-white;
-  @apply min-w-[215px];
-  @apply border-r border-gray-200;
-
-  box-shadow: rgba(17, 17, 26, 0.1) 0px 0px 16px;
-}
-
-.isCollapse {
-  @apply min-w-[110];
-}
-
-.navBarContainer {
+/* Root container */
+.sidebarRoot {
+  @apply w-[215px] bg-white;
+  @apply border-r border-gray-300;
   @apply flex flex-col;
-}
-
-.headerContainer {
-  @apply flex items-center justify-between;
-  @apply ml-11 mt-4;
-}
-
-.headerContainerCollapsed {
-  @apply ml-2 pl-5;
-}
-
-.logoContainer {
-  @apply h-[30px] overflow-hidden;
-}
-
-.logoSmall {
   @apply transition-all duration-300 ease-in-out;
-  @apply scale-100 opacity-100;
 }
 
-.logoSmallHidden {
-  @apply scale-95 opacity-0;
+.sidebarRootCollapsed {
+  @apply w-[70px];
 }
 
-.logoLarge {
+/* Main container */
+.sidebarMainContainer {
+  @apply flex flex-col bg-white flex-1;
+}
+
+/* Header section */
+.sidebarHeader {
+  @apply relative flex border-gray-300;
   @apply transition-all duration-300 ease-in-out;
-  @apply scale-100 opacity-100;
 }
 
-.logoLargeHidden {
-  @apply scale-95 opacity-0;
+.sidebarHeader:not(.sidebarHeaderCollapsed) {
+  @apply h-[68px];
 }
 
-.collapseButton {
-  @apply flex size-7 items-center justify-center rounded-full bg-gray-100 p-2 hover:bg-gray-300;
-  @apply transform transition-all duration-300 ease-in-out;
-  @apply mr-4;
+.sidebarHeader:is(.sidebarHeaderCollapsed) {
+  @apply h-[60px];
 }
 
-.collapseButtonCollapsed {
-  @apply mr-2 rotate-180;
+.sidebarHeaderDivider {
+  @apply border-b border-gray-300;
 }
 
-.divider {
-  @apply mt-5 h-[2px] w-full rounded-lg bg-gray-300;
+/* Logo section */
+.sidebarLogoWrapper {
+  @apply flex h-full w-[132px] items-center justify-center;
+  @apply transition-all duration-300 ease-in-out;
 }
 
-.footerDivider {
-  @apply mt-6 h-[2px] w-full rounded-lg bg-gray-300;
+.sidebarLogoWrapperCollapsed {
+  @apply w-full;
 }
 
-.menuContainer {
-  @apply flex flex-col;
-  @apply mt-6 gap-2;
+.sidebarLogoSmall {
+  @apply block;
 }
 
-.menuItem {
-  @apply ml-1 mr-1 flex items-center gap-2 rounded-2xl px-6 py-4;
-  @apply transition-colors hover:bg-gray-100;
+.sidebarLogoSmallHidden {
+  @apply hidden;
+}
+
+.sidebarLogoLarge {
+  @apply block;
+}
+
+.sidebarLogoLargeHidden {
+  @apply hidden;
+}
+
+/* Toggle button */
+.sidebarToggleButton {
+  @apply absolute transition-all duration-300 ease-in-out hover:bg-gray-100;
+  @apply right-[53px] top-[24px] rounded-lg p-2;
+}
+
+.sidebarToggleButtonCollapsed {
+  @apply right-[15px] top-[18px];
+}
+
+.sidebarToggleIcon {
+  @apply text-gray-500;
+}
+
+.sidebarToggleIconCollapsed {
+  @apply text-gray-600;
+}
+
+/* Menu section */
+.sidebarMenuContainer {
+  @apply flex flex-col gap-1;
+  @apply mx-2 my-2;
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Menu item button */
+.menuItemButton {
+  @apply flex w-full items-center justify-between;
+  @apply rounded-lg px-2 transition-all duration-300 ease-in-out hover:bg-gray-50;
+  @apply relative;
+}
+
+.menuItemButtonCollapsed {
+  @apply justify-center px-2;
+}
+
+/* Menu item content */
+.menuItemContent {
+  @apply flex h-9 items-center gap-3;
+  @apply transition-all duration-300 ease-in-out;
 
   p {
-    @apply text-gray-700;
+    @apply text-md-regular text-gray-500;
   }
 
-  &.isActive {
-    @apply bg-gray-200;
+  .menuItemIcon {
+    @apply text-gray-500;
+  }
 
+  &.menuItemActive {
     p {
-      @apply text-gray-900;
+      @apply text-blue-600;
     }
 
-    .iconActive {
-      @apply text-gray-900;
+    .menuItemIcon {
+      @apply text-blue-600;
     }
+  }
+
+  &.menuItemSubContent {
+    @apply h-9;
   }
 }
 
 .menuItemCollapsed {
-  @apply justify-center;
+  @apply justify-center gap-0;
 }
 
-.menuTextContainer {
-  @apply overflow-hidden transition-all duration-300 ease-in-out;
-  @apply w-auto opacity-100;
+.menuItemIconCollapsed {
+  @apply mx-auto;
 }
 
-.menuTextContainerCollapsed {
+/* Menu item indicator (for sub-items) */
+.menuItemIndicator {
+  @apply mx-1 size-3 rounded-full border border-dashed border-gray-400 bg-gray-50;
+}
+
+.menuItemIndicatorActive {
+  @apply border-blue-500;
+}
+
+/* Menu item text */
+.menuItemTextWrapper {
+  @apply w-auto overflow-hidden opacity-100 transition-all duration-300 ease-in-out;
+}
+
+.menuItemTextWrapperCollapsed {
   @apply w-0 opacity-0;
 }
 
-.menuText {
+.menuItemText {
   @apply ml-2 whitespace-nowrap text-display-medium;
 }
 
-.logoutContainer {
-  @apply flex flex-col px-9 pb-4;
-}
-
-.logoutButton {
-  @apply flex;
-  @apply mt-4 cursor-pointer rounded-lg p-2 transition-all duration-300 ease-in-out;
-}
-
-.logoutButtonCollapsed {
-  @apply justify-center;
-}
-
-.iconActive {
-  @apply text-gray-700;
+/* Menu item chevron */
+.menuItemChevronWrapper {
+  @apply flex items-center;
   @apply transition-all duration-300 ease-in-out;
+}
+
+.menuItemChevron {
+  @apply text-gray-500 transition-all duration-300 ease-in-out;
+}
+
+.menuItemChevronActive {
+  @apply text-blue-500;
+}
+
+/* Menu sub-list */
+.menuItemSubList {
+  @apply ml-4;
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Dropdown for collapsed state */
+.menuItemDropdown {
+  @apply absolute left-full top-0 z-50 ml-2;
+  @apply min-w-[200px];
+  @apply animate-in fade-in-0 zoom-in-95 slide-in-from-left-2;
+  @apply duration-200;
+}
+
+.menuItemDropdownContent {
+  @apply rounded-lg border border-gray-200 bg-white shadow-lg;
+  @apply overflow-hidden;
+}
+
+.menuItemDropdownItem {
+  @apply w-full;
+  @apply transition-all duration-200 ease-in-out;
+  @apply hover:bg-gray-50;
+}
+
+.menuItemDropdownItemActive {
+  @apply bg-blue-50;
+}
+
+.menuItemDropdownItemContent {
+  @apply flex items-center gap-3;
+  @apply px-4 py-3;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.menuItemDropdownItemIcon {
+  @apply text-gray-500;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.menuItemDropdownItemIconActive {
+  @apply text-blue-600;
+}
+
+.menuItemDropdownItemText {
+  @apply text-sm font-medium text-gray-700;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.menuItemDropdownItemActive .menuItemDropdownItemText {
+  @apply text-blue-600;
+}
+
+/* Footer section */
+.sidebarFooterContainer {
+  @apply flex flex-col bg-white mt-auto;
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.sidebarFooterDivider {
+  @apply border-t border-gray-300;
+}
+
+.sidebarLogoutWrapper {
+  @apply flex flex-col px-3 pb-4;
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.sidebarLogoutWrapperCollapsed {
+  @apply px-2;
+}
+
+.sidebarLogoutButton {
+  @apply mt-4 flex cursor-pointer rounded-lg p-2 transition-all duration-300 ease-in-out hover:bg-gray-50;
+}
+
+.sidebarLogoutButtonCollapsed {
+  @apply justify-center px-2;
+}
+
+.sidebarLogoutIcon {
+  @apply text-gray-700 transition-all duration-300 ease-in-out;
+}
+
+.sidebarLogoutIconCollapsed {
+  @apply mx-auto;
+}
+
+.sidebarLogoutTextWrapper {
+  @apply w-auto overflow-hidden opacity-100 transition-all duration-300 ease-in-out;
+}
+
+.sidebarLogoutTextWrapperCollapsed {
+  @apply w-0 opacity-0;
+}
+
+.sidebarLogoutText {
+  @apply ml-2 whitespace-nowrap text-display-medium;
 }

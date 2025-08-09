@@ -30,7 +30,7 @@ const RootLayout = ({ children }: NextJSChildren) => {
         />
       </head>
 
-      <body className='bg-surface-primary'>
+      <body className='bg-white'>
         <Suspense fallback={<></>}>
           <SessionProvider>
             <ToastProvider>

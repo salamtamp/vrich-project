@@ -27,7 +27,7 @@ const PublicGuard: FC<NextJSChildren> = ({ children }) => {
       return;
     }
 
-    router.replace(PATH.PROFILE);
+    router.replace(PATH.HOME);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 

@@ -5,3 +5,8 @@ declare module '*.svg' {
   export default content;
   export const ReactComponent: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 }
+
+declare module '*.scss' {
+  const content: { [className: string]: string };
+  export default content;
+}

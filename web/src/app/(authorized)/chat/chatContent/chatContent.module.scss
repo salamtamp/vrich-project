@@ -1,0 +1,17 @@
+.content {
+  @apply flex h-full flex-1 flex-col overflow-hidden rounded-lg;
+  @apply border border-gray-300 shadow;
+}
+.contentHeader {
+  @apply flex h-20 items-center gap-4 px-4;
+  @apply border-b border-gray-300 shadow;
+}
+.profileImage {
+  @apply size-10;
+}
+.inputMessage {
+  @apply flex items-center;
+  @apply gap-4 rounded-lg px-4;
+  @apply mx-[18px] mb-[18px] h-[52px];
+  @apply border border-gray-300 shadow;
+} 

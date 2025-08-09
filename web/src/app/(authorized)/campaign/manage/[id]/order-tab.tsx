@@ -190,8 +190,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       align: 'center',
       width: 120,
       render: (row) => {
-        const total_payment =
-          row.payments?.reduce((sum, payment) => sum + (payment.amount ?? 0), 0) ?? 0;
+        const total_payment = row.payments?.reduce((sum, payment) => sum + (payment.amount ?? 0), 0) ?? 0;
         return total_payment.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
@@ -232,8 +231,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
             const price = op.campaign_product?.product?.selling_price ?? 0;
             return sum + price * (op.quantity ?? 1);
           }, 0) ?? 0;
-        const total_payment =
-          row.payments?.reduce((sum, payment) => sum + (payment.amount ?? 0), 0) ?? 0;
+        const total_payment = row.payments?.reduce((sum, payment) => sum + (payment.amount ?? 0), 0) ?? 0;
 
         if (total_payment === 0) {
           return '-';
@@ -324,8 +322,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
         return (
           <div className='flex items-center justify-center gap-2'>
             {ORDER_PROCESS_STATUSES.includes(row.status) &&
-              getNextOrderStatus(row.status) &&
-              !hindButtonByData ? (
+            getNextOrderStatus(row.status) &&
+            !hindButtonByData ? (
               <Button
                 className={STATUS_COLORS[getNextOrderStatus(row.status) ?? '']}
                 disabled={isBatchUpdating}
@@ -368,8 +366,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
 
   const onApproveSelected = canBatchApprove
     ? () => {
-      void handleApproveSelected();
-    }
+        void handleApproveSelected();
+      }
     : undefined;
 
   const nextStatus = selectedStatus !== 'all' ? getNextOrderStatus(selectedStatus as OrderStatus) : undefined;

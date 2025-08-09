@@ -1,0 +1,30 @@
+.sidebar {
+  @apply h-full w-[300px] overflow-hidden rounded-lg py-3;
+  @apply border border-gray-300 shadow;
+}
+.sidebarInner {
+  @apply flex w-full flex-col px-3 py-2;
+}
+.icon {
+  @apply text-gray-500;
+}
+.divider {
+  @apply mt-3;
+}
+.inboxItem {
+  @apply flex cursor-pointer gap-3 px-4 py-4;
+}
+.profileImage {
+  @apply size-10;
+}
+.inboxName {
+  @apply text-md-semibold text-primary;
+  @apply text-start;
+}
+.inboxMessage {
+  @apply line-clamp-1 text-md-regular text-gray-600;
+  @apply text-start;
+}
+.isSelected {
+  @apply bg-blue-100;
+}
