@@ -111,7 +111,26 @@ const Chat = () => {
     if (selectedPlatform === 'fb_comments') {
       return commentItems;
     }
-    return [...inboxItems, ...commentItems].sort((a, b) => (a.published_at < b.published_at ? 1 : -1));
+
+    // For "All Messages", merge by profile_id and take the latest
+    const allItems = [...inboxItems, ...commentItems];
+    const profileGroups = new Map<string, ChatListItem>();
+
+    allItems.forEach((item) => {
+      const profileId = item.profile?.id;
+      if (!profileId) {
+        return;
+      }
+
+      const existing = profileGroups.get(profileId);
+      if (!existing || new Date(item.published_at) > new Date(existing.published_at)) {
+        profileGroups.set(profileId, item);
+      }
+    });
+
+    return Array.from(profileGroups.values()).sort((a, b) =>
+      new Date(a.published_at) < new Date(b.published_at) ? 1 : -1
+    );
   }, [inboxAccum, commentAccum, selectedPlatform]);
 
   const effectiveSelected = useMemo(() => {
