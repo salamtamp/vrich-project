@@ -1,22 +1,28 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { useParams } from 'next/navigation';
 
 import { ArrowLeft, Radio } from 'lucide-react';
 
+import { CampaignWidget } from '@/components/campaign-widget';
 import { Button } from '@/components/ui/button';
 import { CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
+import { campaignWidgetsData } from '@/mock/campaign-widgets';
 import type { Campaign } from '@/types/api/campaign';
 
 const CampaignLivePage = () => {
   const params = useParams();
   const campaignId = params.id as string;
 
-  const { data: campaignData, isLoading } = useRequest<Campaign>({
+  const {
+    data: campaignData,
+    isLoading,
+    handleRequest,
+  } = useRequest<Campaign>({
     request: {
       url: `${API.CAMPAIGN}/${campaignId}`,
     },
@@ -27,6 +33,11 @@ const CampaignLivePage = () => {
   const handleGoBack = () => {
     window.history.back();
   };
+
+  useEffect(() => {
+    void handleRequest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (isLoading) {
     return (
@@ -70,71 +81,14 @@ const CampaignLivePage = () => {
       </div>
 
       <div className='mt-6 flex-1 overflow-auto'>
-        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-          <div className='rounded-lg border border-gray-200 bg-white p-6'>
-            <h3 className='mb-4 text-lg font-semibold'>Campaign Overview</h3>
-            <div className='space-y-3'>
-              <div>
-                <span className='text-sm text-gray-600'>Status:</span>
-                <span
-                  className={`ml-2 rounded px-2 py-1 text-xs font-medium ${
-                    campaign.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {campaign.status === 'active' ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div>
-                <span className='text-sm text-gray-600'>Channels:</span>
-                <div className='mt-1'>
-                  {campaign.channels && campaign.channels.length > 0 ? (
-                    campaign.channels.map((channel) => (
-                      <span
-                        key={channel}
-                        className='mb-1 mr-2 inline-block rounded bg-blue-100 px-2 py-1 text-xs text-blue-800'
-                      >
-                        {channel.startsWith('facebook_') ? channel.replace('facebook_', '') : channel}
-                      </span>
-                    ))
-                  ) : (
-                    <span className='text-sm text-gray-500'>No channels</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className='rounded-lg border border-gray-200 bg-white p-6'>
-            <h3 className='mb-4 text-lg font-semibold'>Live Statistics</h3>
-            <div className='space-y-4'>
-              <div className='text-center'>
-                <div className='text-2xl font-bold text-green-600'>0</div>
-                <div className='text-sm text-gray-600'>Active Posts</div>
-              </div>
-              <div className='text-center'>
-                <div className='text-2xl font-bold text-blue-600'>0</div>
-                <div className='text-sm text-gray-600'>Total Comments</div>
-              </div>
-              <div className='text-center'>
-                <div className='text-2xl font-bold text-purple-600'>0</div>
-                <div className='text-sm text-gray-600'>Total Likes</div>
-              </div>
-            </div>
-          </div>
-
-          <div className='rounded-lg border border-gray-200 bg-white p-6'>
-            <h3 className='mb-4 text-lg font-semibold'>Recent Activity</h3>
-            <div className='space-y-3'>
-              <div className='text-sm text-gray-600'>No recent activity</div>
-            </div>
-          </div>
-        </div>
-
-        <div className='mt-6 rounded-lg border border-gray-200 bg-white p-6'>
-          <h3 className='mb-4 text-lg font-semibold'>Live Feed</h3>
-          <div className='py-8 text-center text-gray-500'>
-            <Radio className='mx-auto mb-4 size-12 text-gray-300' />
-            <p>Live feed will appear here when campaign is active</p>
+        <div className='card rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm dark:from-gray-900 dark:to-gray-800'>
+          <div className='grid grid-cols-12 gap-0'>
+            {campaignWidgetsData.map((widget) => (
+              <CampaignWidget
+                key={widget.id}
+                widget={widget}
+              />
+            ))}
           </div>
         </div>
       </div>

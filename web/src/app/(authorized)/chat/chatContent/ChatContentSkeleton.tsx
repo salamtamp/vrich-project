@@ -11,7 +11,7 @@ const ChatContentSkeleton = () => {
           <div className='bg-loading-container size-10 rounded-full' />
         </div>
         <div className='gap-2'>
-          <div className='bg-loading-container h-4 w-24 rounded mb-1' />
+          <div className='bg-loading-container mb-1 h-4 w-24 rounded' />
           <div className='bg-loading-container h-3 w-16 rounded' />
         </div>
       </div>
@@ -21,16 +21,14 @@ const ChatContentSkeleton = () => {
             key={index}
             className={`flex gap-4 ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}
           >
-            {index % 2 === 0 && (
-              <div className='bg-loading-container size-9 rounded-full' />
-            )}
-            <div className={`flex w-full max-w-[80%] flex-col ${index % 2 === 0 ? 'items-start' : 'items-end'}`}>
-              <div className='bg-loading-container h-3 w-20 rounded mb-1' />
-              <div className='bg-loading-container rounded-t-lg px-4 py-2 h-12 w-48 rounded-br-lg' />
+            {index % 2 === 0 && <div className='bg-loading-container size-9 rounded-full' />}
+            <div
+              className={`flex w-full max-w-[80%] flex-col ${index % 2 === 0 ? 'items-start' : 'items-end'}`}
+            >
+              <div className='bg-loading-container mb-1 h-3 w-20 rounded' />
+              <div className='bg-loading-container h-12 w-48 rounded-t-lg rounded-br-lg px-4 py-2' />
             </div>
-            {index % 2 === 1 && (
-              <div className='bg-loading-container size-9 rounded-full' />
-            )}
+            {index % 2 === 1 && <div className='bg-loading-container size-9 rounded-full' />}
           </div>
         ))}
       </div>
