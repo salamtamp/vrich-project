@@ -1,6 +1,6 @@
 .sidebar {
   @apply h-full w-[300px] overflow-hidden rounded-lg py-3;
-  @apply border border-gray-300 shadow;
+  @apply border border-gray-200 shadow-sm;
 }
 .sidebarInner {
   @apply flex w-full flex-col px-3 py-2;

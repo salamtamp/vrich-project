@@ -1,7 +1,7 @@
 .profile {
   @apply w-[320px] rounded-lg;
   @apply mx-auto max-w-sm rounded-xl bg-white p-6;
-  @apply border border-gray-300 shadow;
+  @apply border border-gray-200 shadow-sm;
 }
 .profileImage {
   @apply rounded-full border-2 border-gray-200 object-cover;

@@ -28,16 +28,10 @@ const Chat = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <p className={styles.title}>Chat</p>
-        <p className={styles.subtitle}>Respond to messages, set up automations and more</p>
-      </div>
-      <div className='mx-2 mt-4 flex h-20'>
-        <SelectPlatform
-          selectedPlatform={selectedPlatform}
-          onSelect={handleSelectPlatform}
-        />
-      </div>
+      <SelectPlatform
+        selectedPlatform={selectedPlatform}
+        onSelect={handleSelectPlatform}
+      />
       <div className={styles.main}>
         <ChatProfileList
           inboxes={mockInboxes}

@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
-import { Trash } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import ContentPagination from '@/components/content/pagination';
 import DatePicker from '@/components/date-picker';
 import NotificationBell from '@/components/notification-bell';
-import { Button } from '@/components/ui/button';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import { useScrollable } from '@/hooks/useScrollable';
 import dayjs from '@/lib/dayjs';
@@ -58,32 +56,14 @@ const FilterCard: React.FC<FilterCardProps> = ({
   disableDatePicker = false,
   disableNotificationBell = false,
 }) => {
-  const [isSelectMode, setIsSelectMode] = useState(false);
   const { ref } = useScrollable<HTMLDivElement>();
   const { pagination } = usePaginationContext();
   const { page, limit } = pagination;
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const searchParams = useSearchParams();
 
   const id = searchParams.get('id');
 
   const skeletonCount = limit;
-
-  const isAllSelect = selectedIds.length === limit;
-
-  const start = total === 0 ? 0 : (page - 1) * limit + 1;
-  const end = Math.min(page * limit, total);
-
-  const handleToggle = (c: string[], newId: string) => {
-    const isSelected = selectedIds?.includes(newId);
-
-    if (isSelected) {
-      return c.filter((id) => {
-        return id !== newId;
-      });
-    }
-    return [...c, newId];
-  };
 
   useEffect(() => {
     if (ref.current) {
@@ -113,52 +93,6 @@ const FilterCard: React.FC<FilterCardProps> = ({
           {!disableNotificationBell && <NotificationBell />}
         </div>
       </div>
-      <div className='mb-4 mt-5 flex justify-between text-gray-800'>
-        <div className='flex h-full items-center'>{`Showing ${start}–${end} of ${total} items`}</div>
-
-        <div className='flex gap-2'>
-          {isSelectMode ? (
-            <Button
-              disabled={!selectedIds.length}
-              variant='outline'
-              className={cn(
-                'text-gray-800 transition-colors hover:border-red-200 hover:bg-red-100 hover:text-red-400'
-              )}
-            >
-              <Trash />
-            </Button>
-          ) : null}
-          {isSelectMode ? (
-            <Button
-              className={cn('text-gray-800', isAllSelect && 'border-blue-300')}
-              variant='outline'
-              onClick={() => {
-                if (isAllSelect) {
-                  setSelectedIds([]);
-                  return;
-                }
-                const allIds = (data ?? []).map((d) => d.id);
-                setSelectedIds(allIds);
-              }}
-            >
-              Select All
-            </Button>
-          ) : null}
-
-          <Button
-            className={cn('hidden text-gray-800', isSelectMode && 'border-blue-300')}
-            variant='outline'
-            onClick={() => {
-              setIsSelectMode((prev) => !prev);
-              if (!isSelectMode) {
-                setSelectedIds([]);
-              }
-            }}
-          >
-            Select
-          </Button>
-        </div>
-      </div>
 
       <div
         ref={ref}
@@ -181,43 +115,27 @@ const FilterCard: React.FC<FilterCardProps> = ({
               );
             })
           : (data ?? []).map((item) => {
-              const isSelected = selectedIds?.includes(item.id);
-
               const isActive = item.id === id;
 
               return (
                 // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                 <div
                   key={`${item.id}-${crypto.randomUUID()}`}
+                  className={cn(styles.cardContainer, isActive && '!border-blue-300', cardClassName)}
                   id={`card-${item.id}`}
-                  className={cn(
-                    styles.cardContainer,
-                    isActive && '!border-blue-300',
-                    isSelected && isSelectMode && '!border-blue-300',
-                    cardClassName
-                  )}
                   onClick={() => {
-                    if (isSelectMode) {
-                      setSelectedIds?.((c) => handleToggle(c, item.id));
-                    } else {
-                      onCardClick?.(item.id, item);
-                    }
+                    onCardClick?.(item.id, item);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      if (isSelectMode) {
-                        e.preventDefault();
-                        setSelectedIds?.((c) => handleToggle(c, item.id));
-                      } else {
-                        onCardClick?.(item.id, item);
-                      }
+                      onCardClick?.(item.id, item);
                     }
                   }}
                 >
                   <Card
                     cardData={item}
-                    isSelectMode={isSelectMode}
-                    isSelected={isSelected}
+                    isSelectMode={false}
+                    isSelected={false}
                     skeletonSize={skeletonSize}
                   />
                 </div>

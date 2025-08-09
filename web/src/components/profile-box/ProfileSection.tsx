@@ -125,7 +125,7 @@ const ProfileSection = ({ profile = mockProfile }: ProfileSectionProps) => {
         ) : null}
 
         <div className='flex gap-3'>
-          <button className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95'>
+          <button className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-700 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95'>
             <SquareArrowUpRight className='size-4' />
             User Profile
           </button>

@@ -81,7 +81,7 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({
   }, [reset]);
 
   return (
-    <Pagination className={cn('items-center justify-between gap-2', className)}>
+    <Pagination className={cn('mb-4 items-center justify-between gap-2 px-4', className)}>
       <div className='flex items-center gap-2'>
         {!shotMode ? (
           <p className='text-gray-600'> Results per page:</p>

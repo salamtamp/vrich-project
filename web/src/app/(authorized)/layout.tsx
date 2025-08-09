@@ -20,7 +20,7 @@ const AuthorizedLayout = ({ children }: NextJSChildren) => {
               <Topbar />
               <div className='flex flex-1 overflow-hidden'>
                 <Sidebar />
-                <div className='flex-1 overflow-hidden pt-16'>
+                <div className='flex-1 overflow-hidden pt-[56px]'>
                   <PaginationProvider>
                     <ModalProvider>{children}</ModalProvider>
                   </PaginationProvider>

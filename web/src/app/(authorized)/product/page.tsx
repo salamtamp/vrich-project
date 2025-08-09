@@ -10,7 +10,7 @@ import ContentPagination from '@/components/content/pagination';
 import type { TableColumn } from '@/components/table';
 import Table from '@/components/table';
 import { Button } from '@/components/ui/button';
-import { Card, CardTitle } from '@/components/ui/card';
+import { CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
@@ -153,7 +153,7 @@ const ProductPage = () => {
   ];
 
   return (
-    <Card className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 px-6 py-4 shadow-sm'>
+    <div className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden border border-gray-100 px-6 py-4 shadow-sm'>
       <div className='flex flex-row items-center justify-between p-0'>
         <CardTitle className='text-lg-semibold text-blue-700'>Products</CardTitle>
         <div className='flex gap-2'>
@@ -185,7 +185,7 @@ const ProductPage = () => {
         className='mt-4'
         total={total}
       />
-    </Card>
+    </div>
   );
 };
 
