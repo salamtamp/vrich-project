@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Check, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 
 import Table, { type TableColumn } from '@/components/table';
 import { Button } from '@/components/ui/button';
@@ -22,21 +22,33 @@ type CustomerOrderItem = {
 
 const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignProduct }) => {
   const [search, setSearch] = useState('');
+  const [rows, setRows] = useState<CustomerOrderItem[]>(() => [
+    { id: crypto.randomUUID(), name: 'Khun Kate', quantity: 2 },
+    { id: crypto.randomUUID(), name: 'Noi Jaidees', quantity: 1 },
+    { id: crypto.randomUUID(), name: 'Mai Leela', quantity: 1 },
+    { id: crypto.randomUUID(), name: 'Dada Pholwattana', quantity: 1 },
+    { id: crypto.randomUUID(), name: 'Naiyanetr Wong-ngam', quantity: 1 },
+  ]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftQty, setDraftQty] = useState<number>(0);
 
   const productName = campaignProduct.product?.name ?? '-';
   const productPrice = campaignProduct.product?.selling_price ?? 0;
   const quantity = campaignProduct.quantity ?? 0;
 
-  const rows = useMemo<CustomerOrderItem[]>(
-    () => [
-      { id: crypto.randomUUID(), name: 'Khun Kate', quantity: 2 },
-      { id: crypto.randomUUID(), name: 'Noi Jaidees', quantity: 1 },
-      { id: crypto.randomUUID(), name: 'Mai Leela', quantity: 1 },
-      { id: crypto.randomUUID(), name: 'Dada Pholwattana', quantity: 1 },
-      { id: crypto.randomUUID(), name: 'Naiyanetr Wong-ngam', quantity: 1 },
-    ],
-    []
-  );
+  const handleStartEdit = useCallback((row: CustomerOrderItem) => {
+    setEditingId(row.id);
+    setDraftQty(row.quantity);
+  }, []);
+
+  const handleSave = useCallback(() => {
+    if (editingId === null) {
+      return;
+    }
+    const safeQty = Number.isFinite(draftQty) && draftQty >= 0 ? Math.floor(draftQty) : 0;
+    setRows((prev) => prev.map((r) => (r.id === editingId ? { ...r, quantity: safeQty } : r)));
+    setEditingId(null);
+  }, [draftQty, editingId]);
 
   const filteredRows = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -60,7 +72,26 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
         key: 'quantity',
         label: 'จำนวน',
         width: 120,
-        render: (row) => <span className='tabular-nums'>{row.quantity}</span>,
+        render: (row) =>
+          row.id === editingId ? (
+            <div className='flex w-full items-center justify-center'>
+              <Input
+                aria-label='edit-quantity'
+                className='h-8 w-20'
+                containerClassName='w-fit'
+                inputMode='numeric'
+                min={0}
+                type='number'
+                value={draftQty}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setDraftQty(Number.isNaN(val) ? 0 : val);
+                }}
+              />
+            </div>
+          ) : (
+            <span className='tabular-nums'>{row.quantity}</span>
+          ),
         headerAlign: 'center',
         bodyAlign: 'center',
       },
@@ -68,15 +99,29 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
         key: 'actions',
         label: 'จัดการ',
         width: 160,
-        render: () => (
+        render: (row) => (
           <div className='flex items-center justify-center gap-2'>
-            <Button
-              aria-label='edit'
-              size='icon'
-              variant='ghost'
-            >
-              <Pencil className='size-4' />
-            </Button>
+            {editingId === row.id ? (
+              <Button
+                aria-label='save'
+                size='icon'
+                variant='ghost'
+                onClick={handleSave}
+              >
+                <Check className='size-4' />
+              </Button>
+            ) : (
+              <Button
+                aria-label='edit'
+                size='icon'
+                variant='ghost'
+                onClick={() => {
+                  handleStartEdit(row);
+                }}
+              >
+                <Pencil className='size-4' />
+              </Button>
+            )}
             <Button
               aria-label='delete'
               size='icon'
@@ -90,7 +135,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
         bodyAlign: 'center',
       },
     ],
-    []
+    [draftQty, editingId, handleSave, handleStartEdit]
   );
 
   return (

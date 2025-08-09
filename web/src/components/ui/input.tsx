@@ -4,11 +4,12 @@ import { cn } from '@/lib/utils';
 
 type InputProps = React.ComponentProps<'input'> & {
   leftIcon?: React.ReactNode;
+  containerClassName?: string;
 };
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, leftIcon, ...props }, ref) => (
-    <div className='relative w-full'>
+  ({ className, containerClassName, type, leftIcon, ...props }, ref) => (
+    <div className={cn('relative flex w-full', containerClassName)}>
       <input
         ref={ref}
         type={type}
