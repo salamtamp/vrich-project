@@ -14,6 +14,7 @@ type ChatProfileListProps = {
   onSelect: (item: ChatListItem) => void;
   onLoadMore?: () => void;
   hasNext?: boolean;
+  isLoadingMore?: boolean;
 };
 
 const ChatProfileList = ({
@@ -22,6 +23,7 @@ const ChatProfileList = ({
   onSelect,
   onLoadMore,
   hasNext = false,
+  isLoadingMore = false,
 }: ChatProfileListProps) => (
   <nav aria-label='Chat list'>
     <div className={styles.sidebar}>
@@ -40,12 +42,6 @@ const ChatProfileList = ({
       <ul
         className='flex flex-1 flex-col overflow-y-auto'
         role='listbox'
-        onScroll={(e) => {
-          const el = e.currentTarget as HTMLUListElement;
-          if (hasNext && el.scrollTop + el.clientHeight >= el.scrollHeight - 10) {
-            onLoadMore?.();
-          }
-        }}
       >
         {items.map((item) => {
           const isSelected = selectedItem?.id === item.id;
@@ -91,6 +87,17 @@ const ChatProfileList = ({
             </li>
           );
         })}
+        {hasNext ? (
+          <li className='w-full p-4'>
+            <button
+              className='w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50'
+              disabled={isLoadingMore}
+              onClick={onLoadMore}
+            >
+              {isLoadingMore ? 'Loading...' : 'Load More'}
+            </button>
+          </li>
+        ) : null}
       </ul>
     </div>
   </nav>

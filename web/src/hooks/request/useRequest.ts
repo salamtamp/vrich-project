@@ -13,6 +13,7 @@ export type UseRequestProps<T> = {
   request: AxiosRequestConfig;
   afterRequest?: (data?: T) => unknown;
   defaultLoading?: boolean;
+  disableFullscreenLoading?: boolean;
 };
 
 export type UpdateRequest = {
@@ -29,7 +30,12 @@ type RequestState<T, D> = {
   isLoading: boolean;
 };
 
-const useRequest = <T, D = object>({ request, afterRequest, defaultLoading = false }: UseRequestProps<T>) => {
+const useRequest = <T, D = object>({
+  request,
+  afterRequest,
+  defaultLoading = false,
+  disableFullscreenLoading = false,
+}: UseRequestProps<T>) => {
   const { data: session } = useSession();
   const [requestState, setRequestState] = useState<RequestState<T, D>>({
     data: null,
@@ -160,13 +166,15 @@ const useRequest = <T, D = object>({ request, afterRequest, defaultLoading = fal
   );
 
   useEffect(() => {
-    if (isLoading) {
-      openLoading();
-    } else {
-      closeLoading();
+    if (!disableFullscreenLoading) {
+      if (isLoading) {
+        openLoading();
+      } else {
+        closeLoading();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
+  }, [isLoading, disableFullscreenLoading]);
 
   return { data, error, headers, isLoading, handleRequest };
 };

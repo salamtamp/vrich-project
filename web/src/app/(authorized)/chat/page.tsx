@@ -10,6 +10,9 @@ import type { FacebookCommentResponse, FacebookInboxResponse } from '@/types/api
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
 
+import ChatContentSkeleton from './chatContent/ChatContentSkeleton';
+import ChatProfileSkeleton from './chatProfile/ChatProfileSkeleton';
+import ChatProfileListSkeleton from './chatProfileList/ChatProfileListSkeleton';
 import ChatContent from './chatContent';
 import ChatProfile from './chatProfile';
 import ChatProfileList from './chatProfileList';
@@ -32,18 +35,24 @@ const Chat = () => {
     setSelectedPlatform(platform);
   }, []);
 
-  const { data: inboxData, handleRequest: loadMoreInbox } = usePaginatedRequest<
-    PaginationResponse<FacebookInboxResponse>
-  >({
+  const {
+    data: inboxData,
+    handleRequest: loadMoreInbox,
+    isLoading: isInboxLoading,
+  } = usePaginatedRequest<PaginationResponse<FacebookInboxResponse>>({
     url: API.INBOX,
     additionalParams: { limit: 20, group_by: 'profile_id' },
+    disableFullscreenLoading: true,
   });
 
-  const { data: commentData, handleRequest: loadMoreComment } = usePaginatedRequest<
-    PaginationResponse<FacebookCommentResponse>
-  >({
+  const {
+    data: commentData,
+    handleRequest: loadMoreComment,
+    isLoading: isCommentLoading,
+  } = usePaginatedRequest<PaginationResponse<FacebookCommentResponse>>({
     url: API.COMMENT,
     additionalParams: { limit: 20, group_by: 'profile_id' },
+    disableFullscreenLoading: true,
   });
 
   // Accumulate list pane data so new pages concat with old data
@@ -166,6 +175,7 @@ const Chat = () => {
       url: `${API.PROFILE}/${effectiveSelected?.profile?.id ?? ''}`,
       method: 'GET',
     },
+    disableFullscreenLoading: true,
   });
 
   type TimelineItem = { id: string; source: 'inbox' | 'comment'; text: string; timestamp: string };
@@ -179,8 +189,9 @@ const Chat = () => {
     timestamp: string;
   };
 
-  const { handleRequest: fetchTimeline } = useRequest<TimelineResponse>({
+  const { handleRequest: fetchTimeline, isLoading: isTimelineLoading } = useRequest<TimelineResponse>({
     request: { url: `${API.PROFILE}/${effectiveSelected?.profile?.id ?? ''}/timeline`, method: 'GET' },
+    disableFullscreenLoading: true,
   });
 
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
@@ -204,7 +215,7 @@ const Chat = () => {
       }
 
       const res = await fetchTimeline({
-        params: { offset: nextOffset, limit: 10, ...(filterType ? { type: filterType } : {}) },
+        params: { offset: nextOffset, limit: 5, ...(filterType ? { type: filterType } : {}) },
       });
       if (!res) {
         return;
@@ -215,7 +226,7 @@ const Chat = () => {
         }
         const existingKeys = new Set(curr.map((d) => `${d.source}-${d.id}`));
         const newDocs = res.docs.filter((d) => !existingKeys.has(`${d.source}-${d.id}`));
-        return [...curr, ...newDocs];
+        return [...newDocs, ...curr]; // Prepend new docs to the beginning
       });
       setTimelineOffset(nextOffset + (res.limit ?? 0));
       setTimelineHasNext(res.has_next ?? false);
@@ -250,52 +261,66 @@ const Chat = () => {
           onSelect={handleSelectPlatform}
         />
         <div className={styles.main}>
-          <ChatProfileList
-            hasNext={inboxHasNext || commentHasNext}
-            items={items}
-            selectedItem={effectiveSelected}
-            onSelect={handleSetSelectedItem}
-            onLoadMore={() => {
-              const nextOffsetInbox = inboxAccum.length;
-              const nextOffsetComment = commentAccum.length;
-              if (inboxHasNext) {
-                void loadMoreInbox({
-                  params: {
-                    offset: nextOffsetInbox,
-                    limit: inboxData?.limit ?? 20,
-                    ...(lastInboxCreatedAt ? { before_created_at: lastInboxCreatedAt } : {}),
-                  },
-                });
-              }
-              if (commentHasNext) {
-                void loadMoreComment({
-                  params: {
-                    offset: nextOffsetComment,
-                    limit: commentData?.limit ?? 20,
-                    ...(lastCommentCreatedAt ? { before_created_at: lastCommentCreatedAt } : {}),
-                  },
-                });
-              }
-            }}
-          />
-          <ChatContent
-            hasNext={timelineHasNext}
-            platform={selectedPlatform}
-            profile={selectedProfile ?? effectiveSelected?.profile ?? null}
-            timeline={timeline}
-            onLoadMore={() => {
-              if (timelineHasNext) {
-                void loadTimeline(false);
-              }
-            }}
-          />
-          <ChatProfile
-            profile={selectedProfile ?? effectiveSelected?.profile}
-            onOpen={() => {
-              // load all timeline data for this profile
-              void loadTimeline(true);
-            }}
-          />
+          {!inboxData && !commentData ? (
+            <ChatProfileListSkeleton />
+          ) : (
+            <ChatProfileList
+              hasNext={inboxHasNext || commentHasNext}
+              isLoadingMore={isInboxLoading || isCommentLoading}
+              items={items}
+              selectedItem={effectiveSelected}
+              onSelect={handleSetSelectedItem}
+              onLoadMore={() => {
+                const nextOffsetInbox = inboxAccum.length;
+                const nextOffsetComment = commentAccum.length;
+                if (inboxHasNext) {
+                  void loadMoreInbox({
+                    params: {
+                      offset: nextOffsetInbox,
+                      limit: inboxData?.limit ?? 20,
+                      ...(lastInboxCreatedAt ? { before_created_at: lastInboxCreatedAt } : {}),
+                    },
+                  });
+                }
+                if (commentHasNext) {
+                  void loadMoreComment({
+                    params: {
+                      offset: nextOffsetComment,
+                      limit: commentData?.limit ?? 20,
+                      ...(lastCommentCreatedAt ? { before_created_at: lastCommentCreatedAt } : {}),
+                    },
+                  });
+                }
+              }}
+            />
+          )}
+          {!effectiveSelected?.profile?.id ? (
+            <ChatContentSkeleton />
+          ) : (
+            <ChatContent
+              hasNext={timelineHasNext}
+              isLoadingMore={isTimelineLoading}
+              platform={selectedPlatform}
+              profile={selectedProfile ?? effectiveSelected?.profile ?? null}
+              timeline={timeline}
+              onLoadMore={() => {
+                if (timelineHasNext) {
+                  void loadTimeline(false);
+                }
+              }}
+            />
+          )}
+          {!effectiveSelected?.profile?.id ? (
+            <ChatProfileSkeleton />
+          ) : (
+            <ChatProfile
+              profile={selectedProfile ?? effectiveSelected?.profile}
+              onOpen={() => {
+                // load all timeline data for this profile
+                void loadTimeline(true);
+              }}
+            />
+          )}
         </div>
       </div>
     </PaginationProvider>

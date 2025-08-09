@@ -7,37 +7,12 @@ import type { FacebookProfileResponse } from '@/types/api';
 
 import styles from './profile-section.module.scss';
 
-// Mock profile data for demonstration
-const mockProfile: FacebookProfileResponse = {
-  id: '1',
-  facebook_id: '123456789',
-  type: 'user',
-  name: 'Alexandra Chen',
-  username: 'alexandra.chen',
-  bio: "Creative designer & photographer capturing life's beautiful moments. Always exploring new places and meeting amazing people.",
-  profile_picture_url:
-    'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
-  profile_contact: {
-    id: '1',
-    profile_id: '1',
-    first_name: 'Alexandra',
-    last_name: 'Chen',
-    email: 'alex.chen@email.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Creative Street',
-    city: 'San Francisco',
-    country: 'United States',
-    created_at: '2024-01-01T00:00:00Z',
-  },
-  created_at: '2024-01-01T00:00:00Z',
-};
-
 type ProfileSectionProps = {
   profile: FacebookProfileResponse;
   onOpenProfile?: () => void;
 };
 
-const ProfileSection = ({ profile = mockProfile, onOpenProfile }: ProfileSectionProps) => {
+const ProfileSection = ({ profile }: ProfileSectionProps) => {
   return (
     <div className={styles.profile}>
       <div className='bg-gradient-to-br'>
@@ -126,10 +101,7 @@ const ProfileSection = ({ profile = mockProfile, onOpenProfile }: ProfileSection
         ) : null}
 
         <div className='flex gap-3'>
-          <button
-            className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-700 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95'
-            onClick={onOpenProfile}
-          >
+          <button className='mt-3 flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-600 px-4 py-3 font-medium text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg active:scale-95'>
             <SquareArrowUpRight className='size-4' />
             User Profile
           </button>

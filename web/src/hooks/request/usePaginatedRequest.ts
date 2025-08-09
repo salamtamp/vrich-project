@@ -21,6 +21,7 @@ type UsePaginatedRequestProps = {
   requireFields?: string[];
   waiting?: boolean;
   disableLimit?: boolean;
+  disableFullscreenLoading?: boolean;
 };
 
 function usePaginatedRequest<T, D = object>({
@@ -33,6 +34,7 @@ function usePaginatedRequest<T, D = object>({
   requireFields = [],
   waiting = false,
   disableLimit,
+  disableFullscreenLoading = false,
 }: UsePaginatedRequestProps) {
   const { pagination, reset } = usePaginationContext();
   const { limit: limitPagination, offset } = pagination;
@@ -52,6 +54,7 @@ function usePaginatedRequest<T, D = object>({
         ...additionalParams,
       },
     },
+    disableFullscreenLoading,
   });
 
   const handleConfirmPeriod = useCallback((startDate: Dayjs | null, endDate: Dayjs | null) => {
