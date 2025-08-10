@@ -3,76 +3,33 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import Chat from '@/components/chat/Chat';
-import LiveFeed, { type TimelineItem } from '@/components/live-feed/LiveFeed';
+import LiveFeed from '@/components/live-feed/LiveFeed';
 import { LiveToggle } from '@/components/live-toggle';
 import PostModal from '@/components/modal/post-modal';
 import { Button } from '@/components/ui/button';
 import { API } from '@/constants/api.constant';
-import useRequest from '@/hooks/request/useRequest';
+import { useTimeline } from '@/hooks/request/useTimeline';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import type { FacebookPostResponse } from '@/types/api';
-
-type TimelineResponse = {
-  total: number;
-  docs: TimelineItem[];
-  limit: number;
-  offset: number;
-  has_next: boolean;
-  has_prev: boolean;
-  timestamp: string;
-};
 
 const LiveMonitor = () => {
   const { open: openModal, close: closeModal } = useModalContext();
   const [post, setPost] = useState<FacebookPostResponse | null>(null);
   const [activeTab, setActiveTab] = React.useState<'live' | 'messenger' | 'others'>('live');
 
-  const { handleRequest: fetchTimeline, isLoading: isTimelineLoading } = useRequest<TimelineResponse>({
-    request: { url: post ? `${API.POST}/${post.id}/timeline` : '', method: 'GET' },
-    disableFullscreenLoading: true,
+  const { timeline, isLoading, hasNext, loadTimeline, resetTimeline } = useTimeline({
+    url: post ? `${API.POST}/${post.id}/timeline` : '',
+    waiting: !post,
+    type: 'fb_comments',
   });
-
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
-  const [timelineOffset, setTimelineOffset] = useState(0);
-  const [timelineHasNext, setTimelineHasNext] = useState(false);
-
-  const loadTimeline = useCallback(
-    async (reset = false) => {
-      if (!post) {
-        return;
-      }
-      const nextOffset = reset ? 0 : timelineOffset;
-
-      const res = await fetchTimeline({
-        params: { offset: nextOffset, limit: 20, type: 'fb_comments' },
-      });
-
-      if (!res) {
-        return;
-      }
-      setTimeline((curr) => {
-        if (reset) {
-          return res.docs;
-        }
-        const existingKeys = new Set(curr.map((d) => `${d.source}-${d.id}`));
-        const newDocs = res.docs.filter((d) => !existingKeys.has(`${d.source}-${d.id}`));
-        return [...newDocs, ...curr]; // Prepend new docs to the beginning
-      });
-      setTimelineOffset(nextOffset + (res.limit ?? 0));
-      setTimelineHasNext(res.has_next ?? false);
-    },
-    [fetchTimeline, post, timelineOffset]
-  );
 
   useEffect(() => {
     if (post?.id) {
-      setTimeline([]);
-      setTimelineOffset(0);
-      setTimelineHasNext(false);
-      void loadTimeline(true);
+      resetTimeline();
+      void loadTimeline();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post?.id]);
+  }, [post?.id, resetTimeline]);
 
   const handleSelectPost = useCallback(
     (selectedPost: FacebookPostResponse) => {
@@ -141,13 +98,13 @@ const LiveMonitor = () => {
       {activeTab === 'live' && (
         <div className='flex-1 overflow-hidden pt-2'>
           <LiveFeed
-            hasNext={timelineHasNext}
-            isLoadingMore={isTimelineLoading}
+            hasNext={hasNext}
+            isLoadingMore={isLoading}
             platform='fb_comments'
             profile={post?.profile}
             timeline={timeline}
             onLoadMore={() => {
-              void loadTimeline(false);
+              void loadTimeline(true);
             }}
           />
         </div>
