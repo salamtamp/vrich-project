@@ -84,9 +84,9 @@ const ContentPagination: React.FC<ContentPaginationProps> = ({
     <Pagination className={cn('mb-4 items-center justify-between gap-2 px-4', className)}>
       <div className='flex items-center gap-2'>
         {!shotMode ? (
-          <p className='text-gray-600'> Results per page:</p>
+          <p className='text-gray-600'>จำนวนต่อหน้า:</p>
         ) : (
-          <p className='text-gray-600'> Limit:</p>
+          <p className='text-gray-600'> จำนวนต่อหน้า:</p>
         )}
         <Select
           value={`${limit}`}

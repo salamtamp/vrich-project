@@ -17,15 +17,30 @@ import type { FacebookPostResponse } from '@/types/api/facebook-post';
 
 export type PostCard = CardData & { status: 'active' | 'inactive'; link?: string; customId?: string };
 
-const Post = () => {
+type PostProps = {
+  disablePeriod?: boolean;
+  onSelectPost?: (post: FacebookPostResponse) => void;
+  itemContainerClass?: string;
+  disableNotificationBell?: boolean;
+  limitOptions?: number[];
+};
+
+const Post: React.FC<PostProps> = ({
+  disablePeriod,
+  onSelectPost,
+  itemContainerClass,
+  disableNotificationBell,
+  limitOptions,
+}) => {
   const router = useRouter();
   const { pagination } = usePaginationContext();
   const { page, limit } = pagination;
 
-  const { handleConfirmPeriod, data, isLoading, since, until } = usePaginatedRequest<
+  const { handleConfirmPeriod, data, isLoading, since, until, handleRequest } = usePaginatedRequest<
     PaginationResponse<FacebookPostResponse>
   >({
     url: API.POST,
+    defaultStartDate: disablePeriod ? dayjs().subtract(1000, 'year') : dayjs().subtract(1, 'month'),
   });
 
   const itemData = useMemo(
@@ -49,10 +64,25 @@ const Post = () => {
 
   const handleCardClick = useCallback(
     (id: string) => {
-      router.push(`${PATH.POST}?id=${id}&page=${page}&limit=${limit}&since=${since}&until=${until}`);
+      if (onSelectPost) {
+        const selectedPost = data?.docs.find((item) => item.id === id);
+        if (selectedPost) {
+          onSelectPost(selectedPost);
+        }
+      } else {
+        router.push(`${PATH.POST}?id=${id}&page=${page}&limit=${limit}&since=${since}&until=${until}`);
+      }
     },
-    [limit, page, router, since, until]
+    [data?.docs, limit, onSelectPost, page, router, since, until]
   );
+
+  const handleSearch = useCallback((searchTerm: string) => {
+    console.info(searchTerm);
+  }, []);
+
+  const handleReload = useCallback(() => {
+    void handleRequest();
+  }, [handleRequest]);
 
   return (
     <div className='flex size-full flex-1 overflow-hidden'>
@@ -61,12 +91,18 @@ const Post = () => {
         data={itemData}
         defaultEndDate={dayjs()}
         defaultStartDate={dayjs().subtract(1, 'month')}
+        disableDatePicker={disablePeriod}
+        disableNotificationBell={disableNotificationBell}
         isLoading={isLoading}
+        itemContainerClass={itemContainerClass}
+        limitOptions={limitOptions}
         skeletonSize='large'
         title='Post'
         total={data?.total}
         onCardClick={handleCardClick}
         onConfirmPeriod={handleConfirmPeriod}
+        onReload={handleReload}
+        onSearch={handleSearch}
       />
     </div>
   );

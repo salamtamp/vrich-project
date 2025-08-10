@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
+import { RefreshCw } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import ContentPagination from '@/components/content/pagination';
@@ -16,6 +17,8 @@ import { cn } from '@/lib/utils';
 
 import type { CardData } from '../card';
 import Card from '../card';
+import DebouncedSearchInput from '../debounced-search-input';
+import { Button } from '../ui/button';
 
 import styles from './filter-card.module.scss';
 
@@ -36,6 +39,9 @@ type FilterCardProps = {
   skeletonSize?: 'small' | 'medium' | 'large';
   disableDatePicker?: boolean;
   disableNotificationBell?: boolean;
+  itemContainerClass?: string;
+  onReload?: () => void;
+  onSearch?: (searchTerm: string) => void;
 };
 
 const FilterCard: React.FC<FilterCardProps> = ({
@@ -55,6 +61,9 @@ const FilterCard: React.FC<FilterCardProps> = ({
   skeletonSize = 'medium',
   disableDatePicker = false,
   disableNotificationBell = false,
+  itemContainerClass = '',
+  onReload,
+  onSearch,
 }) => {
   const { ref } = useScrollable<HTMLDivElement>();
   const { pagination } = usePaginationContext();
@@ -91,12 +100,36 @@ const FilterCard: React.FC<FilterCardProps> = ({
           ) : null}
 
           {!disableNotificationBell && <NotificationBell />}
+
+          {onReload ? (
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => {
+                onReload();
+              }}
+            >
+              <RefreshCw className='size-4' />
+            </Button>
+          ) : null}
+
+          {onSearch ? (
+            <DebouncedSearchInput
+              className='h-9 w-40'
+              placeholder='ค้นหา'
+            />
+          ) : null}
         </div>
       </div>
 
       <div
         ref={ref}
-        className={cn(styles.cardItemContainer, styles.cardItemContainerScrollable, cardItemClassName)}
+        className={cn(
+          styles.cardItemContainer,
+          styles.cardItemContainerScrollable,
+          cardItemClassName,
+          itemContainerClass
+        )}
       >
         {isLoading
           ? Array.from({ length: skeletonCount }).map(() => {

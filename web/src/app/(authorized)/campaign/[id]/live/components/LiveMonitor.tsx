@@ -5,8 +5,10 @@ import React from 'react';
 import { RefreshCw } from 'lucide-react';
 
 import ListItem, { type TextData } from '@/components/list-item';
+import PostModal from '@/components/modal/post-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import useModalContext from '@/hooks/useContext/useModalContext';
 // removed tabs usage per requirement: use custom buttons instead
 
 type LiveMonitorProps = {
@@ -14,7 +16,14 @@ type LiveMonitorProps = {
 };
 
 const LiveMonitor: React.FC<LiveMonitorProps> = ({ items }) => {
+  const { open: openModal } = useModalContext();
   const [activeTab, setActiveTab] = React.useState<'live' | 'messenger' | 'others'>('live');
+
+  const handleSelectPost = () => {
+    openModal({
+      content: <PostModal />,
+    });
+  };
 
   return (
     <div className='flex max-h-[520px] min-h-[520px] flex-1 flex-col overflow-hidden rounded-md border border-gray-200 p-4 shadow-sm'>
@@ -51,7 +60,12 @@ const LiveMonitor: React.FC<LiveMonitorProps> = ({ items }) => {
         </Button>
       </div>
       <div className='mt-2 flex w-full items-center justify-between gap-2'>
-        {/* SearchablePostSelect */}
+        <Button
+          variant='outline'
+          onClick={handleSelectPost}
+        >
+          เลือกโพสต์
+        </Button>
         <div className='flex items-center gap-2'>
           <Button
             size='sm'

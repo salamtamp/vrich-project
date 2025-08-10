@@ -13,7 +13,7 @@
 .cardItemContainer {
   @apply grid grid-cols-1;
   @apply gap-6 pb-1;
-  @apply overflow-y-scroll;
+  @apply overflow-y-auto;
 
   @media (min-width: 800px) {
     @apply grid-cols-2;
@@ -29,7 +29,7 @@
 }
 
 .cardItemContainerScrollable {
-  @apply px-5 mt-1;
+  @apply mt-1 px-5;
 }
 
 .cardContainer {
