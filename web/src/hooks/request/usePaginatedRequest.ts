@@ -77,8 +77,8 @@ function usePaginatedRequest<T, D = object>({
       limit,
       since: resetSince,
       until: resetUntil,
-      q: '',
-      qBy: searchBy,
+      search: '',
+      search_by: searchBy,
       ...additionalParams,
     };
 
@@ -94,7 +94,7 @@ function usePaginatedRequest<T, D = object>({
       return;
     }
 
-    const newParams = { offset, limit, since, until, q: search, qBy: searchBy, ...additionalParams };
+    const newParams = { offset, limit, since, until, search, search_by: searchBy, ...additionalParams };
     if (waiting) {
       return;
     }

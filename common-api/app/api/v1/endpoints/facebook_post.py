@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -36,6 +37,7 @@ def list_facebook_posts(
 ) -> PaginationResponse[FacebookPost]:
     builder = PaginationBuilder(FacebookPostModel, db)
     builder.query = builder.query.options(joinedload(FacebookPostModel.profile))
+
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)

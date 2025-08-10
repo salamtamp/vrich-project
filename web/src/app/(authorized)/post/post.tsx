@@ -41,6 +41,7 @@ const Post: React.FC<PostProps> = ({
   >({
     url: API.POST,
     defaultStartDate: disablePeriod ? dayjs().subtract(1000, 'year') : dayjs().subtract(1, 'month'),
+    searchBy: 'message',
   });
 
   const itemData = useMemo(

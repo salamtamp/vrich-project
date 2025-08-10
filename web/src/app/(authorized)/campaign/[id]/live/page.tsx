@@ -6,12 +6,10 @@ import { useParams } from 'next/navigation';
 
 import { ArrowLeft } from 'lucide-react';
 
-import type { TextData } from '@/components/list-item';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { API } from '@/constants/api.constant';
 import useRequest from '@/hooks/request/useRequest';
-import { dayjsUtil } from '@/lib/dayjs';
 import type { Campaign } from '@/types/api/campaign';
 
 import KpiGrid from './components/KpiGrid';
@@ -39,17 +37,6 @@ const CampaignLivePage = () => {
   const [search, setSearch] = useState('');
 
   const products = useMemo(() => campaign?.campaigns_products ?? [], [campaign?.campaigns_products]);
-
-  const liveItems: TextData[] = useMemo(() => {
-    const src = (campaign?.campaigns_products ?? []).slice(0, 8);
-    return src.map((cp) => ({
-      id: cp.product?.id ?? cp.id,
-      text: cp.product?.name ?? '-',
-      name: cp.product?.code,
-      timeAgo: dayjsUtil(campaign?.created_at ?? new Date().toISOString()).fromNow(),
-      dateString: dayjsUtil(campaign?.created_at ?? new Date().toISOString()).format('D MMM BBBB HH:mm'),
-    }));
-  }, [campaign?.campaigns_products, campaign?.created_at]);
 
   const handleGoBack = () => {
     window.history.back();
@@ -123,7 +110,7 @@ const CampaignLivePage = () => {
             search={search}
             onSearchChange={setSearch}
           />
-          <LiveMonitor items={liveItems} />
+          <LiveMonitor />
         </div>
       </div>
     </div>

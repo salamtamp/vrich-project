@@ -11,6 +11,7 @@
 }
 
 .cardItemContainer {
+  @apply flex-1;
   @apply grid grid-cols-1;
   @apply gap-6 pb-1;
   @apply overflow-y-auto;
@@ -33,8 +34,8 @@
 }
 
 .cardContainer {
-  @apply flex;
-  @apply size-fit h-full min-w-full max-w-full;
+  @apply flex h-fit;
+  @apply size-fit min-w-full max-w-full;
   @apply gap-4 px-5 py-4;
   @apply rounded-2xl;
   @apply bg-white;

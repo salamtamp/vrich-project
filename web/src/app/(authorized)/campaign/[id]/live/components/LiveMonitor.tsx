@@ -1,29 +1,45 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 
-import { RefreshCw } from 'lucide-react';
-
-import ListItem, { type TextData } from '@/components/list-item';
+import { LiveToggle } from '@/components/live-toggle';
 import PostModal from '@/components/modal/post-modal';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import useModalContext from '@/hooks/useContext/useModalContext';
+import type { FacebookPostResponse } from '@/types/api';
 // removed tabs usage per requirement: use custom buttons instead
 
-type LiveMonitorProps = {
-  items: TextData[];
-};
+const LiveMonitor = () => {
+  const { open: openModal, close: closeModal } = useModalContext();
+  const [post, setPost] = useState<FacebookPostResponse | null>(null);
 
-const LiveMonitor: React.FC<LiveMonitorProps> = ({ items }) => {
-  const { open: openModal } = useModalContext();
   const [activeTab, setActiveTab] = React.useState<'live' | 'messenger' | 'others'>('live');
 
-  const handleSelectPost = () => {
+  const handleSelectPost = useCallback(
+    (post: FacebookPostResponse) => {
+      setPost(post);
+      closeModal('select-post-modal');
+    },
+    [closeModal]
+  );
+
+  const handleOpenSelectPostModal = useCallback(() => {
     openModal({
-      content: <PostModal />,
+      key: 'select-post-modal',
+      content: <PostModal onSelectPost={handleSelectPost} />,
     });
-  };
+  }, [handleSelectPost, openModal]);
+
+  // const liveItems: TextData[] = useMemo(() => {
+  //   const src = (campaign?.campaigns_products ?? []).slice(0, 8);
+  //   return src.map((cp) => ({
+  //     id: cp.product?.id ?? cp.id,
+  //     text: cp.product?.name ?? '-',
+  //     name: cp.product?.code,
+  //     timeAgo: dayjsUtil(campaign?.created_at ?? new Date().toISOString()).fromNow(),
+  //     dateString: dayjsUtil(campaign?.created_at ?? new Date().toISOString()).format('D MMM BBBB HH:mm'),
+  //   }));
+  // }, [campaign?.campaigns_products, campaign?.created_at]);
 
   return (
     <div className='flex max-h-[520px] min-h-[520px] flex-1 flex-col overflow-hidden rounded-md border border-gray-200 p-4 shadow-sm'>
@@ -60,31 +76,28 @@ const LiveMonitor: React.FC<LiveMonitorProps> = ({ items }) => {
         </Button>
       </div>
       <div className='mt-2 flex w-full items-center justify-between gap-2'>
-        <Button
-          variant='outline'
-          onClick={handleSelectPost}
-        >
-          เลือกโพสต์
-        </Button>
+        <div>
+          <p className='narrow max-w-[220px] truncate'>{post?.message}</p>
+        </div>
         <div className='flex items-center gap-2'>
           <Button
-            size='sm'
             variant='outline'
+            onClick={handleOpenSelectPostModal}
           >
-            <RefreshCw className='size-4' />
+            เลือกโพสต์
           </Button>
-          <Badge className='border-emerald-200 bg-emerald-50 text-emerald-700'>LIVE</Badge>
+          <LiveToggle disabled={!post} />
         </div>
       </div>
 
       {activeTab === 'live' && (
         <div className='mt-2 flex-1 overflow-y-auto pr-2'>
-          {items.map((item) => (
+          {/* {items.map((item) => (
             <ListItem
               key={item.id}
               data={item}
             />
-          ))}
+          ))} */}
         </div>
       )}
 
