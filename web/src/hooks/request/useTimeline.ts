@@ -35,7 +35,7 @@ export const useTimeline = <T>({ url, limit = 20, type }: UseTimelineProps) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (d: any) => !curr.find((c: any) => c.id === d.id)
         );
-        return isLoadMore ? [...newDocs, ...curr] : res.docs;
+        return isLoadMore ? [...newDocs.reverse(), ...curr] : res.docs.reverse();
       });
       setOffset(currentOffset + res.limit);
       setHasNext(res.has_next);

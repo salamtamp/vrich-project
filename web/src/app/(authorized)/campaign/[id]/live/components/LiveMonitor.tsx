@@ -94,6 +94,7 @@ const LiveMonitor = () => {
           Messenger
         </Button>
         <Button
+          disabled
           aria-pressed={activeTab === 'others'}
           size='sm'
           variant={activeTab === 'others' ? 'softgray' : 'ghost'}

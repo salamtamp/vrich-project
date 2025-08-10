@@ -27,14 +27,6 @@ const Chat = () => {
   const [selectedItem, setSelectedItem] = useState<ChatListItem | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformType>('all');
 
-  const handleSetSelectedItem = useCallback((item: ChatListItem) => {
-    setSelectedItem(item);
-  }, []);
-
-  const handleSelectPlatform = useCallback((platform: PlatformType) => {
-    setSelectedPlatform(platform);
-  }, []);
-
   const {
     data: inboxData,
     handleRequest: loadMoreInbox,
@@ -63,57 +55,9 @@ const Chat = () => {
   const [lastInboxCreatedAt, setLastInboxCreatedAt] = useState<string | null>(null);
   const [lastCommentCreatedAt, setLastCommentCreatedAt] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!inboxData) {
-      return;
-    }
-    setInboxHasNext(Boolean(inboxData.has_next));
-    if ((inboxData.offset ?? 0) === 0) {
-      setInboxAccum(inboxData.docs ?? []);
-      // Set last created_at for initial load
-      if (inboxData.docs?.length) {
-        const lastItem = inboxData.docs[inboxData.docs.length - 1];
-        setLastInboxCreatedAt(lastItem.created_at);
-      }
-      return;
-    }
-    if (inboxData.docs?.length) {
-      setInboxAccum((curr) => {
-        const existingIds = new Set(curr.map((i) => i.id));
-        const newDocs = (inboxData.docs ?? []).filter((d) => !existingIds.has(d.id));
-        return [...curr, ...newDocs];
-      });
-      // Update last created_at for load more
-      const lastItem = inboxData.docs[inboxData.docs.length - 1];
-      setLastInboxCreatedAt(lastItem.created_at);
-    }
-  }, [inboxData]);
-
-  useEffect(() => {
-    if (!commentData) {
-      return;
-    }
-    setCommentHasNext(Boolean(commentData.has_next));
-    if ((commentData.offset ?? 0) === 0) {
-      setCommentAccum(commentData.docs ?? []);
-      // Set last created_at for initial load
-      if (commentData.docs?.length) {
-        const lastItem = commentData.docs[commentData.docs.length - 1];
-        setLastCommentCreatedAt(lastItem.created_at);
-      }
-      return;
-    }
-    if (commentData.docs?.length) {
-      setCommentAccum((curr) => {
-        const existingIds = new Set(curr.map((c) => c.id));
-        const newDocs = (commentData.docs ?? []).filter((d) => !existingIds.has(d.id));
-        return [...curr, ...newDocs];
-      });
-      // Update last created_at for load more
-      const lastItem = commentData.docs[commentData.docs.length - 1];
-      setLastCommentCreatedAt(lastItem.created_at);
-    }
-  }, [commentData]);
+  const handleSetSelectedItem = useCallback((item: ChatListItem) => {
+    setSelectedItem(item);
+  }, []);
 
   const items: ChatListItem[] = useMemo(() => {
     const inboxItems: ChatListItem[] = inboxAccum.map((i) => ({
@@ -198,6 +142,13 @@ const Chat = () => {
   const [timelineOffset, setTimelineOffset] = useState(0);
   const [timelineHasNext, setTimelineHasNext] = useState(false);
 
+  const handleSelectPlatform = useCallback((platform: PlatformType) => {
+    setTimelineHasNext(true);
+    setInboxHasNext(true);
+    setCommentHasNext(true);
+    setSelectedPlatform(platform);
+  }, []);
+
   const loadTimeline = useCallback(
     async (reset = false) => {
       const profileId = effectiveSelected?.profile?.id;
@@ -252,6 +203,58 @@ const Chat = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveSelected?.profile?.id]);
+
+  useEffect(() => {
+    if (!inboxData) {
+      return;
+    }
+    setInboxHasNext(Boolean(inboxData.has_next));
+    if ((inboxData.offset ?? 0) === 0) {
+      setInboxAccum(inboxData.docs ?? []);
+      // Set last created_at for initial load
+      if (inboxData.docs?.length) {
+        const lastItem = inboxData.docs[inboxData.docs.length - 1];
+        setLastInboxCreatedAt(lastItem.created_at);
+      }
+      return;
+    }
+    if (inboxData.docs?.length) {
+      setInboxAccum((curr) => {
+        const existingIds = new Set(curr.map((i) => i.id));
+        const newDocs = (inboxData.docs ?? []).filter((d) => !existingIds.has(d.id));
+        return [...curr, ...newDocs];
+      });
+      // Update last created_at for load more
+      const lastItem = inboxData.docs[inboxData.docs.length - 1];
+      setLastInboxCreatedAt(lastItem.created_at);
+    }
+  }, [inboxData]);
+
+  useEffect(() => {
+    if (!commentData) {
+      return;
+    }
+    setCommentHasNext(Boolean(commentData.has_next));
+    if ((commentData.offset ?? 0) === 0) {
+      setCommentAccum(commentData.docs ?? []);
+      // Set last created_at for initial load
+      if (commentData.docs?.length) {
+        const lastItem = commentData.docs[commentData.docs.length - 1];
+        setLastCommentCreatedAt(lastItem.created_at);
+      }
+      return;
+    }
+    if (commentData.docs?.length) {
+      setCommentAccum((curr) => {
+        const existingIds = new Set(curr.map((c) => c.id));
+        const newDocs = (commentData.docs ?? []).filter((d) => !existingIds.has(d.id));
+        return [...curr, ...newDocs];
+      });
+      // Update last created_at for load more
+      const lastItem = commentData.docs[commentData.docs.length - 1];
+      setLastCommentCreatedAt(lastItem.created_at);
+    }
+  }, [commentData]);
 
   return (
     <PaginationProvider>
