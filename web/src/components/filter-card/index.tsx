@@ -89,7 +89,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
           {!disableDatePicker ? (
             <div className='flex'>
               <DatePicker
-                className='w-[200px]'
+                className='w-[260px]'
                 defaultEndDate={defaultEndDate}
                 defaultStartDate={defaultStartDate}
                 maxDate={dayjs()}

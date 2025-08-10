@@ -1,4 +1,13 @@
 .selectPlatformContainer {
-  @apply flex items-center gap-4 px-4 py-2;
+  @apply flex items-center gap-4 overflow-x-auto px-4 pb-2 pt-3;
   @apply w-full rounded-lg border border-gray-200 shadow-sm;
-} 
+  scrollbar-width: none;
+}
+
+.notiText {
+  @apply text-white;
+  font-size: 6px;
+  line-height: 14px;
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
