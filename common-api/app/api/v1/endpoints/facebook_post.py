@@ -1,4 +1,5 @@
 import logging
+from datetime import UTC, datetime
 from typing import Optional
 from uuid import UUID
 
@@ -15,6 +16,7 @@ from app.constants.facebook_post import (
     ERR_FACEBOOK_POST_DUPLICATE_ID,
     ERR_FACEBOOK_POST_NOT_FOUND,
 )
+from app.db.models.facebook_comment import FacebookComment as FacebookCommentModel
 from app.db.models.facebook_post import FacebookPost as FacebookPostModel
 from app.db.models.facebook_profile import FacebookProfile as FacebookProfileModel
 from app.db.repositories.facebook_post.repo import facebook_post_repo
@@ -56,6 +58,70 @@ def get_facebook_post(
     if not post:
         raise HTTPException(status_code=404, detail=ERR_FACEBOOK_POST_NOT_FOUND)
     return post
+
+
+@router.get("/{post_id}/timeline")
+def get_post_timeline(
+    post_id: UUID,
+    db: Session = Depends(get_db),
+    pagination: PaginationParams = Depends(get_pagination_params),
+    type: Optional[str] = None,
+):
+    post = db.query(FacebookPostModel).filter(FacebookPostModel.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail=ERR_FACEBOOK_POST_NOT_FOUND)
+
+    inbox_items: list[dict] = []
+    comment_items: list[dict] = []
+
+    if type in (None, "fb_comments"):
+        comment_q = (
+            db.query(FacebookCommentModel)
+            .filter(
+                FacebookCommentModel.post_id == post_id,
+                FacebookCommentModel.deleted_at.is_(None),
+            )
+            .order_by(FacebookCommentModel.published_at.desc())
+        )
+        comment_items = [
+            {
+                "id": str(c.id),
+                "source": "comment",
+                "text": c.message or "",
+                "timestamp": c.published_at,
+            }
+            for c in comment_q.all()
+        ]
+
+    merged = sorted(
+        inbox_items + comment_items, key=lambda x: x["timestamp"], reverse=True
+    )
+
+    total = len(merged)
+    start_idx = pagination.offset or 0
+    limit = pagination.limit if pagination.limit is not None else total
+    end_idx = start_idx + limit
+    docs = merged[start_idx:end_idx]
+    has_next = False if pagination.limit is None else (start_idx + limit) < total
+    has_prev = start_idx > 0
+
+    return {
+        "total": total,
+        "docs": [
+            {
+                **d,
+                "timestamp": d["timestamp"].isoformat()
+                if hasattr(d["timestamp"], "isoformat")
+                else d["timestamp"],
+            }
+            for d in docs
+        ],
+        "limit": limit,
+        "offset": start_idx,
+        "has_next": has_next,
+        "has_prev": has_prev,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
 
 
 @router.post("/", response_model=FacebookPost, status_code=status.HTTP_201_CREATED)

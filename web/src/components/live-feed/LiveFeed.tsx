@@ -5,7 +5,7 @@ import { User } from 'lucide-react';
 import { ImageWithFallback } from '@/hooks/useImageFallback';
 import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
 
-type TimelineItem = { id: string; source: 'inbox' | 'comment'; text: string; timestamp: string };
+export type TimelineItem = { id: string; source: 'inbox' | 'comment'; text: string; timestamp: string };
 
 import styles from './LiveFeed.module.scss';
 
