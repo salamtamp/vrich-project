@@ -31,6 +31,7 @@ const Chat = () => {
     data: inboxData,
     handleRequest: loadMoreInbox,
     isLoading: isInboxLoading,
+    reset: resetInbox, // Add reset function
   } = usePaginatedRequest<PaginationResponse<FacebookInboxResponse>>({
     url: API.INBOX,
     additionalParams: { limit: 20, group_by: 'profile_id' },
@@ -41,6 +42,7 @@ const Chat = () => {
     data: commentData,
     handleRequest: loadMoreComment,
     isLoading: isCommentLoading,
+    reset: resetComment, // Add reset function
   } = usePaginatedRequest<PaginationResponse<FacebookCommentResponse>>({
     url: API.COMMENT,
     additionalParams: { limit: 20, group_by: 'profile_id' },
@@ -55,8 +57,26 @@ const Chat = () => {
   const [lastInboxCreatedAt, setLastInboxCreatedAt] = useState<string | null>(null);
   const [lastCommentCreatedAt, setLastCommentCreatedAt] = useState<string | null>(null);
 
+  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [timelineOffset, setTimelineOffset] = useState(0);
+  const [timelineHasNext, setTimelineHasNext] = useState(false);
+
   const handleSetSelectedItem = useCallback((item: ChatListItem) => {
     setSelectedItem(item);
+  }, []);
+
+  // Reset all accumulated data and states
+  const resetAllData = useCallback(() => {
+    setInboxAccum([]);
+    setCommentAccum([]);
+    setInboxHasNext(false);
+    setCommentHasNext(false);
+    setLastInboxCreatedAt(null);
+    setLastCommentCreatedAt(null);
+    setSelectedItem(null);
+    setTimeline([]);
+    setTimelineOffset(0);
+    setTimelineHasNext(false);
   }, []);
 
   const items: ChatListItem[] = useMemo(() => {
@@ -138,16 +158,55 @@ const Chat = () => {
     disableFullscreenLoading: true,
   });
 
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
-  const [timelineOffset, setTimelineOffset] = useState(0);
-  const [timelineHasNext, setTimelineHasNext] = useState(false);
+  const handleSelectPlatform = useCallback(
+    (platform: PlatformType) => {
+      // Reset all data when platform changes
+      resetAllData();
 
-  const handleSelectPlatform = useCallback((platform: PlatformType) => {
-    setTimelineHasNext(true);
-    setInboxHasNext(true);
-    setCommentHasNext(true);
-    setSelectedPlatform(platform);
-  }, []);
+      // Reset the paginated requests to clear their internal state
+      if (resetInbox) {
+        resetInbox();
+      }
+      if (resetComment) {
+        resetComment();
+      }
+
+      setSelectedPlatform(platform);
+    },
+    [resetAllData, resetInbox, resetComment]
+  );
+
+  // Fetch fresh data when platform changes
+  useEffect(() => {
+    const fetchFreshData = async () => {
+      // Reset hasNext flags to allow fresh fetching
+      setInboxHasNext(true);
+      setCommentHasNext(true);
+
+      // Fetch fresh inbox data
+      if (selectedPlatform === 'all' || selectedPlatform === 'messenger') {
+        await loadMoreInbox({
+          params: {
+            offset: 0,
+            limit: 20,
+          },
+        });
+      }
+
+      // Fetch fresh comment data
+      if (selectedPlatform === 'all' || selectedPlatform === 'fb_comments') {
+        await loadMoreComment({
+          params: {
+            offset: 0,
+            limit: 20,
+          },
+        });
+      }
+    };
+
+    void fetchFreshData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPlatform]);
 
   const loadTimeline = useCallback(
     async (reset = false) => {

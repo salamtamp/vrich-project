@@ -38,7 +38,7 @@ function usePaginatedRequest<T, D = object>({
   disableFullscreenLoading = false,
   searchBy = 'name',
 }: UsePaginatedRequestProps) {
-  const { pagination, reset } = usePaginationContext();
+  const { pagination, reset: resetPagination } = usePaginationContext();
   const { limit: limitPagination, offset, search } = pagination;
 
   const limit = disableLimit ? undefined : limitPagination;
@@ -64,9 +64,17 @@ function usePaginatedRequest<T, D = object>({
     setUntil(endDate ? endDate.endOf('day').toISOString() : null);
   }, []);
 
+  const reset = useCallback(() => {
+    setResetting(true);
+    resetPagination();
+    setSince(defaultStartDate.startOf('day').toISOString());
+    setUntil(defaultEndDate.endOf('day').toISOString());
+    setResetting(false);
+  }, [resetPagination, defaultStartDate, defaultEndDate]);
+
   const handleResetToDefault = useCallback(() => {
     setResetting(true);
-    reset();
+    resetPagination();
     const resetSince = defaultStartDate.startOf('day').toISOString();
     const resetUntil = defaultEndDate.endOf('day').toISOString();
     setSince(resetSince);
@@ -84,7 +92,7 @@ function usePaginatedRequest<T, D = object>({
 
     void handleRequest({ params: newParams });
     setResetting(false);
-  }, [reset, defaultStartDate, defaultEndDate, limit, searchBy, additionalParams, handleRequest]);
+  }, [resetPagination, defaultStartDate, defaultEndDate, limit, searchBy, additionalParams, handleRequest]);
 
   const requireFieldsString = JSON.stringify(requireFields);
   const additionalParamsString = JSON.stringify(additionalParams);
@@ -123,6 +131,7 @@ function usePaginatedRequest<T, D = object>({
     setUntil,
     limit,
     offset,
+    reset,
   };
 }
 
