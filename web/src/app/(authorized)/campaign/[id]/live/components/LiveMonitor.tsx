@@ -5,7 +5,6 @@ import React from 'react';
 import { RefreshCw } from 'lucide-react';
 
 import ListItem, { type TextData } from '@/components/list-item';
-import SearchablePostSelect from '@/components/post/SearchablePostSelect';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 // removed tabs usage per requirement: use custom buttons instead
@@ -16,7 +15,6 @@ type LiveMonitorProps = {
 
 const LiveMonitor: React.FC<LiveMonitorProps> = ({ items }) => {
   const [activeTab, setActiveTab] = React.useState<'live' | 'messenger' | 'others'>('live');
-  const [selectedPostId, setSelectedPostId] = React.useState<string | undefined>(undefined);
 
   return (
     <div className='flex max-h-[520px] min-h-[520px] flex-1 flex-col overflow-hidden rounded-md border border-gray-200 p-4 shadow-sm'>
@@ -53,11 +51,7 @@ const LiveMonitor: React.FC<LiveMonitorProps> = ({ items }) => {
         </Button>
       </div>
       <div className='mt-2 flex w-full items-center justify-between gap-2'>
-        <SearchablePostSelect
-          className='h-9 w-64'
-          value={selectedPostId}
-          onChange={setSelectedPostId}
-        />
+        {/* SearchablePostSelect */}
         <div className='flex items-center gap-2'>
           <Button
             size='sm'
