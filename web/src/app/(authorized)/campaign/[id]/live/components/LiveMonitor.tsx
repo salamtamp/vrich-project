@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 
-import Chat from '@/components/chat/Chat';
+import type { TimelineItem } from '@/components/live-feed/LiveFeed';
 import LiveFeed from '@/components/live-feed/LiveFeed';
 import { LiveToggle } from '@/components/live-toggle';
 import PostModal from '@/components/modal/post-modal';
@@ -10,17 +10,28 @@ import { Button } from '@/components/ui/button';
 import { API } from '@/constants/api.constant';
 import { useTimeline } from '@/hooks/request/useTimeline';
 import useModalContext from '@/hooks/useContext/useModalContext';
-import type { FacebookPostResponse } from '@/types/api';
+import type { FacebookCommentResponse, FacebookPostResponse } from '@/types/api';
 
 const LiveMonitor = () => {
   const { open: openModal, close: closeModal } = useModalContext();
   const [post, setPost] = useState<FacebookPostResponse | null>(null);
   const [activeTab, setActiveTab] = React.useState<'live' | 'messenger' | 'others'>('live');
 
-  const { timeline, isLoading, hasNext, loadTimeline, resetTimeline } = useTimeline({
+  const { timeline, isLoading, hasNext, loadTimeline, resetTimeline } = useTimeline<TimelineItem>({
     url: post ? `${API.POST}/${post.id}/timeline` : '',
     waiting: !post,
     type: 'fb_comments',
+  });
+
+  const {
+    timeline: commentTimeline,
+    isLoading: commentIsLoading,
+    hasNext: commentHasNext,
+    loadTimeline: commentLoadTimeline,
+    resetTimeline: commentResetTimeline,
+  } = useTimeline<FacebookCommentResponse>({
+    url: API.COMMENT,
+    type: 'messenger',
   });
 
   useEffect(() => {
@@ -31,12 +42,25 @@ const LiveMonitor = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post?.id, resetTimeline]);
 
+  useEffect(() => {
+    if (activeTab === 'messenger') {
+      commentResetTimeline();
+      void commentLoadTimeline();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   const handleSelectPost = useCallback(
     (selectedPost: FacebookPostResponse) => {
       setPost(selectedPost);
       closeModal('select-post-modal');
+
+      if (post?.id === selectedPost.id) {
+        resetTimeline();
+        void loadTimeline();
+      }
     },
-    [closeModal]
+    [closeModal, loadTimeline, post?.id, resetTimeline]
   );
 
   const handleOpenSelectPostModal = useCallback(() => {
@@ -80,42 +104,45 @@ const LiveMonitor = () => {
           Others
         </Button>
       </div>
-      <div className='mt-2 flex w-full items-center justify-between gap-2'>
-        <div>
-          <p className='narrow max-w-[220px] truncate'>{post?.message}</p>
-        </div>
-        <div className='flex items-center gap-2'>
-          <Button
-            variant='outline'
-            onClick={handleOpenSelectPostModal}
-          >
-            เลือกโพสต์
-          </Button>
-          <LiveToggle disabled={!post} />
-        </div>
-      </div>
 
       {activeTab === 'live' && (
-        <div className='flex-1 overflow-hidden pt-2'>
-          <LiveFeed
-            hasNext={hasNext}
-            isLoadingMore={isLoading}
-            platform='fb_comments'
-            profile={post?.profile}
-            timeline={timeline}
-            onLoadMore={() => {
-              void loadTimeline(true);
-            }}
-          />
-        </div>
+        <>
+          <div className='mt-2 flex w-full items-center justify-between gap-2'>
+            <div>
+              <p className='narrow max-w-[220px] truncate'>{post?.message}</p>
+            </div>
+            <div className='flex items-center gap-2'>
+              <Button
+                variant='outline'
+                onClick={handleOpenSelectPostModal}
+              >
+                เลือกโพสต์
+              </Button>
+              <LiveToggle disabled={!post} />
+            </div>
+          </div>
+          <div className='flex-1 overflow-hidden pt-2'>
+            <LiveFeed
+              hasNext={hasNext}
+              isLoadingMore={isLoading}
+              timeline={timeline}
+              onLoadMore={() => {
+                void loadTimeline(true);
+              }}
+            />
+          </div>
+        </>
       )}
 
       {activeTab === 'messenger' && (
         <div className='flex-1 overflow-hidden pt-4'>
-          <Chat
-            platform='messenger'
-            profile={null}
-            timeline={[]}
+          <LiveFeed
+            hasNext={commentHasNext}
+            isLoadingMore={commentIsLoading}
+            timeline={commentTimeline}
+            onLoadMore={() => {
+              void commentLoadTimeline(true);
+            }}
           />
         </div>
       )}

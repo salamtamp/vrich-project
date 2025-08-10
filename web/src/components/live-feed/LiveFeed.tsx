@@ -1,47 +1,51 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { User } from 'lucide-react';
 
 import { ImageWithFallback } from '@/hooks/useImageFallback';
-import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
+import type { FacebookCommentResponse } from '@/types/api';
 
-export type TimelineItem = { id: string; source: 'inbox' | 'comment'; text: string; timestamp: string };
+export type TimelineItem = {
+  id: string;
+  source: 'inbox' | 'comment';
+  text: string;
+  timestamp: string;
+  profile_picture_url: string;
+};
 
 import styles from './LiveFeed.module.scss';
 
 export type LiveFeedProps = {
-  profile: FacebookProfileResponse | undefined | null;
-  timeline: TimelineItem[];
+  timeline: (TimelineItem | FacebookCommentResponse)[];
   onLoadMore?: () => void;
   hasNext?: boolean;
-  platform?: 'all' | 'messenger' | 'fb_comments' | 'line_oa';
   isLoadingMore?: boolean;
 };
 
-const LiveFeed = ({
-  profile,
-  timeline,
-  onLoadMore,
-  hasNext = false,
-  platform = 'all',
-  isLoadingMore = false,
-}: LiveFeedProps) => {
+const LiveFeed = ({ timeline, onLoadMore, hasNext = false, isLoadingMore = false }: LiveFeedProps) => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef<number>(0);
   const isLoadingOlderRef = useRef<boolean>(false);
   const firstMessageRef = useRef<HTMLDivElement>(null);
 
-  const messages = timeline
-    .filter((m) => {
-      if (platform === 'messenger') {
-        return m.source === 'inbox';
+  const messages = useMemo(() => {
+    const normalized = timeline.map((item) => {
+      if ('source' in item) {
+        return item;
       }
-      if (platform === 'fb_comments') {
-        return m.source === 'comment';
-      }
-      return true;
-    })
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+      const comment = item;
+      return {
+        id: comment.id,
+        source: 'comment',
+        text: comment.message ?? '',
+        timestamp: comment.published_at,
+        profile_picture_url: comment.profile?.profile_picture_url ?? '',
+      };
+    });
+
+    return normalized.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }, [timeline]);
 
   useEffect(() => {
     if (messagesContainerRef.current) {
@@ -99,7 +103,7 @@ const LiveFeed = ({
               </div>
             ) : null}
             {messages.map((msg, index) => {
-              const isMe = false; // In a live feed, messages are usually from others.
+              const isMe = false;
               return (
                 <div
                   key={`${msg.source}-${msg.id}`}
@@ -109,10 +113,10 @@ const LiveFeed = ({
                 >
                   {!isMe && (
                     <ImageWithFallback
-                      alt={profile?.name ?? 'profile'}
+                      alt={msg.profile_picture_url ?? 'profile'}
                       className='size-9 rounded-full object-cover'
                       size={36}
-                      src={profile?.profile_picture_url}
+                      src={msg?.profile_picture_url}
                       fallbackIcon={
                         <User
                           className='text-gray-400'

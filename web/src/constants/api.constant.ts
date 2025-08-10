@@ -6,6 +6,7 @@ export const API = {
   PROFILE: '/api/v1/facebook-profiles',
   INBOX: '/api/v1/facebook-inboxes',
   COMMENT: '/api/v1/facebook-comments',
+  COMMENT_TIMELINE: '/api/v1/facebook-comments/timeline',
   NOTIFICATIONS: {
     GET_LAST: '/api/v1/notifications/latest',
     CLEAR: '/api/v1/notifications/clear',

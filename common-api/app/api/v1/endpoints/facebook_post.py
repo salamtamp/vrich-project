@@ -75,22 +75,32 @@ def get_post_timeline(
     comment_items: list[dict] = []
 
     if type in (None, "fb_comments"):
+        # Join with FacebookProfileModel to get profile information
         comment_q = (
-            db.query(FacebookCommentModel)
+            db.query(FacebookCommentModel, FacebookProfileModel)
+            .join(
+                FacebookProfileModel,
+                FacebookCommentModel.profile_id == FacebookProfileModel.id,
+                isouter=True,  # Use outer join in case profile is missing
+            )
             .filter(
                 FacebookCommentModel.post_id == post_id,
                 FacebookCommentModel.deleted_at.is_(None),
             )
             .order_by(FacebookCommentModel.published_at.desc())
         )
+
         comment_items = [
             {
-                "id": str(c.id),
+                "id": str(comment.id),
                 "source": "comment",
-                "text": c.message or "",
-                "timestamp": c.published_at,
+                "text": comment.message or "",
+                "timestamp": comment.published_at,
+                "profile_picture_url": profile.profile_picture_url if profile else None,
+                "profile_name": profile.name if profile else None,
+                "profile_id": str(profile.id) if profile else None,
             }
-            for c in comment_q.all()
+            for comment, profile in comment_q.all()
         ]
 
     merged = sorted(

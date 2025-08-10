@@ -1,15 +1,8 @@
 import { useCallback, useState } from 'react';
 
-import type { TimelineItem } from '@/components/live-feed/LiveFeed';
+import type { PaginationResponse } from '@/types/api';
 
 import useRequest from './useRequest';
-
-type TimelineResponse = {
-  docs: TimelineItem[];
-  limit: number;
-  offset: number;
-  has_next: boolean;
-};
 
 type UseTimelineProps = {
   url: string;
@@ -18,13 +11,13 @@ type UseTimelineProps = {
   waiting?: boolean;
 };
 
-export const useTimeline = ({ url, limit = 20, type }: UseTimelineProps) => {
-  const { handleRequest: fetchTimeline, isLoading } = useRequest<TimelineResponse>({
+export const useTimeline = <T>({ url, limit = 20, type }: UseTimelineProps) => {
+  const { handleRequest: fetchTimeline, isLoading } = useRequest<PaginationResponse<T>>({
     request: { url, method: 'GET' },
     disableFullscreenLoading: true,
   });
 
-  const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [timeline, setTimeline] = useState<T[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasNext, setHasNext] = useState(false);
 
@@ -38,7 +31,10 @@ export const useTimeline = ({ url, limit = 20, type }: UseTimelineProps) => {
       }
 
       setTimeline((curr) => {
-        const newDocs = res.docs.filter((d) => !curr.find((c) => c.id === d.id && c.source === d.source));
+        const newDocs = res.docs.filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (d: any) => !curr.find((c: any) => c.id === d.id)
+        );
         return isLoadMore ? [...newDocs, ...curr] : res.docs;
       });
       setOffset(currentOffset + res.limit);
