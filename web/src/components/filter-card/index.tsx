@@ -89,7 +89,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
           {!disableDatePicker ? (
             <div className='flex'>
               <DatePicker
-                className='w-fit'
+                className='w-[200px]'
                 defaultEndDate={defaultEndDate}
                 defaultStartDate={defaultStartDate}
                 maxDate={dayjs()}
@@ -125,56 +125,60 @@ const FilterCard: React.FC<FilterCardProps> = ({
 
       <div
         ref={ref}
-        className={cn(
-          styles.cardItemContainer,
-          styles.cardItemContainerScrollable,
-          cardItemClassName,
-          itemContainerClass
-        )}
+        className='flex h-full flex-1 overflow-y-auto'
       >
-        {isLoading
-          ? Array.from({ length: skeletonCount }).map(() => {
-              const key = crypto.randomUUID();
-              return (
-                <div
-                  key={key}
-                  className={cn(styles.cardContainer, cardClassName)}
-                >
-                  <Card
-                    isLoading
-                    cardData={{ id: key, lastUpdate: '' }}
-                    skeletonSize={skeletonSize}
-                  />
-                </div>
-              );
-            })
-          : (data ?? []).map((item) => {
-              const isActive = item.id === id;
+        <div
+          className={cn(
+            styles.cardItemContainer,
+            styles.cardItemContainerScrollable,
+            cardItemClassName,
+            itemContainerClass
+          )}
+        >
+          {isLoading
+            ? Array.from({ length: skeletonCount }).map(() => {
+                const key = crypto.randomUUID();
+                return (
+                  <div
+                    key={key}
+                    className={cn(styles.cardContainer, cardClassName)}
+                  >
+                    <Card
+                      isLoading
+                      cardData={{ id: key, lastUpdate: '' }}
+                      skeletonSize={skeletonSize}
+                    />
+                  </div>
+                );
+              })
+            : (data ?? []).map((item) => {
+                const isActive = item.id === id;
 
-              return (
-                // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-                <div
-                  key={`${item.id}-${crypto.randomUUID()}`}
-                  className={cn(styles.cardContainer, isActive && '!border-blue-300', cardClassName)}
-                  id={`card-${item.id}`}
-                  onClick={() => {
-                    onCardClick?.(item.id, item);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                return (
+                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+                  <div
+                    key={`${item.id}-${crypto.randomUUID()}`}
+                    className={cn(styles.cardContainer, isActive && '!border-blue-300', cardClassName)}
+                    id={`card-${item.id}`}
+                    onClick={() => {
                       onCardClick?.(item.id, item);
-                    }
-                  }}
-                >
-                  <Card
-                    cardData={item}
-                    isSelectMode={false}
-                    isSelected={false}
-                    skeletonSize={skeletonSize}
-                  />
-                </div>
-              );
-            })}
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        onCardClick?.(item.id, item);
+                      }
+                    }}
+                  >
+                    <Card
+                      cardData={item}
+                      isSelectMode={false}
+                      isSelected={false}
+                      skeletonSize={skeletonSize}
+                    />
+                  </div>
+                );
+              })}
+        </div>
       </div>
       <ContentPagination
         className='mt-5'

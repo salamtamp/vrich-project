@@ -2,6 +2,8 @@
 
 import React, { useCallback, useMemo } from 'react';
 
+import dayjs from 'dayjs';
+
 import type { CardData } from '@/components/card';
 import FilterCard from '@/components/filter-card';
 import ProfileBox from '@/components/profile-box';
@@ -9,9 +11,9 @@ import { API } from '@/constants/api.constant';
 import { PaginationProvider } from '@/contexts';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
+import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import type { ProfileLike } from '@/hooks/useLocalDocsWithProfileUpdate';
 import { useLocalDocsWithProfileUpdate } from '@/hooks/useLocalDocsWithProfileUpdate';
-import dayjs from '@/lib/dayjs';
 import { getRelativeTimeInThai } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { FacebookProfileResponse } from '@/types/api/facebook-profile';
@@ -26,11 +28,23 @@ const ProfileContent: React.FC<{ profile: FacebookProfileResponse }> = ({ profil
 const Profile = () => {
   const { open, close } = useModalContext();
 
+  const { update } = usePaginationContext();
+
   const { handleConfirmPeriod, data, isLoading } = usePaginatedRequest<
     PaginationResponse<FacebookProfileResponse>
   >({
     url: API.PROFILE,
+    searchBy: 'name',
+    defaultStartDate: dayjs().subtract(1000, 'year'),
+    orderBy: 'created_at',
   });
+
+  const handleSearch = useCallback(
+    (searchTerm: string) => {
+      update({ search: searchTerm });
+    },
+    [update]
+  );
 
   const {
     updated: updatedProfiles,
@@ -83,15 +97,15 @@ const Profile = () => {
 
   return (
     <FilterCard
+      disableNotificationBell
       data={itemData}
-      defaultEndDate={dayjs()}
-      defaultStartDate={dayjs().subtract(1, 'month')}
       isLoading={isLoading}
       skeletonSize='large'
-      title='Profile'
+      title='ลูกค้า'
       total={data?.total}
       onCardClick={handleCardClick}
       onConfirmPeriod={handleConfirmPeriod}
+      onSearch={handleSearch}
     />
   );
 };
