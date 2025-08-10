@@ -1,7 +1,8 @@
 'use client';
 
-import { LogoIcon } from '@public/assets/icon';
+import { FenixLogoIcon, LogoIcon } from '@public/assets/icon';
 import { LogOut, PanelRightOpen } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 import { useSidebarContext } from '@/contexts/SidebarContext';
 import { cn } from '@/lib/utils';
@@ -9,7 +10,10 @@ import { cn } from '@/lib/utils';
 import styles from './topbar.module.scss';
 
 const Topbar = () => {
+  const { data } = useSession();
   const { isCollapsed, toggleCollapse, handleLogout } = useSidebarContext();
+
+  const user = data?.user;
 
   return (
     <div className={styles.topbar}>
@@ -18,7 +22,13 @@ const Topbar = () => {
         <div className={styles.topbarLogoSection}>
           <div className={styles.topbarLogoWrapper}>
             <div className={cn(styles.topbarLogoLarge)}>
-              <LogoIcon />
+              {user?.email === 'fenix@admin.com' ? (
+                <div className='h-[30px]'>
+                  <FenixLogoIcon className='h-[30px] w-[110px]' />
+                </div>
+              ) : (
+                <LogoIcon />
+              )}
             </div>
           </div>
           <button

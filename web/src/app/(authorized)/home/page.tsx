@@ -2,7 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 
-import { sidebarConfig } from '@/components/sidebar/config';
+import { useSession } from 'next-auth/react';
+
+import { fenixSidebarConfig, sidebarConfig } from '@/components/sidebar/config';
 import type { SidebarItem } from '@/components/sidebar/types';
 import { Card } from '@/components/ui/card';
 import { PATH } from '@/constants/path.constant';
@@ -11,6 +13,9 @@ import styles from './home.module.scss';
 
 const HomePage = () => {
   const router = useRouter();
+  const { data } = useSession();
+
+  const config = data?.user?.email === 'fenix@admin.com' ? fenixSidebarConfig : sidebarConfig;
 
   const handleMenuCardClick = (path: string) => {
     if (path) {
@@ -26,7 +31,7 @@ const HomePage = () => {
       description?: string;
     }> = [];
 
-    sidebarConfig.forEach((item) => {
+    config.forEach((item) => {
       if (item.path && item.path !== PATH.HOME) {
         menuItems.push({
           label: item.label,

@@ -2,10 +2,12 @@
 
 import { memo } from 'react';
 
+import { useSession } from 'next-auth/react';
+
 import { useSidebarContext } from '@/contexts';
 import { cn } from '@/lib/utils';
 
-import { sidebarConfig } from './config';
+import { fenixSidebarConfig, sidebarConfig } from './config';
 import MenuItem from './MenuItem';
 import type { SidebarProps } from './types';
 
@@ -13,6 +15,10 @@ import styles from './sidebar.module.scss';
 
 const Sidebar = memo<SidebarProps>(({ className }) => {
   const { isCollapsed, handleMenuClick, handleExpandClick, isActive, isExpanded } = useSidebarContext();
+
+  const { data } = useSession();
+
+  const config = data?.user?.email === 'fenix@admin.com' ? fenixSidebarConfig : sidebarConfig;
   return (
     <div
       className={cn(
@@ -23,7 +29,7 @@ const Sidebar = memo<SidebarProps>(({ className }) => {
       )}
     >
       <div className={styles.sidebarMenuContainer}>
-        {sidebarConfig.map((menuItem) => (
+        {config.map((menuItem) => (
           <MenuItem
             key={menuItem.label}
             isActive={isActive(menuItem)}

@@ -195,7 +195,7 @@ const LiveFeed = ({ timeline, onLoadMore, hasNext = false, isLoadingMore = false
         }}
         onScroll={handleScroll}
       >
-        {messages.length === 0 ? (
+        {messages.length === 0 && !isLoadingMore ? (
           <div className='flex h-full flex-col items-center justify-center py-16 text-center'>
             <div className='mb-4 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200'>
               <MessageCircle className='size-8 text-slate-400' />

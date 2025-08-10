@@ -36,5 +36,11 @@ export const sidebarConfig: SidebarConfig = [
   { label: 'ลูกค้า', path: PATH.PROFILE, icon: User },
 ];
 
+export const fenixSidebarConfig: SidebarConfig = [
+  { label: 'หน้าหลัก', path: PATH.HOME, icon: House },
+  { label: 'แชท', path: PATH.CHATS, icon: MessageSquare },
+  { label: 'ลูกค้า', path: PATH.PROFILE, icon: User },
+];
+
 // { label: 'Posts', path: PATH.POST, icon: MessageSquareText },
 // { label: 'Inbox', path: PATH.INBOX, icon: Inbox },
