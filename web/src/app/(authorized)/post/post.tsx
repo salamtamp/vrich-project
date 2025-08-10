@@ -33,7 +33,7 @@ const Post: React.FC<PostProps> = ({
   limitOptions,
 }) => {
   const router = useRouter();
-  const { pagination } = usePaginationContext();
+  const { pagination, update } = usePaginationContext();
   const { page, limit } = pagination;
 
   const { handleConfirmPeriod, data, isLoading, since, until, handleRequest } = usePaginatedRequest<
@@ -76,9 +76,12 @@ const Post: React.FC<PostProps> = ({
     [data?.docs, limit, onSelectPost, page, router, since, until]
   );
 
-  const handleSearch = useCallback((searchTerm: string) => {
-    console.info(searchTerm);
-  }, []);
+  const handleSearch = useCallback(
+    (searchTerm: string) => {
+      update({ search: searchTerm });
+    },
+    [update]
+  );
 
   const handleReload = useCallback(() => {
     void handleRequest();

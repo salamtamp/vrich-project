@@ -117,6 +117,7 @@ const FilterCard: React.FC<FilterCardProps> = ({
             <DebouncedSearchInput
               className='h-9 w-40'
               placeholder='ค้นหา'
+              onSearch={onSearch}
             />
           ) : null}
         </div>

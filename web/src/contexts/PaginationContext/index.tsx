@@ -16,6 +16,7 @@ type Pagination = {
   isLoading: boolean;
   isDisableNext: boolean;
   isDisablePrev: boolean;
+  search: string;
 };
 
 export type UpdatePagination = Partial<Omit<Pagination, 'offset'>>;
@@ -34,6 +35,7 @@ const defaultPagination: Omit<Pagination, 'offset' | 'isDisableNext' | 'isDisabl
   isLoading: false,
   sortBy: 'updated_at',
   order: 'DESC',
+  search: '',
 };
 
 export const PaginationContext = createContext<PaginationContextType | null>(null);

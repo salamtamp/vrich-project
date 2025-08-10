@@ -31,7 +31,8 @@ const DebouncedSearchInput: React.FC<DebouncedSearchInputProps> = ({
     return () => {
       clearTimeout(timer);
     };
-  }, [searchTerm, delay, onSearch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, delay]);
 
   return (
     <Input
