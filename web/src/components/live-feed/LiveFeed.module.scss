@@ -1,0 +1,6 @@
+.content {
+  @apply flex h-full flex-1 flex-col overflow-hidden rounded-lg;
+}
+.profileImage {
+  @apply size-10;
+}

@@ -2,6 +2,8 @@
 
 import React, { useCallback, useState } from 'react';
 
+import Chat from '@/components/chat/Chat';
+import LiveFeed from '@/components/live-feed/LiveFeed';
 import { LiveToggle } from '@/components/live-toggle';
 import PostModal from '@/components/modal/post-modal';
 import { Button } from '@/components/ui/button';
@@ -91,17 +93,24 @@ const LiveMonitor = () => {
       </div>
 
       {activeTab === 'live' && (
-        <div className='mt-2 flex-1 overflow-y-auto pr-2'>
-          {/* {items.map((item) => (
-            <ListItem
-              key={item.id}
-              data={item}
-            />
-          ))} */}
+        <div className='flex-1 overflow-hidden pt-2'>
+          <LiveFeed
+            platform='fb_comments'
+            profile={null}
+            timeline={[]}
+          />
         </div>
       )}
 
-      {activeTab === 'messenger' && <div className='p-4 text-sm text-gray-600'>ยังไม่มีข้อมูล</div>}
+      {activeTab === 'messenger' && (
+        <div className='flex-1 overflow-hidden pt-4'>
+          <Chat
+            platform='messenger'
+            profile={null}
+            timeline={[]}
+          />
+        </div>
+      )}
 
       {activeTab === 'others' && <div className='p-4 text-sm text-gray-600'>ยังไม่มีข้อมูล</div>}
     </div>
