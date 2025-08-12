@@ -1,22 +1,47 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 
+import OrderTab from '@/app/(authorized)/campaign/manage/[id]/order-tab';
 import { AnimatedCounter } from '@/components/ui/animated-counter';
+import useModalContext from '@/hooks/useContext/useModalContext';
+import { cn } from '@/lib/utils';
 import type { CampaignWidget } from '@/mock/campaign-widgets';
 
 type CampaignWidgetProps = {
   widget: CampaignWidget;
-  onClick?: () => void;
+  campaignId: string;
 };
 
-const CampaignWidget: React.FC<CampaignWidgetProps> = ({ widget, onClick }) => {
+const CampaignWidget: React.FC<CampaignWidgetProps> = ({ widget, campaignId }) => {
   const LeadIcon = widget.icon;
+
+  const { open } = useModalContext();
+
+  const handleClick = useCallback(() => {
+    if (!widget.orderStatus) {
+      return;
+    }
+    open({
+      content: (
+        <div className='h-[540px] w-[900px] max-w-full'>
+          <OrderTab
+            isModal
+            campaignId={campaignId}
+            orderStatus={widget.orderStatus}
+          />
+        </div>
+      ),
+    });
+  }, [campaignId, open, widget.orderStatus]);
 
   return (
     <button
-      className='group rounded-xl border border-gray-200 bg-white p-4 shadow-sm ring-1 ring-transparent transition hover:shadow-md hover:ring-gray-200'
-      onClick={onClick}
+      className={cn(
+        'group rounded-xl border border-gray-200 bg-white p-4 shadow-sm ring-1 ring-transparent transition',
+        !widget.orderStatus ? 'cursor-auto' : 'hover:shadow-md hover:ring-gray-200'
+      )}
+      onClick={handleClick}
     >
       <div className='mb-3 flex items-center justify-between'>
         <div className='flex items-center gap-2 text-gray-600'>

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { CampaignWidgetKey } from '@/constants/campaign-widgets.constant';
+import type { OrderStatus } from '@/types/api';
 
 export type CampaignWidget = {
   id: string;
@@ -27,6 +28,7 @@ export type CampaignWidget = {
   iconcolor: string;
   numbers?: string;
   currency?: string;
+  orderStatus?: OrderStatus | 'All';
 };
 
 export const campaignWidgetsData: CampaignWidget[] = [
@@ -40,6 +42,7 @@ export const campaignWidgetsData: CampaignWidget[] = [
     duration: 1,
     icon2: TrendingUp,
     iconcolor: 'badge badge-green',
+    orderStatus: 'All',
   },
   {
     id: crypto.randomUUID(),
@@ -51,6 +54,7 @@ export const campaignWidgetsData: CampaignWidget[] = [
     duration: 1,
     icon2: TrendingUp,
     iconcolor: 'badge badge-green',
+    orderStatus: 'pending',
   },
   {
     id: crypto.randomUUID(),
@@ -62,6 +66,7 @@ export const campaignWidgetsData: CampaignWidget[] = [
     duration: 1,
     icon2: TrendingDown,
     iconcolor: 'badge badge-red',
+    orderStatus: 'confirmed',
   },
   {
     id: crypto.randomUUID(),
@@ -73,6 +78,7 @@ export const campaignWidgetsData: CampaignWidget[] = [
     duration: 1,
     icon2: TrendingUp,
     iconcolor: 'badge badge-green',
+    orderStatus: 'paid',
   },
   {
     id: crypto.randomUUID(),

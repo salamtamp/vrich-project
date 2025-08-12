@@ -22,7 +22,7 @@ import type { Order, OrderStatus } from '@/types/api/order';
 import { ORDER_PROCESS_STATUSES, ORDER_STATUSES } from '@/types/api/order';
 
 const getOrderRowId = (row: Order) => String(row.id);
-type OrderTabProps = { campaignId: string; isModal?: boolean };
+type OrderTabProps = { campaignId: string; isModal?: boolean; orderStatus?: OrderStatus | 'All' };
 
 const StatusLegend = () => (
   <div className='mb-4 rounded-lg border bg-white p-4'>
@@ -47,8 +47,8 @@ const StatusLegend = () => (
   </div>
 );
 
-const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal, orderStatus }) => {
+  const [selectedStatus, setSelectedStatus] = useState<string>(orderStatus ?? 'All');
 
   const {
     data: orderData,
@@ -60,7 +60,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
     defaultStartDate: dayjs().subtract(50, 'years'),
     additionalParams: {
       campaign_id: campaignId,
-      ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
+      ...(selectedStatus && selectedStatus !== 'All' && { status: selectedStatus }),
     },
     requireFields: ['campaign_id'],
   });
@@ -91,7 +91,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
     ORDER_PROCESS_STATUSES.includes(selectedStatus as OrderStatus) &&
     getNextOrderStatus(selectedStatus as OrderStatus);
   const filteredOrders = useMemo(() => {
-    if (!selectedStatus || selectedStatus === 'all') {
+    if (!selectedStatus || selectedStatus === 'All') {
       return orders;
     }
     return orders.filter((order) => order.status === selectedStatus);
@@ -276,7 +276,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
       }
     : undefined;
 
-  const nextStatus = selectedStatus !== 'all' ? getNextOrderStatus(selectedStatus as OrderStatus) : undefined;
+  const nextStatus = selectedStatus !== 'All' ? getNextOrderStatus(selectedStatus as OrderStatus) : undefined;
 
   const approveButtonLabel =
     canBatchApprove && nextStatus ? STATUS_LABELS[nextStatus] || nextStatus : undefined;
@@ -292,13 +292,13 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
           >
             <SelectTrigger className='w-[180px]'>
               <SelectValue>
-                {selectedStatus && selectedStatus !== 'all'
+                {selectedStatus && selectedStatus !== 'All'
                   ? STATUS_LABELS[selectedStatus] || selectedStatus
                   : 'All Status'}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>All Status</SelectItem>
+              <SelectItem value='All'>All Status</SelectItem>
               {ORDER_STATUSES.map((status) => (
                 <SelectItem
                   key={status}
@@ -309,24 +309,27 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
               ))}
             </SelectContent>
           </Select>
-          {selectedStatus && selectedStatus !== 'all' ? (
+          {selectedStatus && selectedStatus !== 'All' ? (
             <Button
               className='text-gray-600 hover:text-gray-800'
               size='sm'
               variant='outline'
               onClick={() => {
-                setSelectedStatus('all');
+                setSelectedStatus('All');
               }}
             >
               Clear Filter
             </Button>
           ) : null}
         </div>
-        {onApproveSelected && approveButtonLabel && !hindButton && nextStatus ? (
+        {onApproveSelected &&
+        approveButtonLabel &&
+        !hindButton &&
+        nextStatus &&
+        selectedOrderIds.length !== 0 ? (
           <div className='mb-2 flex justify-end'>
             <Button
               className={STATUS_COLORS[getNextOrderStatus(nextStatus) ?? '']}
-              disabled={selectedOrderIds.length === 0}
               variant='outline'
               onClick={onApproveSelected}
             >
@@ -345,8 +348,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
           isLoading={orderLoading || isBatchUpdating}
           rowIdKey='id'
           selectedRowIds={selectedOrderIds}
-          onSelectAll={selectedStatus !== 'all' ? handleSelectAll : undefined}
-          onSelectRow={selectedStatus !== 'all' ? handleSelectRow : undefined}
+          onSelectAll={selectedStatus !== 'All' ? handleSelectAll : undefined}
+          onSelectRow={selectedStatus !== 'All' ? handleSelectRow : undefined}
         />
       </div>
       <ContentPagination total={orderData?.total ?? 0} />
