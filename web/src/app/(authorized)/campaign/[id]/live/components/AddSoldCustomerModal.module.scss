@@ -1,0 +1,34 @@
+
+.container {
+  @apply flex w-[820px] flex-col gap-3 p-2;
+}
+
+.grid {
+  display: grid;
+  @apply grid-cols-[1fr_1fr_auto_auto] items-center gap-3;
+}
+
+.header {
+  color: hsl(var(--muted-foreground));
+  @apply text-sm;
+}
+
+.selectTrigger {
+  @apply h-9;
+}
+
+.input {
+  @apply h-9;
+}
+
+.quantityInput {
+  @apply h-9 w-20 text-center;
+}
+
+.quantityContainer {
+  @apply w-fit;
+}
+
+.plusIcon {
+  @apply size-4;
+}

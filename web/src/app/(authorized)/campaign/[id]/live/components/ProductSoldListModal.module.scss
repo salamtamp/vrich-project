@@ -1,0 +1,75 @@
+.container {
+  @apply flex h-[560px] w-[720px] flex-col gap-3 p-4;
+}
+
+.header {
+  @apply flex items-start justify-between;
+}
+
+.productInfo {
+  @apply flex min-w-0 flex-1 flex-col;
+}
+
+.productName {
+  @apply truncate text-base font-semibold;
+}
+
+.productMeta {
+  @apply mt-1 flex items-center gap-6 text-xs;
+}
+
+.sold {
+  @apply tabular-nums;
+}
+
+.actions {
+  @apply flex items-center gap-2;
+}
+
+.addCustomerIcon {
+  @apply mr-1 size-4;
+}
+
+.searchContainer {
+  @apply flex items-center gap-2;
+}
+
+.searchInput {
+  @apply w-44;
+}
+
+.searchIcon {
+  @apply size-4;
+}
+
+.tableContainer {
+  @apply mt-1 flex flex-1 flex-col overflow-hidden;
+}
+
+.customerName {
+  @apply line-clamp-1;
+}
+
+.quantity {
+  @apply tabular-nums;
+}
+
+.editQuantityContainer {
+  @apply flex w-full items-center justify-center;
+}
+
+.editQuantityInput {
+  @apply h-8 w-20;
+}
+
+.editQuantityInputContainer {
+  @apply w-fit;
+}
+
+.tableActions {
+  @apply flex items-center justify-center gap-2;
+}
+
+.actionIcon {
+  @apply size-4;
+}

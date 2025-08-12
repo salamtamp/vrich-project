@@ -51,14 +51,14 @@ const CampaignLivePage = () => {
     const skeletons = Array.from({ length: 10 }, () => crypto.randomUUID());
     return (
       <Card className={styles.container}>
-        <CardHeader className='flex flex-row items-center justify-between gap-4'>
-          <div className='flex items-center gap-3'>
-            <div className='h-8 w-20 animate-pulse rounded-md bg-gray-100' />
-            <div className='h-6 w-48 animate-pulse rounded-md bg-gray-100' />
+        <CardHeader className={styles.loadingHeader}>
+          <div className={styles.loadingHeaderLeft}>
+            <div className={styles.loadingHeaderLeftSkeleton1} />
+            <div className={styles.loadingHeaderLeftSkeleton2} />
           </div>
-          <div className='flex items-center gap-2'>
-            <div className='h-8 w-28 animate-pulse rounded-md bg-gray-100' />
-            <div className='h-8 w-36 animate-pulse rounded-md bg-gray-100' />
+          <div className={styles.loadingHeaderRight}>
+            <div className={styles.loadingHeaderRightSkeleton1} />
+            <div className={styles.loadingHeaderRightSkeleton2} />
           </div>
         </CardHeader>
         <CardContent>
@@ -66,7 +66,7 @@ const CampaignLivePage = () => {
             {skeletons.map((id) => (
               <div
                 key={id}
-                className='h-28 animate-pulse rounded-xl border border-gray-200 bg-gray-50'
+                className={styles.kpiSkeleton}
               />
             ))}
           </div>
@@ -77,9 +77,9 @@ const CampaignLivePage = () => {
 
   if (!campaign) {
     return (
-      <div className='flex h-full max-h-full min-h-[520px] flex-1 flex-col overflow-hidden border border-gray-100 px-6 py-4 shadow-sm'>
-        <div className='flex h-full items-center justify-center'>
-          <div className='text-lg'>Campaign not found</div>
+      <div className={styles.notFoundContainer}>
+        <div className={styles.notFoundContent}>
+          <div className={styles.notFoundText}>Campaign not found</div>
         </div>
       </div>
     );
@@ -87,22 +87,22 @@ const CampaignLivePage = () => {
 
   return (
     <div className={styles.container}>
-      <div className='flex flex-row items-center justify-between gap-4'>
-        <div className='flex items-center gap-3'>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
           <Button
-            className='flex items-center gap-2'
+            className={styles.backButton}
             size='sm'
             variant='outline'
             onClick={handleGoBack}
           >
-            <ArrowLeft className='size-4' />
+            <ArrowLeft className={styles.backIcon} />
             Back
           </Button>
-          <CardTitle className='truncate text-base md:text-lg'>{campaignData?.name}</CardTitle>
+          <CardTitle className={styles.title}>{campaignData?.name}</CardTitle>
         </div>
       </div>
 
-      <div className='flex flex-1 flex-col'>
+      <div className={styles.mainContent}>
         <KpiGrid className={styles.kpiGrid} />
         <div className={styles.sectionsGrid}>
           <ProductTable

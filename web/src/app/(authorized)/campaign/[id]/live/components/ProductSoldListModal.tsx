@@ -12,6 +12,7 @@ import useModalContext from '@/hooks/useContext/useModalContext';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
 
 import AddSoldCustomerModal from './AddSoldCustomerModal';
+import styles from './ProductSoldListModal.module.scss';
 
 type ProductSoldListModalProps = {
   campaignProduct: CampaignsProduct;
@@ -68,7 +69,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
         key: 'name',
         label: 'ชื่อลูกค้า',
         width: '60%',
-        render: (row) => <span className='line-clamp-1'>{row.name}</span>,
+        render: (row) => <span className={styles.customerName}>{row.name}</span>,
         headerAlign: 'left',
         bodyAlign: 'left',
       },
@@ -78,11 +79,11 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
         width: 120,
         render: (row) =>
           row.id === editingId ? (
-            <div className='flex w-full items-center justify-center'>
+            <div className={styles.editQuantityContainer}>
               <Input
                 aria-label='edit-quantity'
-                className='h-8 w-20'
-                containerClassName='w-fit'
+                className={styles.editQuantityInput}
+                containerClassName={styles.editQuantityInputContainer}
                 inputMode='numeric'
                 min={0}
                 type='number'
@@ -94,7 +95,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
               />
             </div>
           ) : (
-            <span className='tabular-nums'>{row.quantity}</span>
+            <span className={styles.quantity}>{row.quantity}</span>
           ),
         headerAlign: 'center',
         bodyAlign: 'center',
@@ -104,7 +105,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
         label: 'จัดการ',
         width: 160,
         render: (row) => (
-          <div className='flex items-center justify-center gap-2'>
+          <div className={styles.tableActions}>
             {editingId === row.id ? (
               <Button
                 aria-label='save'
@@ -112,7 +113,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
                 variant='ghost'
                 onClick={handleSave}
               >
-                <Check className='size-4' />
+                <Check className={styles.actionIcon} />
               </Button>
             ) : (
               <Button
@@ -123,7 +124,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
                   handleStartEdit(row);
                 }}
               >
-                <Pencil className='size-4' />
+                <Pencil className={styles.actionIcon} />
               </Button>
             )}
             <Button
@@ -131,7 +132,7 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
               size='icon'
               variant='ghost'
             >
-              <Trash2 className='size-4' />
+              <Trash2 className={styles.actionIcon} />
             </Button>
           </div>
         ),
@@ -143,21 +144,21 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
   );
 
   return (
-    <Card className='flex h-[560px] w-[720px] flex-col gap-3 p-4'>
-      <div className='flex items-start justify-between'>
-        <div className='flex min-w-0 flex-1 flex-col'>
-          <p className='truncate text-base font-semibold'>{productName}</p>
-          <div className='text-muted-foreground mt-1 flex items-center gap-6 text-xs'>
+    <Card className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.productInfo}>
+          <p className={styles.productName}>{productName}</p>
+          <div className={styles.productMeta}>
             <span>ราคา {productPrice.toLocaleString()} บาท</span>
             <span>
-              ขายแล้ว: <span className='tabular-nums'>0</span>
+              ขายแล้ว: <span className={styles.sold}>0</span>
               {' / '}
-              <span className='tabular-nums'>{quantity}</span>
+              <span className={styles.sold}>{quantity}</span>
               ชิ้น
             </span>
           </div>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className={styles.actions}>
           <Button
             onClick={() => {
               const opts = [
@@ -177,11 +178,11 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
               });
             }}
           >
-            <Plus className='mr-1 size-4' /> เพิ่มลูกค้า
+            <Plus className={styles.addCustomerIcon} /> เพิ่มลูกค้า
           </Button>
-          <div className='flex items-center gap-2'>
+          <div className={styles.searchContainer}>
             <Input
-              className='w-44'
+              className={styles.searchInput}
               placeholder='ค้นหา'
               value={search}
               onChange={(e) => {
@@ -189,13 +190,13 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
               }}
             />
             <Button variant='outline'>
-              <Search className='size-4' />
+              <Search className={styles.searchIcon} />
             </Button>
           </div>
         </div>
       </div>
 
-      <div className='mt-1 flex flex-1 flex-col overflow-hidden'>
+      <div className={styles.tableContainer}>
         <Table<CustomerOrderItem>
           columns={columns}
           data={filteredRows}

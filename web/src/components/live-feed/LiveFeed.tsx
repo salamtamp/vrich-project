@@ -200,7 +200,7 @@ const LiveFeed = ({ timeline, onLoadMore, hasNext = false, isLoadingMore = false
             <div className='mb-4 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200'>
               <MessageCircle className='size-8 text-slate-400' />
             </div>
-            <p className='text-lg font-medium text-slate-500'>No messages yet</p>
+            <p className='text-lg font-medium text-slate-500'>ยังไม่มีข้อความ</p>
           </div>
         ) : (
           <>

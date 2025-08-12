@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 
 import { PATH } from '@/constants/path.constant';
+import dayjs from '@/lib/dayjs';
 import type { NextJSChildren } from '@/types';
 
 const AuthGuard: React.FC<NextJSChildren> = ({ children }) => {
@@ -19,8 +20,9 @@ const AuthGuard: React.FC<NextJSChildren> = ({ children }) => {
     if (status === 'loading') {
       return;
     }
+    const isTokenExpired = session?.expires && dayjs().isAfter(dayjs.unix(session.expires));
 
-    if (!session || session?.error) {
+    if (isTokenExpired) {
       void signOut({ redirect: false });
       router.push(PATH.LOGIN);
     }

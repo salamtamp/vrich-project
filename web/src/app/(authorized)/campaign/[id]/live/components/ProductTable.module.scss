@@ -1,0 +1,39 @@
+.container {
+  @apply flex h-fit max-h-[520px] min-h-[520px] max-w-[680px] flex-col rounded-md border border-gray-200 p-4 shadow-sm;
+}
+
+.header {
+  @apply flex items-center justify-between;
+}
+
+.title {
+  @apply w-full text-lg-semibold;
+}
+
+.actions {
+  @apply flex gap-2;
+}
+
+.searchInput {
+  @apply w-40;
+}
+
+.tableContainer {
+  @apply mt-3 flex h-full max-h-fit flex-1 flex-col gap-2 overflow-hidden;
+}
+
+.pagination {
+  @apply mb-0;
+}
+
+.productName {
+  @apply line-clamp-2;
+}
+
+.price {
+  @apply tabular-nums;
+}
+
+.soldButton {
+  @apply tabular-nums transition-colors hover:text-primary hover:underline hover:underline-offset-4;
+}

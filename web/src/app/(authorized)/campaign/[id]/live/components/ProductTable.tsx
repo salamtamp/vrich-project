@@ -14,6 +14,7 @@ import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
 
 import ProductSoldListModal from './ProductSoldListModal';
+import styles from './ProductTable.module.scss';
 
 type ProductTableProps = {
   products: CampaignsProduct[];
@@ -40,7 +41,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         key: 'name',
         label: 'ชื่อสินค้า',
         width: '60%',
-        render: (row) => <span className='line-clamp-2'>{row.product?.name ?? '-'}</span>,
+        render: (row) => <span className={styles.productName}>{row.product?.name ?? '-'}</span>,
         headerAlign: 'left',
         bodyAlign: 'left',
       },
@@ -49,7 +50,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         label: 'ราคา',
         width: 120,
         render: (row) => (
-          <span className='tabular-nums'>{row.product?.selling_price?.toLocaleString() ?? '-'}</span>
+          <span className={styles.price}>{row.product?.selling_price?.toLocaleString() ?? '-'}</span>
         ),
         headerAlign: 'right',
         bodyAlign: 'right',
@@ -60,7 +61,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         width: 140,
         render: (row) => (
           <button
-            className='tabular-nums transition-colors hover:text-primary hover:underline hover:underline-offset-4'
+            className={styles.soldButton}
             type='button'
             onClick={() => {
               open({
@@ -112,16 +113,16 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
   }, [filteredProducts.length, limit]);
 
   return (
-    <div className='flex h-fit max-h-[520px] min-h-[520px] max-w-[680px] flex-col rounded-md border border-gray-200 p-4 shadow-sm'>
-      <div className='flex items-center justify-between'>
-        <p className='w-full text-lg-semibold'>สินค้าในแคมเปญ</p>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <p className={styles.title}>สินค้าในแคมเปญ</p>
 
-        <div className='flex gap-2'>
+        <div className={styles.actions}>
           <Button variant='outline'>
             <Plus /> เพิ่มสินค้า
           </Button>
           <Input
-            className='w-40'
+            className={styles.searchInput}
             placeholder='ค้นหา'
             value={search}
             onChange={(e) => {
@@ -131,14 +132,14 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         </div>
       </div>
 
-      <div className='mt-3 flex h-full max-h-fit flex-1 flex-col gap-2 overflow-hidden'>
+      <div className={styles.tableContainer}>
         <Table<CampaignsProduct>
           columns={columns}
           data={[...paginatedProducts, ...paginatedProducts]}
           isLoading={false}
         />
         <ContentPagination
-          className='mb-0'
+          className={styles.pagination}
           total={filteredProducts.length}
         />
       </div>

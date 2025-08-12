@@ -1,0 +1,32 @@
+.container {
+  @apply flex max-h-[520px] min-h-[520px] flex-1 flex-col overflow-hidden rounded-md border border-gray-200 p-4 shadow-sm;
+}
+
+.tabs {
+  @apply flex w-full items-center justify-start gap-2;
+}
+
+.postInfo {
+  @apply mt-2 flex w-full items-center justify-between gap-2;
+}
+
+.postMessage {
+  font-stretch: condensed;
+  @apply max-w-[220px] truncate;
+}
+
+.actions {
+  @apply flex items-center gap-2;
+}
+
+.feedContainer {
+  @apply flex-1 overflow-hidden pt-2;
+}
+
+.messengerFeedContainer {
+  @apply flex-1 overflow-hidden pt-4;
+}
+
+.noData {
+  @apply p-4 text-sm text-gray-600;
+}

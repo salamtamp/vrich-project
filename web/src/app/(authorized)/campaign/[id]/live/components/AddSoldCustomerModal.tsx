@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import styles from './AddSoldCustomerModal.module.scss';
+
 type ProductOption = { id: string; name: string };
 
 export type AddSoldCustomerPayload = {
@@ -63,11 +65,11 @@ const AddSoldCustomerModal: React.FC<AddSoldCustomerModalProps> = ({
   };
 
   return (
-    <div className='flex w-[820px] flex-col gap-3 p-2'>
-      <div className='grid grid-cols-[1fr_1fr_auto_auto] items-center gap-3'>
-        <div className='text-muted-foreground text-sm'>ชื่อสินค้า</div>
-        <div className='text-muted-foreground text-sm'>ชื่อลูกค้า</div>
-        <div className='text-muted-foreground text-sm'>จำนวน</div>
+    <div className={styles.container}>
+      <div className={styles.grid}>
+        <div className={styles.header}>ชื่อสินค้า</div>
+        <div className={styles.header}>ชื่อลูกค้า</div>
+        <div className={styles.header}>จำนวน</div>
         <div />
         <Controller
           control={control}
@@ -77,7 +79,7 @@ const AddSoldCustomerModal: React.FC<AddSoldCustomerModalProps> = ({
               value={field.value}
               onValueChange={field.onChange}
             >
-              <SelectTrigger className='h-9'>
+              <SelectTrigger className={styles.selectTrigger}>
                 <SelectValue placeholder='เลือกสินค้า' />
               </SelectTrigger>
               <SelectContent>
@@ -99,7 +101,7 @@ const AddSoldCustomerModal: React.FC<AddSoldCustomerModalProps> = ({
           name='customerName'
           render={({ field }) => (
             <Input
-              className='h-9'
+              className={styles.input}
               placeholder='ชื่อลูกค้า'
               {...field}
             />
@@ -111,8 +113,8 @@ const AddSoldCustomerModal: React.FC<AddSoldCustomerModalProps> = ({
           name='quantity'
           render={({ field }) => (
             <Input
-              className='h-9 w-20 text-center'
-              containerClassName='w-fit'
+              className={styles.quantityInput}
+              containerClassName={styles.quantityContainer}
               inputMode='numeric'
               min={1}
               type='number'
@@ -131,7 +133,7 @@ const AddSoldCustomerModal: React.FC<AddSoldCustomerModalProps> = ({
             void handleSubmit(onSubmit)();
           }}
         >
-          <Plus className='size-4' />
+          <Plus className={styles.plusIcon} />
         </Button>
       </div>
     </div>
@@ -139,3 +141,4 @@ const AddSoldCustomerModal: React.FC<AddSoldCustomerModalProps> = ({
 };
 
 export default AddSoldCustomerModal;
+

@@ -12,6 +12,8 @@ import { useTimeline } from '@/hooks/request/useTimeline';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import type { FacebookCommentResponse, FacebookPostResponse } from '@/types/api';
 
+import styles from './LiveMonitor.module.scss';
+
 const LiveMonitor = () => {
   const { open: openModal, close: closeModal } = useModalContext();
   const [post, setPost] = useState<FacebookPostResponse | null>(null);
@@ -71,8 +73,8 @@ const LiveMonitor = () => {
   }, [handleSelectPost, openModal]);
 
   return (
-    <div className='flex max-h-[520px] min-h-[520px] flex-1 flex-col overflow-hidden rounded-md border border-gray-200 p-4 shadow-sm'>
-      <div className='flex w-full items-center justify-start gap-2'>
+    <div className={styles.container}>
+      <div className={styles.tabs}>
         <Button
           aria-pressed={activeTab === 'live'}
           size='sm'
@@ -108,11 +110,11 @@ const LiveMonitor = () => {
 
       {activeTab === 'live' && (
         <>
-          <div className='mt-2 flex w-full items-center justify-between gap-2'>
+          <div className={styles.postInfo}>
             <div>
-              <p className='narrow max-w-[220px] truncate'>{post?.message}</p>
+              <p className={styles.postMessage}>{post?.message}</p>
             </div>
-            <div className='flex items-center gap-2'>
+            <div className={styles.actions}>
               <Button
                 variant='outline'
                 onClick={handleOpenSelectPostModal}
@@ -122,7 +124,7 @@ const LiveMonitor = () => {
               <LiveToggle disabled={!post} />
             </div>
           </div>
-          <div className='flex-1 overflow-hidden pt-2'>
+          <div className={styles.feedContainer}>
             <LiveFeed
               hasNext={hasNext}
               isLoadingMore={isLoading}
@@ -136,7 +138,7 @@ const LiveMonitor = () => {
       )}
 
       {activeTab === 'messenger' && (
-        <div className='flex-1 overflow-hidden pt-4'>
+        <div className={styles.messengerFeedContainer}>
           <LiveFeed
             hasNext={commentHasNext}
             isLoadingMore={commentIsLoading}
@@ -148,7 +150,7 @@ const LiveMonitor = () => {
         </div>
       )}
 
-      {activeTab === 'others' && <div className='p-4 text-sm text-gray-600'>ยังไม่มีข้อมูล</div>}
+      {activeTab === 'others' && <div className={styles.noData}>ยังไม่มีข้อมูล</div>}
     </div>
   );
 };
