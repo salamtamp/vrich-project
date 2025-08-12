@@ -63,16 +63,24 @@ class PaginationBuilder:
         return self
 
     def search(self, search: str | None = None, search_by: str | None = None):
-        if search and search_by and hasattr(self.model, search_by):
-            column = getattr(self.model, search_by)
-            if hasattr(column.type, "python_type") and column.type.python_type is str:
-                search_filter = column.ilike(f"%{search}%")
-                self.query = self.query.filter(search_filter)
-                self.count_query = self.count_query.filter(search_filter)
-            else:
-                search_filter = column == search
-                self.query = self.query.filter(search_filter)
-                self.count_query = self.count_query.filter(search_filter)
+        if search and search_by:
+            search_columns = [c.strip() for c in search_by.split(',')]
+            search_filters = []
+            for col_name in search_columns:
+                if hasattr(self.model, col_name):
+                    column = getattr(self.model, col_name)
+                    if hasattr(column.type, "python_type") and column.type.python_type is str:
+                        search_filters.append(column.ilike(f"%{search}%"))
+                    else:
+                        try:
+                            converted_search = column.type.python_type(search)
+                            search_filters.append(column == converted_search)
+                        except (ValueError, TypeError):
+                            pass
+            
+            if search_filters:
+                self.query = self.query.filter(sa.or_(*search_filters))
+                self.count_query = self.count_query.filter(sa.or_(*search_filters))
         return self
 
     def custom_filter(self, **filters):

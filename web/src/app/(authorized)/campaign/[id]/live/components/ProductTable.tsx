@@ -8,7 +8,7 @@ import ContentPagination from '@/components/content/pagination';
 import type { TableColumn } from '@/components/table';
 import Table from '@/components/table';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import DebouncedSearchInput from '@/components/ui/debounced-search-input';
 import { API } from '@/constants/api.constant';
 import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
@@ -36,6 +36,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ campaignId, search, onSearc
       campaign_id: campaignId,
     },
     requireFields: ['campaign_id'],
+    searchBy: 'name,code',
   });
 
   useEffect(() => {
@@ -104,13 +105,11 @@ const ProductTable: React.FC<ProductTableProps> = ({ campaignId, search, onSearc
           <Button variant='outline'>
             <Plus /> เพิ่มสินค้า
           </Button>
-          <Input
+          <DebouncedSearchInput
             className={styles.searchInput}
             placeholder='ค้นหา'
             value={search}
-            onChange={(e) => {
-              onSearchChange(e.target.value);
-            }}
+            onChange={onSearchChange}
           />
         </div>
       </div>
