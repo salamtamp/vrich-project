@@ -13,10 +13,13 @@ import {
   Users,
 } from 'lucide-react';
 
+import { CampaignWidgetKey } from '@/constants/campaign-widgets.constant';
+
 export type CampaignWidget = {
   id: string;
   icon: React.ComponentType<{ className?: string }>;
-  name: string;
+  label: string;
+  key: CampaignWidgetKey;
   start: number;
   end: number;
   duration: number;
@@ -30,7 +33,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: ShoppingCart,
-    name: 'จำนวนออเดอร์ทั้งหมด',
+    label: 'จำนวนออเดอร์ทั้งหมด',
+    key: CampaignWidgetKey.TOTAL_ORDERS,
     start: 0,
     end: 1445,
     duration: 1,
@@ -40,7 +44,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: PlusCircle,
-    name: 'จำนวนออเดอร์ใหม่',
+    label: 'จำนวนออเดอร์ใหม่',
+    key: CampaignWidgetKey.NEW_ORDERS,
     start: 0,
     end: 100,
     duration: 1,
@@ -50,7 +55,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: Clock,
-    name: 'รอการชำระเงิน',
+    label: 'รอการชำระเงิน',
+    key: CampaignWidgetKey.PENDING_PAYMENT,
     start: 0,
     end: 845,
     duration: 1,
@@ -60,7 +66,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: CheckCircle2,
-    name: 'ชำระเงินแล้ว',
+    label: 'ชำระเงินแล้ว',
+    key: CampaignWidgetKey.PAID_ORDERS,
     start: 0,
     end: 500,
     duration: 1,
@@ -70,7 +77,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: DollarSign,
-    name: 'ยอดขาย',
+    label: 'ยอดขาย',
+    key: CampaignWidgetKey.SALES,
     start: 0,
     end: 1245,
     duration: 1,
@@ -81,7 +89,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: Users,
-    name: 'จำนวนคนที่มีส่วนร่วม',
+    label: 'จำนวนคนที่มีส่วนร่วม',
+    key: CampaignWidgetKey.ENGAGED_USERS,
     start: 0,
     end: 150,
     duration: 1,
@@ -91,7 +100,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: Inbox,
-    name: 'จำนวนคนที่ยังไม่ได้ทัก Inbox',
+    label: 'จำนวนคนที่ยังไม่ได้ทัก Inbox',
+    key: CampaignWidgetKey.UNCONTACTED_INBOX_USERS,
     start: 0,
     end: 24,
     duration: 1,
@@ -101,7 +111,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: UserCheck,
-    name: 'จำนวนคนที่สั่งซื้อ',
+    label: 'จำนวนคนที่สั่งซื้อ',
+    key: CampaignWidgetKey.CUSTOMERS_WHO_ORDERED,
     start: 0,
     end: 95,
     duration: 1,
@@ -111,7 +122,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: UserPlus,
-    name: 'จำนวนลูกค้าใหม่',
+    label: 'จำนวนลูกค้าใหม่',
+    key: CampaignWidgetKey.NEW_CUSTOMERS,
     start: 0,
     end: 9,
     duration: 1,
@@ -121,7 +133,8 @@ export const campaignWidgetsData: CampaignWidget[] = [
   {
     id: crypto.randomUUID(),
     icon: UserMinus,
-    name: 'จำนวนลูกค้าเก่า',
+    label: 'จำนวนลูกค้าเก่า',
+    key: CampaignWidgetKey.OLD_CUSTOMERS,
     start: 0,
     end: 86,
     duration: 1,

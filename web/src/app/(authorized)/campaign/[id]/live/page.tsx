@@ -103,7 +103,7 @@ const CampaignLivePage = () => {
       </div>
 
       <div className={styles.mainContent}>
-        <KpiGrid className={styles.kpiGrid} />
+        <KpiGrid campaignId={campaignId} className={styles.kpiGrid} />
         <div className={styles.sectionsGrid}>
           <ProductTable
             products={products}

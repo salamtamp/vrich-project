@@ -22,7 +22,7 @@ import type { Order, OrderStatus } from '@/types/api/order';
 import { ORDER_PROCESS_STATUSES, ORDER_STATUSES } from '@/types/api/order';
 
 const getOrderRowId = (row: Order) => String(row.id);
-type OrderTabProps = { campaignId: string };
+type OrderTabProps = { campaignId: string; isModal?: boolean };
 
 const StatusLegend = () => (
   <div className='mb-4 rounded-lg border bg-white p-4'>
@@ -47,7 +47,7 @@ const StatusLegend = () => (
   </div>
 );
 
-const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
+const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal }) => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   const {
@@ -283,7 +283,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
 
   return (
     <div className='flex size-full flex-col gap-1 overflow-hidden'>
-      <StatusLegend />
+      {!isModal && <StatusLegend />}
       <div className='mb-2 flex items-center justify-between gap-4'>
         <div className='flex items-center gap-4'>
           <Select
