@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import useModalContext from '@/hooks/useContext/useModalContext';
-import type { CampaignsProduct } from '@/types/api/campaigns_products';
+import type { Product } from '@/types/api/product';
 
 import AddSoldCustomerModal from './AddSoldCustomerModal';
 
 import styles from './ProductSoldListModal.module.scss';
 
 type ProductSoldListModalProps = {
-  campaignProduct: CampaignsProduct;
+  product: Product;
 };
 
 type CustomerOrderItem = {
@@ -25,7 +25,7 @@ type CustomerOrderItem = {
   quantity: number;
 };
 
-const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignProduct }) => {
+const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ product }) => {
   const [search, setSearch] = useState('');
   const [rows, setRows] = useState<CustomerOrderItem[]>(() => [
     { id: crypto.randomUUID(), name: 'Khun Kate', quantity: 2 },
@@ -37,9 +37,9 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftQty, setDraftQty] = useState<number>(0);
 
-  const productName = campaignProduct.product?.name ?? '-';
-  const productPrice = campaignProduct.product?.selling_price ?? 0;
-  const quantity = campaignProduct.quantity ?? 0;
+  const productName = product?.name ?? '-';
+  const productPrice = product?.selling_price ?? 0;
+  const quantity = product.quantity ?? 0;
   const { open, close } = useModalContext();
 
   const handleStartEdit = useCallback((row: CustomerOrderItem) => {
@@ -162,10 +162,8 @@ const ProductSoldListModal: React.FC<ProductSoldListModalProps> = ({ campaignPro
         <div className={styles.actions}>
           <Button
             onClick={() => {
-              const opts = [
-                { id: campaignProduct.product?.id ?? 'unknown', name: campaignProduct.product?.name ?? '-' },
-              ];
-              const defaultId = campaignProduct.product?.id ?? null;
+              const opts = [{ id: product?.id ?? 'unknown', name: product?.name ?? '-' }];
+              const defaultId = product?.id ?? null;
               open({
                 content: (
                   <AddSoldCustomerModal

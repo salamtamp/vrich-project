@@ -9,32 +9,49 @@ import type { TableColumn } from '@/components/table';
 import Table from '@/components/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { API } from '@/constants/api.constant';
+import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
-import type { CampaignsProduct } from '@/types/api/campaigns_products';
+import type { PaginationResponse } from '@/types/api/api-response';
+import type { Product } from '@/types/api/product';
 
 import ProductSoldListModal from './ProductSoldListModal';
 
 import styles from './ProductTable.module.scss';
 
 type ProductTableProps = {
-  products: CampaignsProduct[];
+  campaignId: string;
   search: string;
   onSearchChange: (value: string) => void;
 };
 
-const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchChange }) => {
-  const { pagination, update } = usePaginationContext();
-  const { limit, offset, page } = pagination;
+const ProductTable: React.FC<ProductTableProps> = ({ campaignId, search, onSearchChange }) => {
   const { open } = useModalContext();
+  const { update: updatePagination } = usePaginationContext();
 
-  const columns: TableColumn<CampaignsProduct>[] = useMemo(
+  const { data: productData, isLoading } = usePaginatedRequest<PaginationResponse<Product>>({
+    url: API.PRODUCTS,
+    additionalParams: {
+      campaign_id: campaignId,
+    },
+    requireFields: ['campaign_id'],
+  });
+
+  useEffect(() => {
+    updatePagination({ search });
+  }, [search, updatePagination]);
+
+  const products = productData?.docs ?? [];
+  const total = productData?.total ?? 0;
+
+  const columns: TableColumn<Product>[] = useMemo(
     () => [
       {
         key: 'code',
         label: 'รหัส',
         width: 100,
-        render: (row) => row.product?.code ?? '-',
+        render: (row) => row?.code ?? '-',
         headerAlign: 'left',
         bodyAlign: 'left',
       },
@@ -42,7 +59,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         key: 'name',
         label: 'ชื่อสินค้า',
         width: '60%',
-        render: (row) => <span className={styles.productName}>{row.product?.name ?? '-'}</span>,
+        render: (row) => <span className={styles.productName}>{row?.name ?? '-'}</span>,
         headerAlign: 'left',
         bodyAlign: 'left',
       },
@@ -50,9 +67,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
         key: 'price',
         label: 'ราคา',
         width: 120,
-        render: (row) => (
-          <span className={styles.price}>{row.product?.selling_price?.toLocaleString() ?? '-'}</span>
-        ),
+        render: (row) => <span className={styles.price}>{row?.selling_price?.toLocaleString() ?? '-'}</span>,
         headerAlign: 'right',
         bodyAlign: 'right',
       },
@@ -66,7 +81,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
             type='button'
             onClick={() => {
               open({
-                content: <ProductSoldListModal campaignProduct={row} />,
+                content: <ProductSoldListModal product={row} />,
               });
             }}
           >
@@ -79,39 +94,6 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
     ],
     [open]
   );
-
-  const filteredProducts = useMemo(() => {
-    if (!search.trim()) {
-      return products;
-    }
-    const s = search.toLowerCase();
-    return products.filter(
-      (cp) =>
-        (cp.product?.name ?? '').toLowerCase().includes(s) ||
-        (cp.product?.code ?? '').toLowerCase().includes(s)
-    );
-  }, [products, search]);
-
-  const paginatedProducts = useMemo(() => {
-    return filteredProducts.slice(offset, offset + limit);
-  }, [filteredProducts, offset, limit]);
-
-  useEffect(() => {
-    update({ page: 1 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
-
-  useEffect(() => {
-    const totalPages = Math.ceil(filteredProducts.length / limit);
-    if (totalPages === 0 && page !== 1) {
-      update({ page: 1 });
-      return;
-    }
-    if (totalPages > 0 && page > totalPages) {
-      update({ page: totalPages });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredProducts.length, limit]);
 
   return (
     <div className={styles.container}>
@@ -134,14 +116,14 @@ const ProductTable: React.FC<ProductTableProps> = ({ products, search, onSearchC
       </div>
 
       <div className={styles.tableContainer}>
-        <Table<CampaignsProduct>
+        <Table<Product>
           columns={columns}
-          data={[...paginatedProducts, ...paginatedProducts]}
-          isLoading={false}
+          data={products}
+          isLoading={isLoading}
         />
         <ContentPagination
           className={styles.pagination}
-          total={filteredProducts.length}
+          total={total}
         />
       </div>
     </div>

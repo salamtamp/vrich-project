@@ -16,7 +16,7 @@ import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useRequest from '@/hooks/request/useRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import dayjs from '@/lib/dayjs';
-import { formatDateToBangkok } from '@/lib/utils';
+import { cn, formatDateToBangkok } from '@/lib/utils';
 import type { PaginationResponse } from '@/types/api/api-response';
 import type { Order, OrderStatus } from '@/types/api/order';
 import { ORDER_PROCESS_STATUSES, ORDER_STATUSES } from '@/types/api/order';
@@ -284,7 +284,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal, orderStatus })
   return (
     <div className='flex size-full flex-col gap-1 overflow-hidden'>
       {!isModal && <StatusLegend />}
-      <div className='mb-2 flex items-center justify-between gap-4'>
+      <div className={cn('mb-2 flex items-center justify-between gap-4', isModal && 'pt-4')}>
         <div className='flex items-center gap-4'>
           <Select
             value={selectedStatus}
@@ -327,7 +327,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal, orderStatus })
         !hindButton &&
         nextStatus &&
         selectedOrderIds.length !== 0 ? (
-          <div className='mb-2 flex justify-end'>
+          <div className='flex justify-end'>
             <Button
               className={STATUS_COLORS[getNextOrderStatus(nextStatus) ?? '']}
               variant='outline'
@@ -339,7 +339,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal, orderStatus })
           </div>
         ) : null}
       </div>
-      <div className='flex-1 overflow-scroll'>
+      <div className='mt-2 flex-1 overflow-scroll'>
         <Table
           bodyRowProps={{ className: 'bg-white hover:bg-gray-50' }}
           columns={orderColumns}
@@ -348,8 +348,8 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId, isModal, orderStatus })
           isLoading={orderLoading || isBatchUpdating}
           rowIdKey='id'
           selectedRowIds={selectedOrderIds}
-          onSelectAll={selectedStatus !== 'All' ? handleSelectAll : undefined}
-          onSelectRow={selectedStatus !== 'All' ? handleSelectRow : undefined}
+          onSelectAll={selectedStatus !== 'All' && !hindButton ? handleSelectAll : undefined}
+          onSelectRow={selectedStatus !== 'All' && !hindButton ? handleSelectRow : undefined}
         />
       </div>
       <ContentPagination total={orderData?.total ?? 0} />

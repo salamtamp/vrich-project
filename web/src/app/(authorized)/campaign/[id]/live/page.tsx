@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useParams } from 'next/navigation';
 
@@ -23,7 +23,7 @@ const CampaignLivePage = () => {
   const campaignId = params.id as string;
 
   const {
-    data: campaignData,
+    data: campaign,
     isLoading,
     handleRequest,
   } = useRequest<Campaign>({
@@ -32,11 +32,7 @@ const CampaignLivePage = () => {
     },
   });
 
-  const campaign = useMemo(() => campaignData, [campaignData]);
-
   const [search, setSearch] = useState('');
-
-  const products = useMemo(() => campaign?.campaigns_products ?? [], [campaign?.campaigns_products]);
 
   const handleGoBack = () => {
     window.history.back();
@@ -98,7 +94,7 @@ const CampaignLivePage = () => {
             <ArrowLeft className={styles.backIcon} />
             Back
           </Button>
-          <CardTitle className={styles.title}>{campaignData?.name}</CardTitle>
+          <CardTitle className={styles.title}>{campaign?.name}</CardTitle>
         </div>
       </div>
 
@@ -109,7 +105,7 @@ const CampaignLivePage = () => {
         />
         <div className={styles.sectionsGrid}>
           <ProductTable
-            products={products}
+            campaignId={campaignId}
             search={search}
             onSearchChange={setSearch}
           />

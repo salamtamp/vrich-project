@@ -7,7 +7,6 @@ from fastapi import (
     Form,
     HTTPException,
     Request,
-    Response,
     UploadFile,
     status,
 )
@@ -19,6 +18,7 @@ from app.api.dependencies.pagination import (
     PaginationResponse,
     get_pagination_params,
 )
+from app.db.models.campaigns_products import CampaignProduct as CampaignProductModel
 from app.db.models.products import Product as ProductModel
 from app.db.repositories.products.repo import product_repo
 from app.db.session import get_db
@@ -38,8 +38,15 @@ router = APIRouter()
 def list_products(
     db: Session = Depends(get_db),
     pagination: PaginationParams = Depends(get_pagination_params),
+    campaign_id: UUID | None = None,
 ) -> PaginationResponse[Product]:
     builder = PaginationBuilder(ProductModel, db)
+
+    if campaign_id:
+        builder.query = builder.query.join(
+            CampaignProductModel, ProductModel.id == CampaignProductModel.product_id
+        ).filter(CampaignProductModel.campaign_id == campaign_id)
+
     return (
         builder.filter_deleted()
         .date_range(pagination.since, pagination.until)
@@ -97,11 +104,11 @@ async def upload_excel_products(
     request: Request,
 ) -> ExcelUploadResponse:
     """Upload products from Excel file."""
-    
+
     # Backend debugging
     import logging
     logger = logging.getLogger(__name__)
-    
+
     logger.info("=== BACKEND DEBUG START ===")
     logger.info(f"Received file: {file}")
     logger.info(f"File filename: {file.filename}")
@@ -109,12 +116,12 @@ async def upload_excel_products(
     logger.info(f"File size: {file.size if hasattr(file, 'size') else 'unknown'}")
     logger.info(f"Skip rows: {skip_rows}")
     logger.info(f"Batch size: {batch_size}")
-    
+
     # Log request details
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request URL: {request.url}")
     logger.info("=== BACKEND DEBUG END ===")
-    
+
     if not file.filename or not file.filename.lower().endswith((".xlsx", ".xls")):
         raise HTTPException(
             status_code=400, detail="File must be an Excel file (.xlsx or .xls)"
@@ -130,7 +137,7 @@ async def upload_excel_products(
         )
 
         result = product_excel_service.process_excel_upload(db, file_content, config)
-        
+
         # If there are any failed imports, return 400 status code
         if result.failed_imports > 0:
             from fastapi.responses import JSONResponse
@@ -138,7 +145,7 @@ async def upload_excel_products(
                 status_code=400,
                 content=result.model_dump()
             )
-        
+
         return result
     except ValueError as e:
         logger.error(f"ValueError in upload: {e}")
