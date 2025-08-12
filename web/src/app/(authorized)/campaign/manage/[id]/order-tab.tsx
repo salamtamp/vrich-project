@@ -197,95 +197,7 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
         });
       },
     },
-    {
-      key: 'payment_date',
-      label: 'วัน-เวลาที่โอน',
-      align: 'center',
-      width: 120,
-      render: (row) => {
-        const payment = row.payments?.[0];
-        const paymentDate = payment?.payment_date;
 
-        if (!paymentDate) {
-          return '-';
-        }
-
-        return formatDateToBangkok(paymentDate);
-      },
-    },
-    {
-      key: 'purchase_date',
-      label: 'วัน-เวลาที่คอนเฟิร์ม',
-      align: 'center',
-      width: 120,
-      render: (row) => formatDateToBangkok(row.purchase_date),
-    },
-    {
-      key: 'verify_status',
-      label: 'สถานะการตรวจสอบ',
-      align: 'center',
-      width: 120,
-      render: (row) => {
-        const total_selling_price =
-          row.orders_products?.reduce((sum, op) => {
-            const price = op.campaign_product?.product?.selling_price ?? 0;
-            return sum + price * (op.quantity ?? 1);
-          }, 0) ?? 0;
-        const total_payment = row.payments?.reduce((sum, payment) => sum + (payment.amount ?? 0), 0) ?? 0;
-
-        if (total_payment === 0) {
-          return '-';
-        }
-
-        const isAmountMatch = Math.abs(total_selling_price - total_payment) < 0.01; // Using small epsilon for floating point comparison
-
-        // Check payment date validation
-        const payment = row.payments?.[0];
-        const paymentDate = payment?.payment_date;
-        const purchaseDate = row.purchase_date;
-        const paymentSlip = payment?.payment_slip;
-
-        let isDateValid = true;
-        if (paymentDate && purchaseDate) {
-          const paymentTime = dayjs(paymentDate);
-          const purchaseTime = dayjs(purchaseDate);
-
-          // Check if payment date is less than purchase date and not more than 15 minutes apart
-          const timeDiffMinutes = purchaseTime.diff(paymentTime, 'minute');
-          isDateValid = timeDiffMinutes >= 0 && timeDiffMinutes <= 15;
-        }
-
-        // Both amount and date must be valid
-        const isAllValid = isAmountMatch && isDateValid;
-
-        return (
-          <button
-            className={`${isAllValid ? 'border-green-200 bg-green-100 text-green-800' : 'border-red-200 bg-red-100 text-red-800'} rounded-full px-2 py-1 text-xs font-medium ${paymentSlip ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
-            disabled={!paymentSlip}
-            onClick={() => {
-              if (paymentSlip) {
-                modal.open({
-                  content: (
-                    <div className='flex flex-col items-center gap-4 p-6'>
-                      <div className='flex w-full justify-center'>
-                        <img
-                          alt='Payment Slip'
-                          className='max-h-[500px] max-w-full rounded-lg border border-gray-200 shadow-sm'
-                          src={paymentSlip}
-                        />
-                      </div>
-                    </div>
-                  ),
-                  className: 'bg-white',
-                });
-              }
-            }}
-          >
-            {isAllValid ? 'เช็คยอดแล้ว' : isAmountMatch ? 'วัน-เวลา ไม่ตรง' : 'ยอดไม่ตรง'}
-          </button>
-        );
-      },
-    },
     {
       key: 'shipping_date',
       label: 'เลขพัสดุ',
@@ -293,16 +205,10 @@ const OrderTab: React.FC<OrderTabProps> = ({ campaignId }) => {
       width: 120,
       render: (row) => formatDateToBangkok(row.shipping_date),
     },
-    {
-      key: 'delivery_date',
-      label: 'วัน-เวลาที่ส่งสินค้า',
-      align: 'center',
-      width: 120,
-      render: (row) => formatDateToBangkok(row.delivery_date),
-    },
+
     {
       key: 'status',
-      label: 'สถานะของคำสั่งซื้อ',
+      label: 'สถานะ',
       align: 'center',
       width: 120,
       render: (row) => (
