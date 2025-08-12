@@ -141,4 +141,3 @@ const AddSoldCustomerModal: React.FC<AddSoldCustomerModalProps> = ({
 };
 
 export default AddSoldCustomerModal;
-

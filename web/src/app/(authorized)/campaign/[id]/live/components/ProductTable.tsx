@@ -14,6 +14,7 @@ import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
 
 import ProductSoldListModal from './ProductSoldListModal';
+
 import styles from './ProductTable.module.scss';
 
 type ProductTableProps = {

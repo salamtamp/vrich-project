@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+
 type LiveToggleProps = {
   initialState?: boolean;
   onToggle?: (isLive: boolean) => void;
@@ -17,45 +20,20 @@ export const LiveToggle = ({ initialState = false, onToggle, disabled = false }:
   };
 
   return (
-    <button
-      className={`relative h-10 w-20 transform cursor-pointer rounded-xl transition-all duration-300 ease-in-out ${
-        disabled ? 'cursor-not-allowed opacity-50' : ''
-      } ${isLive ? 'bg-green-500' : 'bg-red-600'} shadow-lg`}
-      onClick={() => {
-        if (!disabled) {
-          handleToggle(!isLive);
-        }
-      }}
-    >
-      {/* Left section (LIVE) */}
-      <div
-        className={`absolute left-0 top-0 h-full rounded-l-xl transition-all duration-300 ${
-          isLive ? 'w-[90%] bg-green-500' : 'w-[10%] bg-gray-300'
-        }`}
+    <div className='flex items-center space-x-2'>
+      <Switch
+        checked={isLive}
+        disabled={disabled}
+        id='live-mode'
+        onCheckedChange={handleToggle}
+      />
+      <Label
+        className={`flex items-center space-x-1 ${isLive ? 'text-green-500' : 'text-red-500'}`}
+        htmlFor='live-mode'
       >
-        <span
-          className={`absolute inset-0 flex select-none items-center justify-center font-bold transition-colors duration-300 ${
-            isLive ? 'text-lg text-white' : 'text-sm text-gray-500'
-          }`}
-        >
-          {isLive ? 'LIVE' : null}
-        </span>
-      </div>
-
-      {/* Right section (OFF) */}
-      <div
-        className={`absolute right-0 top-0 h-full rounded-r-xl transition-all duration-300 ${
-          !isLive ? 'w-[90%] bg-red-600' : 'w-[10%] bg-gray-300'
-        }`}
-      >
-        <span
-          className={`absolute inset-0 flex select-none items-center justify-center font-bold transition-colors duration-300 ${
-            !isLive ? 'text-lg text-white' : 'text-sm text-gray-500'
-          }`}
-        >
-          {!isLive && 'OFF'}
-        </span>
-      </div>
-    </button>
+        <span className={`size-2 rounded-full ${isLive ? 'bg-green-500' : 'bg-red-500'}`} />
+        <span>{isLive ? 'Live' : 'Off'}</span>
+      </Label>
+    </div>
   );
 };

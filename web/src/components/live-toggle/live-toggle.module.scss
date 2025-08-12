@@ -1,0 +1,19 @@
+.labelContainer {
+  @apply flex items-center space-x-1;
+}
+
+.liveText {
+  @apply text-green-500;
+}
+
+.offText {
+  @apply text-red-500;
+}
+
+.liveDot {
+  @apply size-2 rounded-full bg-green-500;
+}
+
+.offDot {
+  @apply size-2 rounded-full bg-red-500;
+}

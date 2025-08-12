@@ -12,6 +12,7 @@ import useModalContext from '@/hooks/useContext/useModalContext';
 import type { CampaignsProduct } from '@/types/api/campaigns_products';
 
 import AddSoldCustomerModal from './AddSoldCustomerModal';
+
 import styles from './ProductSoldListModal.module.scss';
 
 type ProductSoldListModalProps = {
