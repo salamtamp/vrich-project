@@ -14,23 +14,29 @@ import usePaginatedRequest from '@/hooks/request/usePaginatedRequest';
 import useModalContext from '@/hooks/useContext/useModalContext';
 import usePaginationContext from '@/hooks/useContext/usePaginationContext';
 import type { PaginationResponse } from '@/types/api/api-response';
+import type { Campaign } from '@/types/api/campaign';
 import type { Product } from '@/types/api/product';
 
+import AddProductToCampaignModal from './AddProductToCampaignModal';
 import ProductSoldListModal from './ProductSoldListModal';
 
 import styles from './ProductTable.module.scss';
-
 type ProductTableProps = {
+  campaign: Campaign | null;
   campaignId: string;
   search: string;
   onSearchChange: (value: string) => void;
 };
 
-const ProductTable: React.FC<ProductTableProps> = ({ campaignId, search, onSearchChange }) => {
-  const { open } = useModalContext();
+const ProductTable: React.FC<ProductTableProps> = ({ campaign, campaignId, search, onSearchChange }) => {
+  const { open, close } = useModalContext();
   const { update: updatePagination } = usePaginationContext();
 
-  const { data: productData, isLoading } = usePaginatedRequest<PaginationResponse<Product>>({
+  const {
+    data: productData,
+    isLoading,
+    handleRequest: refetchProducts,
+  } = usePaginatedRequest<PaginationResponse<Product>>({
     url: API.PRODUCTS,
     additionalParams: {
       campaign_id: campaignId,
@@ -45,6 +51,21 @@ const ProductTable: React.FC<ProductTableProps> = ({ campaignId, search, onSearc
 
   const products = productData?.docs ?? [];
   const total = productData?.total ?? 0;
+
+  const handleAddProductClick = () => {
+    open({
+      content: (
+        <AddProductToCampaignModal
+          campaign={campaign}
+          onClose={close}
+          onSuccess={() => {
+            void refetchProducts();
+            close();
+          }}
+        />
+      ),
+    });
+  };
 
   const columns: TableColumn<Product>[] = useMemo(
     () => [
@@ -102,7 +123,10 @@ const ProductTable: React.FC<ProductTableProps> = ({ campaignId, search, onSearc
         <p className={styles.title}>สินค้าในแคมเปญ</p>
 
         <div className={styles.actions}>
-          <Button variant='outline'>
+          <Button
+            variant='outline'
+            onClick={handleAddProductClick}
+          >
             <Plus /> เพิ่มสินค้า
           </Button>
           <DebouncedSearchInput

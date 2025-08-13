@@ -105,6 +105,7 @@ const CampaignLivePage = () => {
         />
         <div className={styles.sectionsGrid}>
           <ProductTable
+            campaign={campaign}
             campaignId={campaignId}
             search={search}
             onSearchChange={setSearch}

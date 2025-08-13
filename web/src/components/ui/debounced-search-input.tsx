@@ -16,15 +16,15 @@ const DebouncedSearchInput: React.FC<DebouncedSearchInputProps> = ({
   debounce = 500,
   ...props
 }) => {
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState(initialValue ?? '');
 
   useEffect(() => {
-    setValue(initialValue);
+    setValue(initialValue ?? '');
   }, [initialValue]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (value !== initialValue) {
+      if (value !== (initialValue ?? '')) {
         onChange(value);
       }
     }, debounce);
